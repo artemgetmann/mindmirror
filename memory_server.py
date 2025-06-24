@@ -11,6 +11,7 @@ from typing import List, Optional
 import json
 import os
 import hashlib
+from datetime import datetime, timedelta
 
 app = FastAPI(title="Memory System v0")
 
@@ -46,10 +47,17 @@ VALID_TAGS = [
     "habit", "project", "tool", "identity", "value"
 ]
 
+# Constants for pruning logic
+ARCHIVE_AGE_DAYS = 90  # Archive memories older than 90 days
+ACCESS_THRESHOLD_DAYS = 30  # Archive if not accessed in last 30 days
+CORE_TAGS = ["identity", "value"]  # Never prune these core memories
+SIMILARITY_THRESHOLD = 0.65  # Threshold for conflict detection
+
 class MemoryItem(BaseModel):
     text: str
     tag: str
     timestamp: Optional[str] = None
+    last_accessed: Optional[str] = None
 
 class MemoryResponse(BaseModel):
     id: str
@@ -57,6 +65,7 @@ class MemoryResponse(BaseModel):
     tag: str
     timestamp: str
     similarity: Optional[float] = None
+    last_accessed: Optional[str] = None
 
 class SearchRequest(BaseModel):
     query: str
@@ -100,15 +109,77 @@ async def store_memory(memory: MemoryItem):
     # Create unique ID
     memory_id = f"mem_{int(datetime.utcnow().timestamp() * 1000)}"
     
+    # Check for conflicts with existing memories (same tag, high similarity)
+    conflicts = []
+    SIMILARITY_THRESHOLD = 0.65  # Lowered threshold for potential conflicts - was 0.8 initially
+    print(f"Checking for conflicts with similarity threshold {SIMILARITY_THRESHOLD}...")
+    
+    # Search for memories with same tag
+    if collection.count() > 0:  # Skip conflict check for first memory
+        # Use embedding to search for similar memories with same tag
+        similar_results = collection.query(
+            query_embeddings=[embedding],
+            n_results=5,  # Check top 5 similar memories
+            where={"tag": memory.tag}
+        )
+        
+        # Check if any meets similarity threshold
+        if similar_results['distances'] and similar_results['distances'][0]:
+            for i, distance in enumerate(similar_results['distances'][0]):
+                # Convert distance to similarity (0-1 range)
+                similarity = max(0, 1 - (distance / 2))
+                conflict_id = similar_results['ids'][0][i]
+                conflict_text = similar_results['documents'][0][i]
+                print(f"Similarity with '{conflict_text}': {similarity:.4f}")
+                
+                if similarity >= SIMILARITY_THRESHOLD:
+                    print(f"CONFLICT DETECTED: {conflict_id} (similarity: {similarity:.4f})")
+                    conflicts.append(conflict_id)
+    
+    # Set last_accessed timestamp
+    current_time = datetime.utcnow().isoformat() + "Z"
+    last_accessed = memory.last_accessed or current_time
+    
+    # Prepare metadata with conflict info if any
+    metadata = {
+        "tag": memory.tag,
+        "timestamp": memory.timestamp,
+        "hash": memory_hash,  # Store hash for future reference
+        "last_accessed": last_accessed
+    }
+    
+    # Add conflict flags and IDs if conflicts exist
+    if conflicts:
+        metadata["has_conflicts"] = True
+        metadata["conflict_ids"] = json.dumps(conflicts)
+        
+        # Update the conflicting memories to point back to this one
+        for conflict_id in conflicts:
+            # Get existing metadata for the conflict
+            conflict_result = collection.get(ids=[conflict_id])
+            if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
+                conflict_metadata = conflict_result['metadatas'][0]
+                
+                # Update conflict info
+                conflict_metadata["has_conflicts"] = True
+                
+                # Add this memory ID to the conflict's list of conflicts
+                if "conflict_ids" in conflict_metadata:
+                    existing_conflicts = json.loads(conflict_metadata["conflict_ids"])
+                    if memory_id not in existing_conflicts:
+                        existing_conflicts.append(memory_id)
+                        conflict_metadata["conflict_ids"] = json.dumps(existing_conflicts)
+                else:
+                    conflict_metadata["conflict_ids"] = json.dumps([memory_id])
+                
+                # Update the conflict's metadata
+                collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+    
     # Store in Chroma
     collection.add(
         embeddings=[embedding],
         documents=[memory.text],
-        metadatas=[{
-            "tag": memory.tag,
-            "timestamp": memory.timestamp,
-            "hash": memory_hash  # Store hash for future reference
-        }],
+        metadatas=[metadata],
         ids=[memory_id]
     )
     
@@ -146,25 +217,118 @@ async def search_memories(request: SearchRequest):
     
     # Format response
     memories = []
+    conflict_sets = {}
+    
     if results['documents'] and results['documents'][0]:
+        # First pass - create all memories
         for i, doc in enumerate(results['documents'][0]):
+            metadata = results['metadatas'][0][i]
+            memory_id = results['ids'][0][i]
+            
+            # Update last_accessed timestamp
+            current_time = datetime.utcnow().isoformat() + "Z"
+            metadata["last_accessed"] = current_time
+            collection.update(ids=[memory_id], metadatas=[metadata])
+            
             memory = MemoryResponse(
-                id=results['ids'][0][i],
+                id=memory_id,
                 text=doc,
-                tag=results['metadatas'][0][i]['tag'],
-                timestamp=results['metadatas'][0][i]['timestamp'],
+                tag=metadata['tag'],
+                timestamp=metadata['timestamp'],
+                last_accessed=current_time,
                 # Fix similarity calculation (cosine_distance → cosine_similarity):
                 # distance is [0-2] where 0 is identical, 2 is opposite
                 # normalize to proper similarity score in [0-1] range where 1 is identical
                 similarity=max(0, 1 - (results['distances'][0][i] / 2))
             )
             memories.append(memory)
+            
+            # Check for conflicts and build conflict sets
+            if "has_conflicts" in metadata and metadata["has_conflicts"]:
+                # This memory has conflicts, retrieve the conflict IDs
+                conflict_ids = json.loads(metadata.get("conflict_ids", "[]"))
+                
+                # Create or update conflict set for this memory
+                if memory_id not in conflict_sets:
+                    conflict_sets[memory_id] = [dict(memory)]
+                
+                # Fetch and add conflicting memories if not already in results
+                for conflict_id in conflict_ids:
+                    if conflict_id not in [m.id for m in memories]:
+                        conflict_result = collection.get(ids=[conflict_id])
+                        if conflict_result['documents'] and conflict_result['documents'][0]:
+                            conflict_metadata = conflict_result['metadatas'][0]
+                            
+                            conflict_memory = MemoryResponse(
+                                id=conflict_id,
+                                text=conflict_result['documents'][0],
+                                tag=conflict_metadata['tag'],
+                                timestamp=conflict_metadata['timestamp'],
+                                last_accessed=conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
+                            )
+                            
+                            # Add to conflict set
+                            conflict_sets[memory_id].append(dict(conflict_memory))
     
-    return {
+    # Build final response
+    response = {
         "query": request.query,
         "results": memories,
         "count": len(memories)
     }
+    
+    # Debug: print conflict detection information
+    print(f"\nDEBUG: Found {len(results['ids'])} results total")
+    print(f"DEBUG: Built {len(memories)} memory responses")
+    print(f"DEBUG: Identified {len(conflict_sets)} conflict sets")
+    
+    # Add conflict sets if any exist
+    if conflict_sets:
+        print(f"DEBUG: Adding conflict sets to response: {conflict_sets}")
+        response["conflict_sets"] = conflict_sets
+    else:
+        # Manually check for conflicts among the returned results
+        print("DEBUG: No conflict sets detected, performing manual conflict check")
+        manual_conflict_sets = {}
+        
+        # Check each memory for conflicts
+        for memory in memories:
+            memory_id = memory['id']
+            metadata_result = collection.get(ids=[memory_id])
+            
+            if metadata_result['metadatas'] and len(metadata_result['metadatas']) > 0:
+                metadata = metadata_result['metadatas'][0]
+                
+                if metadata.get('has_conflicts', False) and 'conflict_ids' in metadata:
+                    conflict_ids = json.loads(metadata['conflict_ids'])
+                    print(f"DEBUG: Memory {memory_id} has conflicts with: {conflict_ids}")
+                    
+                    # Create conflict set
+                    if memory_id not in manual_conflict_sets:
+                        manual_conflict_sets[memory_id] = [memory]
+                    
+                    # Add conflicting memories
+                    for conflict_id in conflict_ids:
+                        conflict_result = collection.get(ids=[conflict_id])
+                        if conflict_result['documents'] and conflict_result['documents'][0]:
+                            conflict_metadata = conflict_result['metadatas'][0]
+                            
+                            conflict_memory = {
+                                "id": conflict_id,
+                                "text": conflict_result['documents'][0],
+                                "tag": conflict_metadata['tag'],
+                                "timestamp": conflict_metadata['timestamp'],
+                                "last_accessed": conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
+                            }
+                            
+                            manual_conflict_sets[memory_id].append(conflict_memory)
+        
+        # Add manual conflict sets to response
+        if manual_conflict_sets:
+            print(f"DEBUG: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
+            response["conflict_sets"] = manual_conflict_sets
+    
+    return response
 
 @app.get("/memories/{memory_id}")
 async def get_memory(memory_id: str):
@@ -175,12 +339,47 @@ async def get_memory(memory_id: str):
     if not results['documents']:
         raise HTTPException(status_code=404, detail="Memory not found")
     
-    return MemoryResponse(
+    metadata = results['metadatas'][0]
+    
+    # Update last_accessed timestamp
+    current_time = datetime.utcnow().isoformat() + "Z"
+    metadata["last_accessed"] = current_time
+    collection.update(ids=[memory_id], metadatas=[metadata])
+    
+    memory = MemoryResponse(
         id=memory_id,
         text=results['documents'][0],
-        tag=results['metadatas'][0]['tag'],
-        timestamp=results['metadatas'][0]['timestamp']
+        tag=metadata['tag'],
+        timestamp=metadata['timestamp'],
+        last_accessed=current_time
     )
+    
+    response_data = dict(memory)
+    
+    # Check if this memory has conflicts
+    if "has_conflicts" in metadata and metadata["has_conflicts"] and "conflict_ids" in metadata:
+        conflict_ids = json.loads(metadata["conflict_ids"])
+        conflict_set = [response_data]
+        
+        # Fetch all conflicting memories
+        for conflict_id in conflict_ids:
+            conflict_result = collection.get(ids=[conflict_id])
+            if conflict_result['documents'] and conflict_result['documents'][0]:
+                conflict_metadata = conflict_result['metadatas'][0]
+                
+                conflict_memory = {
+                    "id": conflict_id,
+                    "text": conflict_result['documents'][0],
+                    "tag": conflict_metadata['tag'],
+                    "timestamp": conflict_metadata['timestamp'],
+                    "last_accessed": conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
+                }
+                
+                conflict_set.append(conflict_memory)
+        
+        response_data["conflict_set"] = conflict_set
+    
+    return response_data
 
 @app.get("/memories")
 async def list_memories(tag: Optional[str] = None, limit: int = 10):
@@ -200,11 +399,13 @@ async def list_memories(tag: Optional[str] = None, limit: int = 10):
     memories = []
     if results['documents']:
         for i, doc in enumerate(results['documents']):
+            metadata = results['metadatas'][i]
             memory = MemoryResponse(
                 id=results['ids'][i],
                 text=doc,
-                tag=results['metadatas'][i]['tag'],
-                timestamp=results['metadatas'][i]['timestamp']
+                tag=metadata['tag'],
+                timestamp=metadata['timestamp'],
+                last_accessed=metadata.get('last_accessed', metadata['timestamp'])
             )
             memories.append(memory)
     
@@ -222,7 +423,14 @@ async def root():
             "POST /memories": "Store a memory",
             "POST /memories/search": "Search memories",
             "GET /memories/{id}": "Get specific memory",
-            "GET /memories": "List all memories"
+            "GET /memories": "List all memories",
+            "GET /memories/prune": "Identify and archive old unused memories"
+        },
+        "features": {
+            "deduplication": "Prevents storing exact duplicates (text+tag)",
+            "conflict_detection": "Identifies similar memories with same tag that might conflict (cosine sim > 0.65)",
+            "conflict_sets": "Groups potentially conflicting memories for client-side resolution",
+            "pruning": "Archives old, unused, non-core memories (age > 90 days, not accessed in 30 days)"
         }
     }
 
@@ -230,6 +438,88 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+@app.get("/memories/prune")
+async def prune_memories():
+    """Identify memories for pruning based on age, access time, and importance"""
+    
+    now = datetime.utcnow()
+    archive_cutoff = now - timedelta(days=ARCHIVE_AGE_DAYS)
+    access_cutoff = now - timedelta(days=ACCESS_THRESHOLD_DAYS)
+    
+    # Format cutoff dates for display
+    cutoff_info = {
+        "archive_cutoff": archive_cutoff.isoformat() + "Z",
+        "access_cutoff": access_cutoff.isoformat() + "Z",
+        "archive_age_days": ARCHIVE_AGE_DAYS,
+        "access_threshold_days": ACCESS_THRESHOLD_DAYS,
+        "core_tags": CORE_TAGS
+    }
+    
+    # Get all memories
+    results = collection.get()
+    memories = []
+    
+    # Split into categories
+    to_prune = []
+    kept = []
+    
+    if results['documents']:
+        for i, doc in enumerate(results['documents']):
+            memory_id = results['ids'][i]
+            metadata = results['metadatas'][i]
+            
+            memory = {
+                "id": memory_id,
+                "text": doc,
+                "tag": metadata['tag'],
+                "timestamp": metadata['timestamp'],
+                "last_accessed": metadata.get('last_accessed', metadata['timestamp'])
+            }
+            memories.append(memory)
+            
+            # Skip core memories
+            if metadata['tag'] in CORE_TAGS:
+                kept.append(memory)
+                continue
+            
+            # Check timestamp
+            timestamp = datetime.fromisoformat(metadata["timestamp"].rstrip("Z"))
+            
+            # Check last_accessed (if available)
+            last_accessed = None
+            if "last_accessed" in metadata:
+                last_accessed = datetime.fromisoformat(metadata["last_accessed"].rstrip("Z"))
+            else:
+                # If no last_accessed, use timestamp
+                last_accessed = timestamp
+            
+            # Apply pruning logic
+            if timestamp < archive_cutoff and last_accessed < access_cutoff:
+                # Mark for pruning
+                to_prune.append(memory)
+                
+                # Update metadata to indicate archived status
+                metadata["archived"] = True
+                metadata["archive_date"] = datetime.utcnow().isoformat() + "Z"
+                metadata["archive_reason"] = "age_and_access"
+                
+                # Update metadata in collection
+                collection.update(
+                    ids=[memory_id],
+                    metadatas=[metadata]
+                )
+            else:
+                kept.append(memory)
+    
+    # Return pruning results
+    return {
+        "cutoff_info": cutoff_info,
+        "total_memories": len(memories),
+        "pruned_count": len(to_prune),
+        "kept_count": len(kept),
+        "pruned_memories": to_prune
+    }
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8003)
