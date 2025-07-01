@@ -144,27 +144,42 @@ class MemoryController:
             if "conflict_sets" in tool_result and tool_result["conflict_sets"]:
                 conflicts_text = "🚨 CONFLICTING PREFERENCES DETECTED:\n\n"
                 
-                # MCP wrapper returns conflict_sets as an array of objects
-                conflict_sets = tool_result["conflict_sets"]
-                if len(conflict_sets) > 0:
-                    conflicts_text += "I found conflicting communication preferences in your memory:\n\n"
+                # Get nodes for reference
+                nodes = tool_result.get("nodes", [])
+                node_map = {node.get("name"): node for node in nodes}
+                
+                # Track unique preference texts to avoid duplicates
+                seen_preferences = set()
+                conflict_groups = []
+                
+                # Process conflict sets to find actual conflicting preference texts
+                for conflict_set in tool_result["conflict_sets"]:
+                    primary_id = conflict_set.get("primary_memory", "")
+                    conflicting_ids = conflict_set.get("conflicting_memories", [])
                     
-                    # Get the actual memories/nodes to extract text
-                    nodes = tool_result.get("nodes", [])
+                    # Get texts for this conflict group
+                    conflict_texts = []
+                    all_ids = [primary_id] + conflicting_ids
                     
-                    for i, conflict_set in enumerate(conflict_sets, 1):
+                    for mem_id in all_ids:
+                        if mem_id in node_map:
+                            node = node_map[mem_id]
+                            text = node.get("observations", [""])[0] if node.get("observations") else ""
+                            timestamp = node.get("timestamp", "").split("T")[0] if node.get("timestamp") else "unknown"
+                            if text and text not in seen_preferences:
+                                conflict_texts.append((text, timestamp))
+                                seen_preferences.add(text)
+                    
+                    if len(conflict_texts) > 1:  # Only add if we have actual different texts
+                        conflict_groups.append(conflict_texts)
+                
+                # Format conflicts for display
+                if conflict_groups:
+                    conflicts_text += "I found conflicting communication preferences:\n\n"
+                    for i, group in enumerate(conflict_groups[:2], 1):  # Limit to top 2 conflicts
                         conflicts_text += f"Conflict #{i}:\n"
-                        primary_id = conflict_set.get("primary_memory", "")
-                        conflicting_ids = conflict_set.get("conflicting_memories", [])
-                        
-                        # Find the actual text for these memories
-                        all_conflict_ids = [primary_id] + conflicting_ids
-                        for node in nodes:
-                            if node.get("name") in all_conflict_ids:
-                                text = node.get("observations", [""])[0] if node.get("observations") else ""
-                                timestamp = node.get("timestamp", "").split("T")[0] if node.get("timestamp") else "unknown date"
-                                if text:
-                                    conflicts_text += f"  • \"{text}\" (from {timestamp})\n"
+                        for text, date in group:
+                            conflicts_text += f"  • \"{text}\" (from {date})\n"
                         conflicts_text += "\n"
                     
                     conflicts_text += "❓ PLEASE ASK THE USER: Which preference should I keep and use going forward?"
