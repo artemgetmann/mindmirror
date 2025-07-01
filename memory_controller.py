@@ -172,61 +172,52 @@ class MemoryController:
             if "error" in tool_result:
                 return f"Error: {tool_result['error']}"
             
-            # Handle search results with conflicts
+            # Handle search results with conflicts (from MCP wrapper format)
             if "conflict_sets" in tool_result and tool_result["conflict_sets"]:
                 conflicts_text = "🚨 CONFLICTING PREFERENCES DETECTED:\n\n"
                 
-                # Process each conflict set to extract unique conflicting preferences
-                seen_conflicts = set()
-                conflict_pairs = []
-                
-                for _, conflicts in tool_result["conflict_sets"].items():
-                    if len(conflicts) < 2:
-                        continue
+                # MCP wrapper returns conflict_sets as an array of objects
+                conflict_sets = tool_result["conflict_sets"]
+                if len(conflict_sets) > 0:
+                    conflicts_text += "I found conflicting communication preferences in your memory:\n\n"
                     
-                    # Group by unique text content
-                    unique_prefs = {}
-                    for item in conflicts:
-                        text = item.get("text", "").strip()
-                        if text and text not in unique_prefs:
-                            timestamp = item.get("timestamp", "").split("T")[0] if item.get("timestamp") else "unknown date"
-                            unique_prefs[text] = timestamp
+                    # Get the actual memories/nodes to extract text
+                    nodes = tool_result.get("nodes", [])
                     
-                    # Create conflict pairs
-                    texts = list(unique_prefs.keys())
-                    if len(texts) > 1:
-                        # Create a conflict description
-                        conflict_key = tuple(sorted(texts))
-                        if conflict_key not in seen_conflicts:
-                            seen_conflicts.add(conflict_key)
-                            conflict_pairs.append(unique_prefs)
-                
-                # Format conflicts for display
-                if conflict_pairs:
-                    for i, conflict_group in enumerate(conflict_pairs, 1):
+                    for i, conflict_set in enumerate(conflict_sets, 1):
                         conflicts_text += f"Conflict #{i}:\n"
-                        for text, date in conflict_group.items():
-                            conflicts_text += f"  • \"{text}\" (from {date})\n"
+                        primary_id = conflict_set.get("primary_memory", "")
+                        conflicting_ids = conflict_set.get("conflicting_memories", [])
+                        
+                        # Find the actual text for these memories
+                        all_conflict_ids = [primary_id] + conflicting_ids
+                        for node in nodes:
+                            if node.get("name") in all_conflict_ids:
+                                text = node.get("observations", [""])[0] if node.get("observations") else ""
+                                timestamp = node.get("timestamp", "").split("T")[0] if node.get("timestamp") else "unknown date"
+                                if text:
+                                    conflicts_text += f"  • \"{text}\" (from {timestamp})\n"
                         conflicts_text += "\n"
                     
                     conflicts_text += "❓ PLEASE ASK THE USER: Which preference should I keep and use going forward?"
                     return conflicts_text
             
-            # Handle search results without conflicts
-            if "memories" in tool_result and tool_result["memories"]:
-                memories = tool_result["memories"]
-                if len(memories) == 0:
+            # Handle search results without conflicts (MCP wrapper format)
+            if "nodes" in tool_result and tool_result["nodes"]:
+                nodes = tool_result["nodes"]
+                if len(nodes) == 0:
                     return "No relevant memories found."
                 
-                result_text = f"Found {len(memories)} relevant memories:\n\n"
-                for i, memory in enumerate(memories[:5], 1):  # Limit to top 5
-                    text = memory.get("text", "")
-                    tag = memory.get("tag", "")
-                    date = memory.get("timestamp", "").split("T")[0] if memory.get("timestamp") else "unknown date"
-                    result_text += f"{i}. {text} (tag: {tag}, from: {date})\n"
+                result_text = f"Found {len(nodes)} relevant memories:\n\n"
+                for i, node in enumerate(nodes[:5], 1):  # Limit to top 5
+                    text = node.get("observations", [""])[0] if node.get("observations") else ""
+                    tag = node.get("entityType", "")
+                    date = node.get("timestamp", "").split("T")[0] if node.get("timestamp") else "unknown date"
+                    if text:
+                        result_text += f"{i}. {text} (tag: {tag}, from: {date})\n"
                 
-                if len(memories) > 5:
-                    result_text += f"\n... and {len(memories) - 5} more memories"
+                if len(nodes) > 5:
+                    result_text += f"\n... and {len(nodes) - 5} more memories"
                 
                 return result_text
             
