@@ -1,152 +1,19 @@
-INFO:     Started server process [83211]
+INFO:     Started server process [58415]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
-Loaded 615 memory hashes for deduplication
-INFO:     127.0.0.1:57102 - "GET /health HTTP/1.1" 200 OK
-/Users/user/Programming_Projects/MCP_Memory/memory_server.py:229: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8003): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application sh/Users/user/Programming_Projects/MCP_Memory/memory_server.py:229: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
   current_time = datetime.utcnow().isoformat() + "Z"
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.35475683212280273, 'last_accessed': '2025-07-01T14:13:30.978990Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.35475683212280273, 'last_accessed': '2025-07-01T14:13:30.981616Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.35475683212280273, 'last_accessed': '2025-07-01T14:13:30.983333Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.35475683212280273, 'last_accessed': '2025-07-01T14:13:30.988126Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.35475683212280273, 'last_accessed': '2025-07-01T14:13:30.993002Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}]}
-INFO:     127.0.0.1:57960 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 4 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6350980401039124, 'last_accessed': '2025-07-01T14:34:54.300617Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.6350980401039124, 'last_accessed': '2025-07-01T14:34:54.303085Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6350980401039124, 'last_accessed': '2025-07-01T14:34:54.304793Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6350980401039124, 'last_accessed': '2025-07-01T14:34:54.309499Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T13:53:39.986792Z'}]}
-INFO:     127.0.0.1:60917 - "POST /memories/search HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61825 - "GET /health HTTP/1.1" 200 OK
-/Users/user/Programming_Projects/MCP_Memory/memory_server.py:88: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  memory.timestamp = datetime.utcnow().isoformat() + "Z"
-/Users/user/Programming_Projects/MCP_Memory/memory_server.py:110: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  memory_id = f"mem_{int(datetime.utcnow().timestamp() * 1000)}"
-/Users/user/Programming_Projects/MCP_Memory/memory_server.py:140: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  current_time = datetime.utcnow().isoformat() + "Z"
-Checking for conflicts with similarity threshold 0.65...
-Similarity with 'Build readable unit tests': 0.5265
-Similarity with 'Build readable unit tests (variant 333)': 0.5046
-Similarity with 'Build readable unit tests (variant 423)': 0.4962
-Similarity with 'Build readable unit tests (variant 243)': 0.4836
-Similarity with 'Build readable unit tests (variant 513)': 0.4828
-INFO:     127.0.0.1:61857 - "POST /memories HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 5 memory responses
-DEBUG: Identified 0 conflict sets
-DEBUG: No conflict sets detected, performing manual conflict check
-INFO:     127.0.0.1:61951 - "POST /memories/search HTTP/1.1" 500 Internal Server Error
-ERROR:    Exception in ASGI application
-Traceback (most recent call last):
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
-    result = await app(  # type: ignore[func-returns-value]
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        self.scope, self.receive, self.send
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
-    return await self.app(scope, receive, send)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/fastapi/applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/applications.py", line 112, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 187, in __call__
-    raise exc
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
-    await self.app(scope, receive, _send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
-    await route.handle(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
-    await self.app(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/starlette/routing.py", line 73, in app
-    response = await f(request)
-               ^^^^^^^^^^^^^^^^
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/fastapi/routing.py", line 301, in app
-    raw_response = await run_endpoint_function(
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    ...<3 lines>...
-    )
-    ^
-  File "/Users/user/Programming_Projects/MCP_Memory/venv/lib/python3.13/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
-    return await dependant.call(**values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/user/Programming_Projects/MCP_Memory/memory_server.py", line 296, in search_memories
-    memory_id = memory['id']
-                ~~~~~~^^^^^^
-TypeError: 'MemoryResponse' object is not subscriptable
-Checking for conflicts with similarity threshold 0.65...
-Similarity with 'Build elegant microservices (variant 135)': 0.1327
-Similarity with 'Build elegant microservices (variant 225)': 0.1260
-Similarity with 'Build elegant microservices': 0.1149
-Similarity with 'Ship MVP before adding complexity': 0.1105
-Similarity with 'Ship MVP before adding complexity': 0.1105
-INFO:     127.0.0.1:61957 - "POST /memories HTTP/1.1" 200 OK
-Checking for conflicts with similarity threshold 0.65...
-Similarity with 'This is a test memory for deduplication demo': 0.3687
-Similarity with 'This is a test memory for deduplication demo (variant)': 0.3677
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.2283
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.2283
-Similarity with 'I prefer working at night (test: 2025-06-24T10:13:33.163713)': 0.2277
-INFO:     127.0.0.1:62107 - "POST /memories HTTP/1.1" 200 OK
-Checking for conflicts with similarity threshold 0.65...
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.6194
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.6194
-Similarity with 'Likes detailed and comprehensive communication': 0.4536
-Similarity with 'Prefers direct communication with minimal details': 0.3359
-Similarity with 'Prefers simple code': 0.3011
-INFO:     127.0.0.1:62946 - "POST /memories HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T14:46:14.748839Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.300617Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.303085Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.304793Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.309499Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T14:13:30.993002Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:46:14.761258Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:46:14.763321Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:46:14.767741Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:46:14.772318Z'}]}
-INFO:     127.0.0.1:63050 - "POST /memories/search HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
 DEBUG: Identified 3 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T14:50:08.019444Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T14:01:11.409614Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:01:11.391987Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T14:50:08.023919Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:01:11.391987Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.351864218711853, 'last_accessed': '2025-07-01T14:50:08.103374Z'}]}
-INFO:     127.0.0.1:63587 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Adding conflict sets to response: {'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T16:12:16.808823Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:00:42.185322Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:08.103374Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T16:12:16.811399Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:08.103374Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.351864218711853, 'last_accessed': '2025-07-01T16:12:16.817158Z'}]}
+INFO:     127.0.0.1:58803 - "POST /memories/search HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
 DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T14:50:39.633268Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T14:46:14.761258Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.303085Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T14:46:14.763321Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T14:46:14.767741Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T14:46:14.772318Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:39.701125Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:39.702810Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:39.707422Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:39.710394Z'}]}
-INFO:     127.0.0.1:63682 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T14:50:56.608156Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:39.701125Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T14:34:54.303085Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:39.702810Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:39.707422Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:39.710394Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:56.615624Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:56.617588Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:56.622874Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T14:50:56.627498Z'}]}
-INFO:     127.0.0.1:63733 - "POST /memories/search HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55075 - "GET /health HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.5867098569869995, 'last_accessed': '2025-07-01T15:50:01.411868Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:56.608156Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.5867098569869995, 'last_accessed': '2025-07-01T15:50:01.416951Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:56.608156Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.5867098569869995, 'last_accessed': '2025-07-01T15:50:01.418994Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:56.608156Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.5867098569869995, 'last_accessed': '2025-07-01T15:50:01.424114Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:56.608156Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.5867098569869995, 'last_accessed': '2025-07-01T15:50:01.427618Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:56.608156Z'}]}
-INFO:     127.0.0.1:55275 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T15:57:55.624029Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T15:50:01.411868Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T15:50:01.416951Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T15:50:01.418994Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T15:50:01.424114Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T15:50:01.427618Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T15:57:55.642245Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T15:57:55.645241Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T15:57:55.652207Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T15:57:55.655951Z'}]}
-INFO:     127.0.0.1:56438 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T16:12:27.212262Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.426701Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:26.259627Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.428861Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.434827Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.438693Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.220787Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.222910Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.229132Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.234144Z'}]}
+INFO:     127.0.0.1:58852 - "POST /memories/search HTTP/1.1" 200 OK

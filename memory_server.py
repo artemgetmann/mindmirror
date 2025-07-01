@@ -293,7 +293,7 @@ async def search_memories(request: SearchRequest):
         
         # Check each memory for conflicts
         for memory in memories:
-            memory_id = memory['id']
+            memory_id = memory['id'] if isinstance(memory, dict) else memory.id
             metadata_result = collection.get(ids=[memory_id])
             
             if metadata_result['metadatas'] and len(metadata_result['metadatas']) > 0:
