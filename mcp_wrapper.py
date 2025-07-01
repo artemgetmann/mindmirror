@@ -47,7 +47,13 @@ async def add_observations(request: Request):
         data = await request.json()
         
         # Extract observations from MCP request
-        observations = data.get("observations", [])
+        # Handle both formats: {"observations": [...]} and direct {"entityName": ..., "contents": [...]}
+        if "observations" in data:
+            observations = data.get("observations", [])
+        else:
+            # Direct format - wrap in observations array
+            observations = [data]
+        
         results = []
         
         async with httpx.AsyncClient() as client:
@@ -57,10 +63,13 @@ async def add_observations(request: Request):
                 
                 # For each observation, create a memory in our system
                 for content in contents:
-                    # Determine tag from context or use default
-                    # In a full implementation, this would use an LLM or classifier
-                    # For now we use a simple heuristic
-                    tag = "preference"
+                    # Use provided tag or determine from context
+                    provided_tag = obs.get("tag") or data.get("tag")
+                    if provided_tag:
+                        tag = provided_tag
+                    else:
+                        # Determine tag from context using heuristics
+                        tag = "preference"
                     if "routine" in content.lower():
                         tag = "routine"
                     elif "goal" in content.lower():

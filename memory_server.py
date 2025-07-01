@@ -254,7 +254,7 @@ async def search_memories(request: SearchRequest):
                 
                 # Fetch and add conflicting memories if not already in results
                 for conflict_id in conflict_ids:
-                    if conflict_id not in [m.id for m in memories]:
+                    if conflict_id not in [m['id'] if isinstance(m, dict) else m.id for m in memories]:
                         conflict_result = collection.get(ids=[conflict_id])
                         if conflict_result['documents'] and conflict_result['documents'][0]:
                             conflict_metadata = conflict_result['metadatas'][0]

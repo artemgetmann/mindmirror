@@ -1,0 +1,9 @@
+INFO:     Started server process [68319]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62944 - "POST /add_observations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63048 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63585 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63680 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63731 - "POST /search_nodes HTTP/1.1" 200 OK
