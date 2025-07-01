@@ -165,6 +165,84 @@ class MemoryController:
             self.log(f"Error searching memory: {str(e)}")
             return {"status": "error", "message": str(e)}
     
+    def format_tool_result_for_llm(self, tool_result: Dict[str, Any]) -> str:
+        """Convert complex tool results into clean, readable text for LM Studio"""
+        try:
+            # Handle error cases
+            if "error" in tool_result:
+                return f"Error: {tool_result['error']}"
+            
+            # Handle search results with conflicts
+            if "conflict_sets" in tool_result and tool_result["conflict_sets"]:
+                conflicts_text = "🚨 CONFLICTING PREFERENCES DETECTED:\n\n"
+                
+                # Process each conflict set to extract unique conflicting preferences
+                seen_conflicts = set()
+                conflict_pairs = []
+                
+                for _, conflicts in tool_result["conflict_sets"].items():
+                    if len(conflicts) < 2:
+                        continue
+                    
+                    # Group by unique text content
+                    unique_prefs = {}
+                    for item in conflicts:
+                        text = item.get("text", "").strip()
+                        if text and text not in unique_prefs:
+                            timestamp = item.get("timestamp", "").split("T")[0] if item.get("timestamp") else "unknown date"
+                            unique_prefs[text] = timestamp
+                    
+                    # Create conflict pairs
+                    texts = list(unique_prefs.keys())
+                    if len(texts) > 1:
+                        # Create a conflict description
+                        conflict_key = tuple(sorted(texts))
+                        if conflict_key not in seen_conflicts:
+                            seen_conflicts.add(conflict_key)
+                            conflict_pairs.append(unique_prefs)
+                
+                # Format conflicts for display
+                if conflict_pairs:
+                    for i, conflict_group in enumerate(conflict_pairs, 1):
+                        conflicts_text += f"Conflict #{i}:\n"
+                        for text, date in conflict_group.items():
+                            conflicts_text += f"  • \"{text}\" (from {date})\n"
+                        conflicts_text += "\n"
+                    
+                    conflicts_text += "❓ PLEASE ASK THE USER: Which preference should I keep and use going forward?"
+                    return conflicts_text
+            
+            # Handle search results without conflicts
+            if "memories" in tool_result and tool_result["memories"]:
+                memories = tool_result["memories"]
+                if len(memories) == 0:
+                    return "No relevant memories found."
+                
+                result_text = f"Found {len(memories)} relevant memories:\n\n"
+                for i, memory in enumerate(memories[:5], 1):  # Limit to top 5
+                    text = memory.get("text", "")
+                    tag = memory.get("tag", "")
+                    date = memory.get("timestamp", "").split("T")[0] if memory.get("timestamp") else "unknown date"
+                    result_text += f"{i}. {text} (tag: {tag}, from: {date})\n"
+                
+                if len(memories) > 5:
+                    result_text += f"\n... and {len(memories) - 5} more memories"
+                
+                return result_text
+            
+            # Handle storage confirmations
+            if "status" in tool_result:
+                if tool_result["status"] == "success":
+                    return "✅ Preference stored successfully!"
+                elif tool_result["status"] == "error":
+                    return f"❌ Error: {tool_result.get('message', 'Unknown error')}"
+            
+            # Default fallback - return a simple summary
+            return f"Tool executed. Status: {tool_result.get('status', 'completed')}"
+            
+        except Exception as e:
+            return f"Error formatting result: {str(e)}"
+    
     def execute_tool(self, tool_name: str, tool_args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the appropriate API call based on the tool name"""
         self.log(f"Executing tool: {tool_name} with args: {tool_args}")
@@ -306,11 +384,14 @@ class MemoryController:
                         # Execute the tool
                         tool_result = self.execute_tool(tool_name, tool_args)
                         
+                        # Format the result as clean text for LM Studio
+                        formatted_result = self.format_tool_result_for_llm(tool_result)
+                        
                         # Add tool result to messages
                         self.messages.append({
                             "role": "tool",
                             "tool_call_id": tool_id,
-                            "content": json.dumps(tool_result)
+                            "content": formatted_result
                         })
                         
                     except json.JSONDecodeError:
