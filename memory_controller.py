@@ -124,40 +124,8 @@ class MemoryController:
             response.raise_for_status()
             result = response.json()
             
-            # Process conflicts for clearer presentation to LLM
-            if "conflict_sets" in result and result["conflict_sets"]:
-                # Extract and format conflicts in a way that's easier for the LLM to understand
-                clear_conflicts = []
-                
-                # Process each conflict set
-                for set_id, conflicts in result["conflict_sets"].items():
-                    # Skip if less than 2 items (no actual conflict)
-                    if len(conflicts) < 2:
-                        continue
-                    
-                    # Group by actual content to avoid duplicates
-                    unique_prefs = {}
-                    for item in conflicts:
-                        pref_text = item.get("text", "")
-                        if not pref_text:
-                            continue
-                            
-                        if pref_text not in unique_prefs:
-                            unique_prefs[pref_text] = {
-                                "text": pref_text,
-                                "timestamp": item.get("timestamp", "").split("T")[0],  # Just take the date part
-                                "count": 1
-                            }
-                        else:
-                            unique_prefs[pref_text]["count"] += 1
-                    
-                    # Only add if we have actual conflicts with different texts
-                    if len(unique_prefs) > 1:
-                        clear_conflicts.append(list(unique_prefs.values()))
-                
-                # Add the formatted conflicts to the result
-                if clear_conflicts:
-                    result["clear_conflicts"] = clear_conflicts
+            # MCP wrapper already processes conflicts into the correct format
+            # No need to reprocess them here - they're ready for formatting
             
             self.log(f"Search result: {json.dumps(result)[:200]}...")
             return result
@@ -374,9 +342,11 @@ class MemoryController:
                         
                         # Execute the tool
                         tool_result = self.execute_tool(tool_name, tool_args)
+                        self.log(f"Tool {tool_name} returned: {json.dumps(tool_result)[:300]}...")
                         
                         # Format the result as clean text for LM Studio
                         formatted_result = self.format_tool_result_for_llm(tool_result)
+                        self.log(f"Formatted result for LLM: {formatted_result[:200]}...")
                         
                         # Add tool result to messages
                         self.messages.append({
