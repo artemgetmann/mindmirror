@@ -186,7 +186,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.T
             })
             
             result = response.json()
-            memories = result.get("memories", [])
+            memories = result.get("results", [])  # Fixed: memory server returns "results" not "memories" 
             conflict_sets = result.get("conflict_sets", {})
             
             output = f"Search Results for: '{query}'\n"
