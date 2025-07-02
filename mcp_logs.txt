@@ -16,3 +16,13 @@ INFO:     127.0.0.1:57001 - "POST /search_nodes HTTP/1.1" 200 OK
 INFO:     127.0.0.1:57038 - "POST /search_nodes HTTP/1.1" 200 OK
 INFO:     127.0.0.1:58801 - "POST /search_nodes HTTP/1.1" 200 OK
 INFO:     127.0.0.1:58850 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59543 - "POST /add_observations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59584 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59623 - "POST /add_observations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59653 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60177 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60212 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49342 - "POST /add_observations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49369 - "POST /add_observations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49652 - "POST /search_nodes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49689 - "POST /add_observations HTTP/1.1" 200 OK

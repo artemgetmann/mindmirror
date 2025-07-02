@@ -424,6 +424,7 @@ async def root():
             "POST /memories/search": "Search memories",
             "GET /memories/{id}": "Get specific memory",
             "GET /memories": "List all memories",
+            "DELETE /memories/{id}": "Delete specific memory",
             "GET /memories/prune": "Identify and archive old unused memories"
         },
         "features": {
@@ -438,11 +439,91 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+@app.delete("/memories/{memory_id}")
+async def delete_memory(memory_id: str):
+    """Delete a specific memory by ID"""
+    
+    try:
+        # First check if memory exists
+        results = collection.get(ids=[memory_id])
+        
+        if not results['documents']:
+            raise HTTPException(status_code=404, detail="Memory not found")
+        
+        # Get memory details for logging
+        memory_text = results['documents'][0]
+        metadata = results['metadatas'][0]
+        memory_tag = metadata['tag']
+        
+        # Remove hash from memory_hashes set for deduplication tracking
+        if 'hash' in metadata:
+            memory_hash = metadata['hash']
+            memory_hashes.discard(memory_hash)
+        else:
+            # For backwards compatibility with memories stored before hash implementation
+            memory_text_normalized = memory_text.strip().lower()
+            memory_hash = hashlib.md5(f"{memory_text_normalized}:{memory_tag}".encode()).hexdigest()
+            memory_hashes.discard(memory_hash)
+        
+        # Handle conflict cleanup - remove this memory from other memories' conflict lists
+        if metadata.get('has_conflicts', False) and 'conflict_ids' in metadata:
+            conflict_ids = json.loads(metadata['conflict_ids'])
+            
+            for conflict_id in conflict_ids:
+                try:
+                    # Get the conflicting memory
+                    conflict_result = collection.get(ids=[conflict_id])
+                    if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
+                        conflict_metadata = conflict_result['metadatas'][0]
+                        
+                        # Remove this memory from its conflict list
+                        if 'conflict_ids' in conflict_metadata:
+                            existing_conflicts = json.loads(conflict_metadata['conflict_ids'])
+                            if memory_id in existing_conflicts:
+                                existing_conflicts.remove(memory_id)
+                                
+                                # Update or remove conflict info
+                                if existing_conflicts:
+                                    conflict_metadata['conflict_ids'] = json.dumps(existing_conflicts)
+                                else:
+                                    # No more conflicts, remove conflict flags
+                                    conflict_metadata['has_conflicts'] = False
+                                    del conflict_metadata['conflict_ids']
+                                
+                                # Update the conflicting memory
+                                collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+                except Exception as e:
+                    print(f"Warning: Error updating conflict for memory {conflict_id}: {e}")
+        
+        # Delete the memory from ChromaDB
+        collection.delete(ids=[memory_id])
+        
+        # Log the deletion
+        print(f"Memory deleted: {memory_id} - '{memory_text}' (tag: {memory_tag})")
+        
+        return {
+            "status": "deleted",
+            "id": memory_id,
+            "text": memory_text,
+            "tag": memory_tag,
+            "timestamp": metadata.get('timestamp')
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404)
+        raise
+    except Exception as e:
+        print(f"Error deleting memory {memory_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete memory: {str(e)}"
+        )
+
 @app.get("/memories/prune")
 async def prune_memories():
     """Identify memories for pruning based on age, access time, and importance"""
     
-    now = datetime.utcnow()
+    now = datetime.now(datetime.timezone.utc)
     archive_cutoff = now - timedelta(days=ARCHIVE_AGE_DAYS)
     access_cutoff = now - timedelta(days=ACCESS_THRESHOLD_DAYS)
     
@@ -500,7 +581,7 @@ async def prune_memories():
                 
                 # Update metadata to indicate archived status
                 metadata["archived"] = True
-                metadata["archive_date"] = datetime.utcnow().isoformat() + "Z"
+                metadata["archive_date"] = datetime.now(datetime.timezone.utc).isoformat() + "Z"
                 metadata["archive_reason"] = "age_and_access"
                 
                 # Update metadata in collection

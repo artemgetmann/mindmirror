@@ -37,6 +37,9 @@ class Response(BaseModel):
     message: str
     data: Optional[Dict[str, Any]] = None
 
+class ConflictResolutionRequest(BaseModel):
+    memory_ids: List[str]
+
 @app.post("/add_observations")
 async def add_observations(request: Request):
     """
