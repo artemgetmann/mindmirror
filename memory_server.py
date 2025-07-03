@@ -195,6 +195,9 @@ async def store_memory(memory: MemoryItem):
 async def search_memories(request: SearchRequest):
     """Search memories by query text"""
     
+    # Log incoming search request
+    print(f"SEARCH REQUEST: query='{request.query}', limit={request.limit}, tag_filter={request.tag_filter}")
+    
     # Generate query embedding
     query_embedding = model.encode(request.query).tolist()
     
@@ -214,6 +217,12 @@ async def search_memories(request: SearchRequest):
         n_results=request.limit,
         where=where_clause
     )
+    
+    # Log raw search results
+    total_results = len(results['documents'][0]) if results['documents'] and results['documents'][0] else 0
+    print(f"RAW SEARCH RESULTS: found {total_results} memories")
+    if total_results > 0:
+        print(f"TOP 3 SIMILARITIES: {[max(0, 1 - (d/2)) for d in results['distances'][0][:3]]}")
     
     # Format response
     memories = []
@@ -327,6 +336,10 @@ async def search_memories(request: SearchRequest):
         if manual_conflict_sets:
             print(f"DEBUG: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
             response["conflict_sets"] = manual_conflict_sets
+    
+    # Log final response summary
+    conflict_count = len(response.get("conflict_sets", {}))
+    print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict sets")
     
     return response
 

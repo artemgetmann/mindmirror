@@ -264,3 +264,33 @@ Add `conflict_resolution_mode` setting to give users control over their preferre
 - **Guided resolution workflows**: UI/prompts to help users resolve complex conflicts
 - **Conflict analytics**: Show conflict patterns and help users understand their preferences
 - **Memory organization**: Categories, folders, or hierarchical organization
+
+#### Security & Privacy Considerations
+- **Configurable log levels**: DEBUG/INFO/ERROR modes for production
+- **Log rotation and retention policies**: Automatic cleanup of old logs
+- **Privacy options**: Toggle for query logging in production environments
+- **Data sanitization**: Option to disable detailed logging for sensitive deployments
+
+#### Deployment Considerations
+- **Port configuration**: Currently hardcoded to port 8003 for memory server
+  - May conflict with cloud deployment platforms (Render, Railway, etc.)
+  - Consider environment variable PORT for dynamic assignment
+  - Update MCP server configuration to use dynamic ports
+- **Service orchestration**: Multiple services (memory server + MCP server) need coordination
+- **Health checks**: Current `/health` endpoint ready for load balancers
+
+#### Claude Desktop Response Sanitization
+**Brainstorm whether to Sanitize Claude Desktop Responses to Hide Infra Details (e.g. Similarity, RAG)**
+
+Current issue: Claude Desktop sees technical implementation details that may not be user-friendly:
+- Similarity scores (reveals RAG/vector search implementation)
+- Memory IDs (technical database identifiers)  
+- Internal conflict detection metadata
+- ChromaDB structure and technical details
+
+Consider for MK2:
+- Toggle between technical mode (current) vs user-friendly mode
+- Hide similarity scores and show "relevance" instead
+- Remove memory IDs from user-facing responses
+- Simplify conflict presentation without technical details
+- Maintain debugging mode for development/troubleshooting
