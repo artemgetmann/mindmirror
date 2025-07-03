@@ -214,3 +214,53 @@ ONLY use the memory-system tools as described above.
 ```
 
 **Note:** Adjust this prompt if conflict detection or proactive memory searching needs tuning.
+
+## MVP Status & MK2 Roadmap
+
+### Current MVP Assessment
+
+The system successfully handles core memory and conflict resolution use cases:
+- ✅ Memory storage, search, and retrieval working reliably
+- ✅ Dual conflict detection (automatic + LLM semantic reasoning)
+- ✅ Conflict resolution via delete_memory tool
+- ✅ Non-blocking workflow allows brain-dumping without interruption
+- ✅ Ready for real-world testing and user feedback
+
+### Conflict Detection Architecture
+
+The system uses **two separate conflict detection mechanisms**:
+
+1. **Storage-time detection**: Checks similarity > 0.65 when storing new memories, flags both memories with `has_conflicts` metadata
+2. **Search-time display**: Shows conflict sets for memories that have the `has_conflicts` flag
+3. **LLM semantic reasoning**: Catches conceptual conflicts the automatic system misses (like "detailed vs brief communication")
+
+**Key insight**: Search returns top N results regardless of similarity threshold (explaining 0.3 similarity scores). Conflicts are detected at storage time, not search time.
+
+### MK2 Planned Improvements
+
+#### Conflict Resolution Modes (User Toggle)
+Add `conflict_resolution_mode` setting to give users control over their preferred workflow:
+
+- **`"immediate"`** - Stop and ask user to resolve conflicts before storing new memory
+  - Best for: Precision users who want clean database
+  - UX: "You previously said X, now you're saying Y. Which should I keep?"
+  
+- **`"deferred"`** - Current behavior, store and flag conflicts for later resolution
+  - Best for: Brain-dumpers who don't want workflow interruption
+  - UX: Continue conversation, surface conflicts during search
+  
+- **`"auto_replace"`** - Automatically replace older conflicting memory with new one
+  - Best for: Quick users updating preferences frequently
+  - UX: Seamless updates, show notification of replacement
+
+#### Enhanced Conflict Detection
+- **Semantic similarity models**: Use NLI or better embedding models for conceptual conflicts
+- **Lower similarity thresholds**: Tune or make configurable below 0.65
+- **Search-time conflict detection**: Check for conflicts during search, not just storage
+- **Batch conflict cleanup**: Periodic guided conflict resolution sessions
+
+#### User Experience Improvements
+- **Conflict prevention**: Ask before storing obvious duplicates
+- **Guided resolution workflows**: UI/prompts to help users resolve complex conflicts
+- **Conflict analytics**: Show conflict patterns and help users understand their preferences
+- **Memory organization**: Categories, folders, or hierarchical organization
