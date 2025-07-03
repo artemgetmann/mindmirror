@@ -1,22 +1,76 @@
-INFO:     Started server process [58415]
+INFO:     Started server process [46083]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8003): address already in use
 INFO:     Waiting for application shutdown.
-INFO:     Application sh/Users/user/Programming_Projects/MCP_Memory/memory_server.py:229: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+INFO:     Application shMemory deleted: mem_1750665172231 - 'Prefers blunt, direct communication' (tag: preference)
+INFO:     127.0.0.1:55345 - "DELETE /memories/mem_1750665172231 HTTP/1.1" 200 OK
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:229: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
   current_time = datetime.utcnow().isoformat() + "Z"
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
-DEBUG: Identified 3 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T16:12:16.808823Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:00:42.185322Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:08.103374Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.5279004275798798, 'last_accessed': '2025-07-01T16:12:16.811399Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T14:50:08.103374Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.351864218711853, 'last_accessed': '2025-07-01T16:12:16.817158Z'}]}
-INFO:     127.0.0.1:58803 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Identified 5 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6515379250049591, 'last_accessed': '2025-07-02T12:54:58.073229Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.920961Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-02T12:37:35.551875Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-02T12:37:35.555532Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-02T12:37:35.560291Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-02T12:37:35.565810Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.646575540304184, 'last_accessed': '2025-07-02T12:54:58.080531Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.646575540304184, 'last_accessed': '2025-07-02T12:54:58.083251Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.646575540304184, 'last_accessed': '2025-07-02T12:54:58.086488Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.646575540304184, 'last_accessed': '2025-07-02T12:54:58.096224Z'}]}
+INFO:     127.0.0.1:55532 - "POST /memories/search HTTP/1.1" 200 OK
+Memory deleted: mem_1750664417371 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55584 - "DELETE /memories/mem_1750664417371 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664417933 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55595 - "DELETE /memories/mem_1750664417933 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664417971 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55595 - "DELETE /memories/mem_1750664417971 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418009 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55595 - "DELETE /memories/mem_1750664418009 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418076 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55595 - "DELETE /memories/mem_1750664418076 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418141 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55642 - "DELETE /memories/mem_1750664418141 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418574 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55642 - "DELETE /memories/mem_1750664418574 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664419045 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:55665 - "DELETE /memories/mem_1750664419045 HTTP/1.1" 200 OK
+Memory deleted: mem_1750665898010 - 'Prefers blunt, direct communication' (tag: preference)
+INFO:     127.0.0.1:55665 - "DELETE /memories/mem_1750665898010 HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6980387568473816, 'last_accessed': '2025-07-01T16:12:27.212262Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.426701Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:26.259627Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.428861Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.434827Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T16:01:35.438693Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.220787Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.222910Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.229132Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6950881481170654, 'last_accessed': '2025-07-01T16:12:27.234144Z'}]}
-INFO:     127.0.0.1:58852 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Identified 6 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.6515379250049591, 'last_accessed': '2025-07-02T12:56:25.687068Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-02T12:37:35.560291Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.646575540304184, 'last_accessed': '2025-07-02T12:56:25.704729Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.596502274274826, 'last_accessed': '2025-07-02T12:56:25.714796Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-02T12:13:39.341670Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-02T12:13:39.344758Z'}], 'mem_1751372223952': [{'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': 0.5312354564666748, 'last_accessed': '2025-07-02T12:56:25.718105Z'}, {'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.911749Z'}], 'mem_1751372201757': [{'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': 0.505906879901886, 'last_accessed': '2025-07-02T12:56:25.723362Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.5020239055156708, 'last_accessed': '2025-07-02T12:56:25.726249Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-02T12:13:39.341670Z'}]}
+INFO:     127.0.0.1:55733 - "POST /memories/search HTTP/1.1" 200 OK
+Memory deleted: mem_1750750986760 - 'Prefers fast, blunt communication without fluff' (tag: preference)
+INFO:     127.0.0.1:50175 - "DELETE /memories/mem_1750750986760 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664417900 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:50190 - "DELETE /memories/mem_1750664417900 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418041 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:50190 - "DELETE /memories/mem_1750664418041 HTTP/1.1" 200 OK
+Memory deleted: mem_1750664418108 - 'Prefers blunt, fast communication' (tag: preference)
+INFO:     127.0.0.1:50190 - "DELETE /memories/mem_1750664418108 HTTP/1.1" 200 OK
+Memory deleted: mem_1750751441839 - 'Prefers direct communication with minimal details' (tag: preference)
+INFO:     127.0.0.1:50215 - "DELETE /memories/mem_1750751441839 HTTP/1.1" 200 OK
+Memory deleted: mem_1750679155199 - 'Values brevity and directness in communication' (tag: value)
+INFO:     127.0.0.1:50236 - "DELETE /memories/mem_1750679155199 HTTP/1.1" 200 OK
+Memory deleted: mem_1751372201757 - 'I hate email communication' (tag: preference)
+INFO:     127.0.0.1:50236 - "DELETE /memories/mem_1751372201757 HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 3 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.596502274274826, 'last_accessed': '2025-07-02T14:19:09.279296Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-02T12:13:39.341670Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-02T12:56:25.726249Z'}], 'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.5020239055156708, 'last_accessed': '2025-07-02T14:19:09.306703Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-02T12:56:25.726249Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.5020239055156708, 'last_accessed': '2025-07-02T14:19:09.311247Z'}]}
+INFO:     127.0.0.1:50454 - "POST /memories/search HTTP/1.1" 200 OK
+Memory deleted: mem_1750750461574 - 'Likes to communicate with lots of detail and explanation' (tag: preference)
+INFO:     127.0.0.1:63287 - "DELETE /memories/mem_1750750461574 HTTP/1.1" 200 OK
+Memory deleted: mem_1750750987447 - 'Likes to communicate with lots of detail and explanation' (tag: preference)
+INFO:     127.0.0.1:63293 - "DELETE /memories/mem_1750750987447 HTTP/1.1" 200 OK
+Memory deleted: mem_1750665172944 - 'Hates small talk and pleasantries' (tag: preference)
+INFO:     127.0.0.1:63300 - "DELETE /memories/mem_1750665172944 HTTP/1.1" 200 OK
+Memory deleted: mem_1750665898042 - 'Hates small talk and pleasantries' (tag: preference)
+INFO:     127.0.0.1:63308 - "DELETE /memories/mem_1750665898042 HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:63417 - "POST /memories/search HTTP/1.1" 200 OK
 /Users/user/Programming_Projects/MCP_Memory/memory_server.py:88: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
   memory.timestamp = datetime.utcnow().isoformat() + "Z"
 /Users/user/Programming_Projects/MCP_Memory/memory_server.py:110: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
@@ -24,101 +78,305 @@ INFO:     127.0.0.1:58852 - "POST /memories/search HTTP/1.1" 200 OK
 /Users/user/Programming_Projects/MCP_Memory/memory_server.py:140: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
   current_time = datetime.utcnow().isoformat() + "Z"
 Checking for conflicts with similarity threshold 0.65...
-Similarity with 'Prefers fast, blunt communication without fluff': 0.5493
-Similarity with 'Hates small talk and pleasantries': 0.5399
-Similarity with 'Hates small talk and pleasantries': 0.5399
-Similarity with 'Prefers blunt, fast communication': 0.5240
-Similarity with 'Prefers blunt, fast communication': 0.5240
-INFO:     127.0.0.1:59545 - "POST /memories HTTP/1.1" 200 OK
+Similarity with 'User loves detailed explanations': 0.6028
+Similarity with 'Likes detailed and comprehensive communication': 0.5694
+Similarity with 'I like detailed explanations for complex topics': 0.4999
+Similarity with 'Prefers simple code': 0.4626
+Similarity with 'Prefers readable code': 0.4483
+INFO:     127.0.0.1:63587 - "POST /memories HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.3481796979904175, 'last_accessed': '2025-07-01T16:16:53.804335Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:16.808823Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:16.811399Z'}], 'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.34251654148101807, 'last_accessed': '2025-07-01T16:16:53.808509Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:16.811399Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.34251654148101807, 'last_accessed': '2025-07-01T16:16:53.812135Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.23727166652679443, 'last_accessed': '2025-07-01T16:16:53.822276Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.23727166652679443, 'last_accessed': '2025-07-01T16:16:53.824197Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}]}
-INFO:     127.0.0.1:59586 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:63826 - "POST /memories/search HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:64095 - "POST /memories/search HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:64370 - "POST /memories/search HTTP/1.1" 200 OK
+Memory deleted: mem_1751516863351 - 'Prefers brief, concise communication without lengthy explanations' (tag: preference)
+INFO:     127.0.0.1:57816 - "DELETE /memories/mem_1751516863351 HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:57894 - "POST /memories/search HTTP/1.1" 200 OK
 Checking for conflicts with similarity threshold 0.65...
-Similarity with 'I hate email communication': 0.8262
-CONFLICT DETECTED: mem_1751372201757 (similarity: 0.8262)
-Similarity with 'Likes detailed and comprehensive communication': 0.5850
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.5297
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.5297
-Similarity with 'Prefers blunt, fast communication': 0.5098
-INFO:     127.0.0.1:59625 - "POST /memories HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 6 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751372223952': [{'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': 0.6850768327713013, 'last_accessed': '2025-07-01T16:17:12.371199Z'}, {'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': None, 'last_accessed': '2025-07-01T16:16:53.801775Z'}], 'mem_1751372201757': [{'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': 0.6237693727016449, 'last_accessed': '2025-07-01T16:17:12.379520Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.3481796979904175, 'last_accessed': '2025-07-01T16:17:12.382377Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-01T16:16:53.808509Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:16:53.812135Z'}], 'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.34251654148101807, 'last_accessed': '2025-07-01T16:17:12.384708Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:16:53.812135Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.34251654148101807, 'last_accessed': '2025-07-01T16:17:12.386902Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.23727166652679443, 'last_accessed': '2025-07-01T16:17:12.394693Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}]}
-INFO:     127.0.0.1:59655 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 6 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751372201757': [{'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': 0.5253413319587708, 'last_accessed': '2025-07-01T16:20:27.328114Z'}, {'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.371199Z'}], 'mem_1751372223952': [{'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': 0.5205889344215393, 'last_accessed': '2025-07-01T16:20:27.341755Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.3079434633255005, 'last_accessed': '2025-07-01T16:20:27.344101Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.384708Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.386902Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.28232139348983765, 'last_accessed': '2025-07-01T16:20:27.356006Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.28232139348983765, 'last_accessed': '2025-07-01T16:20:27.358406Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.28232139348983765, 'last_accessed': '2025-07-01T16:20:27.362440Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}]}
-INFO:     127.0.0.1:60179 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751372201757': [{'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': 0.5688402652740479, 'last_accessed': '2025-07-01T16:20:38.883289Z'}, {'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': None, 'last_accessed': '2025-07-01T16:20:27.341755Z'}], 'mem_1751372223952': [{'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': 0.5337284803390503, 'last_accessed': '2025-07-01T16:20:38.895155Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.2594496011734009, 'last_accessed': '2025-07-01T16:20:38.907467Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.2594496011734009, 'last_accessed': '2025-07-01T16:20:38.909656Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.2594496011734009, 'last_accessed': '2025-07-01T16:20:38.911742Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}]}
-INFO:     127.0.0.1:60214 - "POST /memories/search HTTP/1.1" 200 OK
+Similarity with 'Prefers dark mode in code editors': 0.7443
+CONFLICT DETECTED: mem_1750679154997 (similarity: 0.7443)
+Similarity with 'Prefers to work in early morning hours': 0.3057
+Similarity with 'I prefer working at night': 0.3026
+Similarity with 'I prefer working at night (test: 2025-06-24T10:16:32.640457)': 0.2506
+Similarity with 'I prefer working at night (demo: 2025-06-24T10:33:25.985642)': 0.2302
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
 Checking for conflicts with similarity threshold 0.65...
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.2356
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.2356
-Similarity with 'I prefer working at night': 0.2317
-Similarity with 'Test': 0.2279
-Similarity with 'I love email communication': 0.2224
-INFO:     127.0.0.1:49344 - "POST /memories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49371 - "POST /memories HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 7 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751372223952': [{'id': 'mem_1751372223952', 'text': 'I love email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:17:03.676010Z', 'similarity': 0.5394502878189087, 'last_accessed': '2025-07-01T17:06:48.896487Z'}, {'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': None, 'last_accessed': '2025-07-01T16:20:38.883289Z'}], 'mem_1751372201757': [{'id': 'mem_1751372201757', 'text': 'I hate email communication', 'tag': 'preference', 'timestamp': '2025-07-01T16:16:41.411894Z', 'similarity': 0.5266817212104797, 'last_accessed': '2025-07-01T17:06:48.911749Z'}], 'mem_1750751442901': [{'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': 0.32378023862838745, 'last_accessed': '2025-07-01T17:06:48.914519Z'}, {'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.384708Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.386902Z'}], 'mem_1750664417933': [{'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': 0.3220924735069275, 'last_accessed': '2025-07-01T17:06:48.920961Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.3220924735069275, 'last_accessed': '2025-07-01T17:06:48.923363Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.3220924735069275, 'last_accessed': '2025-07-01T17:06:48.927636Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.3220924735069275, 'last_accessed': '2025-07-01T17:06:48.933419Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:27.212262Z'}]}
-INFO:     127.0.0.1:49654 - "POST /memories/search HTTP/1.1" 200 OK
+Similarity with 'User prefers dark mode in all apps': 0.3411
+Similarity with 'Likes concise coding style without unnecessary comments': 0.2879
+Similarity with 'User loves detailed explanations': 0.2638
+Similarity with 'Prefers dark mode in code editors': 0.2255
+Similarity with '': 0.2006
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
 Checking for conflicts with similarity threshold 0.65...
-Similarity with 'I want to': 0.3612
-Similarity with 'Test': 0.3186
-Similarity with 'Prefers blunt, fast communication': 0.2163
-Similarity with 'Prefers blunt, fast communication': 0.2163
-Similarity with 'Prefers blunt, fast communication': 0.2163
-INFO:     127.0.0.1:49692 - "POST /memories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57713 - "GET /health HTTP/1.1" 200 OK
+Similarity with 'Prefers to work in early morning hours': 0.4582
+Similarity with 'I prefer working in the mornings (demo: 2025-06-24T10:40:41.320246)': 0.3562
+Similarity with 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)': 0.3524
+Similarity with 'I enjoy working in the morning, not at night': 0.3370
+Similarity with 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)': 0.3364
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
 Checking for conflicts with similarity threshold 0.65...
-Similarity with 'I like detailed explanations for complex topics': 0.6535
-CONFLICT DETECTED: mem_1751366740980 (similarity: 0.6535)
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.6144
-Similarity with 'Likes to communicate with lots of detail and explanation': 0.6144
-Similarity with 'Prefers direct communication with minimal details': 0.4322
-Similarity with 'Likes detailed and comprehensive communication': 0.4118
-INFO:     127.0.0.1:64827 - "POST /memories HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 4 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751443862365': [{'id': 'mem_1751443862365', 'text': 'User loves detailed explanations', 'tag': 'preference', 'timestamp': '2025-07-02T12:11:01.427917Z', 'similarity': 0.6824623942375183, 'last_accessed': '2025-07-02T12:13:39.252442Z'}, {'id': 'mem_1751366740980', 'text': 'I like detailed explanations for complex topics', 'tag': 'preference', 'timestamp': '2025-07-01T14:45:40.495717Z', 'similarity': None, 'last_accessed': '2025-07-01T16:12:16.805272Z'}], 'mem_1751366740980': [{'id': 'mem_1751366740980', 'text': 'I like detailed explanations for complex topics', 'tag': 'preference', 'timestamp': '2025-07-01T14:45:40.495717Z', 'similarity': 0.5124725103378296, 'last_accessed': '2025-07-02T12:13:39.269559Z'}], 'mem_1750750461574': [{'id': 'mem_1750750461574', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:34:21.513883Z', 'similarity': 0.43299388885498047, 'last_accessed': '2025-07-02T12:13:39.341670Z'}, {'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': None, 'last_accessed': '2025-07-01T16:17:12.386902Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.914519Z'}], 'mem_1750750987447': [{'id': 'mem_1750750987447', 'text': 'Likes to communicate with lots of detail and explanation', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:07.325411Z', 'similarity': 0.43299388885498047, 'last_accessed': '2025-07-02T12:13:39.344758Z'}, {'id': 'mem_1750751442901', 'text': 'Likes detailed and comprehensive communication', 'tag': 'preference', 'timestamp': '2025-06-24T11:50:42.862352Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.914519Z'}]}
-INFO:     127.0.0.1:65183 - "POST /memories/search HTTP/1.1" 200 OK
+Similarity with 'Prefers to work in early morning hours': 0.5674
+Similarity with 'I enjoy working in the morning, not at night': 0.4563
+Similarity with 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)': 0.4429
+Similarity with 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)': 0.4428
+Similarity with 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)': 0.4416
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User likes coffee black, no sugar': 0.4432
+Similarity with 'User loves detailed explanations': 0.3492
+Similarity with 'Likes detailed and comprehensive communication': 0.2260
+Similarity with 'User prefers working from home on Tuesdays': 0.2081
+Similarity with 'Likes concise coding style without unnecessary comments': 0.2060
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Likes detailed and comprehensive communication': 0.4455
+Similarity with 'Prefers readable code': 0.4140
+Similarity with 'I love email communication': 0.4066
+Similarity with 'Prefers maintainable code': 0.3509
+Similarity with 'Prefers simple code': 0.3493
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Prefers minimal code': 0.6138
+Similarity with 'Prefers minimal code (variant 469)': 0.5040
+Similarity with 'Prefers minimal code (variant 199)': 0.4761
+Similarity with 'Likes minimal, clean code without fluff': 0.4750
+Similarity with 'Likes minimal, clean code without fluff': 0.4750
+INFO:     127.0.0.1:60675 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Prefers extensible code': 0.3956
+Similarity with 'Prefers maintainable code': 0.3816
+Similarity with 'Prefers readable code': 0.3702
+Similarity with 'Prefers elegant code': 0.3573
+Similarity with 'Prefers simple code': 0.3534
+INFO:     127.0.0.1:60739 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User hates meetings before 10am': 0.4902
+Similarity with 'User prefers written communication over calls': 0.4419
+Similarity with 'User likes minimalist design': 0.3901
+Similarity with 'I love email communication': 0.3558
+Similarity with 'User loves detailed explanations': 0.3226
+INFO:     127.0.0.1:60739 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User loves spicy food': 0.3531
+Similarity with 'User likes coffee black, no sugar': 0.2580
+Similarity with 'User prefers TypeScript over JavaScript': 0.2262
+Similarity with 'User loves detailed explanations': 0.1888
+Similarity with 'User likes minimalist design': 0.1768
+INFO:     127.0.0.1:60739 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Prefers maintainable code': 0.3493
+Similarity with 'User likes minimalist design': 0.3137
+Similarity with 'User prefers written communication over calls': 0.3057
+Similarity with 'Prefers using Terminal over GUI tools': 0.2838
+Similarity with 'User prefers working from home on Tuesdays': 0.2826
+INFO:     127.0.0.1:63199 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User prefers working from home on Tuesdays': 0.5354
+Similarity with 'Prefers to work in early morning hours': 0.4605
+Similarity with 'User prefers written communication over calls': 0.4489
+Similarity with 'User prefers collaborative team environments': 0.4066
+Similarity with 'User hates meetings before 10am': 0.4021
+INFO:     127.0.0.1:63212 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User loves detailed explanations': 0.5103
+Similarity with 'Likes detailed and comprehensive communication': 0.4212
+Similarity with 'I like detailed explanations for complex topics': 0.4080
+Similarity with 'User likes minimalist design': 0.4013
+Similarity with 'User prefers collaborative team environments': 0.3524
+INFO:     127.0.0.1:63227 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User likes detailed project planning': 0.4827
+Similarity with 'User prefers working alone without interruptions': 0.4721
+Similarity with 'User prefers collaborative team environments': 0.4314
+Similarity with 'User likes minimalist design': 0.3864
+Similarity with 'Prefers simple code': 0.3498
+INFO:     127.0.0.1:63239 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User prefers working from home on Tuesdays': 0.4926
+Similarity with 'User hates meetings before 10am': 0.4727
+Similarity with 'User prefers working alone without interruptions': 0.4478
+Similarity with 'Prefers to work in early morning hours': 0.4214
+Similarity with 'User likes detailed project planning': 0.4028
+INFO:     127.0.0.1:63239 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'User prefers structured schedules': 0.6090
+Similarity with 'User prefers working alone without interruptions': 0.5795
+Similarity with 'User prefers working from home on Tuesdays': 0.5122
+Similarity with 'User prefers spontaneous, agile approaches to work': 0.5050
+Similarity with 'Prefers to work in early morning hours': 0.4856
+INFO:     127.0.0.1:63239 - "POST /memories HTTP/1.1" 200 OK
+Memory deleted: mem_1751523857725 - 'User prefers collaborative team environments' (tag: preference)
+INFO:     127.0.0.1:52719 - "DELETE /memories/mem_1751523857725 HTTP/1.1" 200 OK
+Memory deleted: mem_1751523881703 - 'User likes flexible, unscheduled work time' (tag: preference)
+INFO:     127.0.0.1:52719 - "DELETE /memories/mem_1751523881703 HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Build efficient AI memory systems': 0.1666
+Similarity with 'Build efficient AI memory systems': 0.1666
+Similarity with '': 0.1192
+Similarity with 'Build optimized state management': 0.0983
+Similarity with 'Build modular real-time updates': 0.0942
+INFO:     127.0.0.1:55363 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Learn Python by end of year': 0.1522
+Similarity with 'Ship MVP before adding complexity': 0.1454
+Similarity with 'Ship MVP before adding complexity': 0.1454
+Similarity with 'Wants to improve code testing practices': 0.1066
+Similarity with '': 0.0989
+INFO:     127.0.0.1:55363 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with '': 0.2132
+Similarity with 'Learn Python by end of year': 0.1282
+Similarity with 'Build clean APIs (variant 441)': 0.1243
+Similarity with 'Build efficient AI memory systems': 0.1240
+Similarity with 'Build efficient AI memory systems': 0.1240
+INFO:     127.0.0.1:55396 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Always makes time for morning exercise routine': 0.4752
+Similarity with 'Always building before deploying': 0.1105
+Similarity with 'Always shipping before deploying (variant 506)': 0.1036
+Similarity with 'Always building before deploying (variant 191)': 0.1026
+Similarity with 'Always building before deploying (variant 101)': 0.0962
+INFO:     127.0.0.1:55423 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Wake up at 6am': 0.3055
+Similarity with 'Always makes time for morning exercise routine': 0.2506
+Similarity with 'Asks blunt questions without softening': 0.1814
+Similarity with 'Asks blunt questions without softening': 0.1814
+Similarity with 'Always explains logic before giving code': 0.1409
+INFO:     127.0.0.1:55423 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Always makes time for morning exercise routine': 0.4064
+Similarity with 'Wake up at 6am': 0.3594
+Similarity with 'Drink coffee first thing': 0.1384
+Similarity with 'Always shipping before deploying': 0.1055
+Similarity with 'Asks blunt questions without softening': 0.0872
+INFO:     127.0.0.1:55423 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Limited by deployment schedule (variant 548)': 0.2090
+Similarity with 'Limited by deployment schedule (variant 458)': 0.2014
+Similarity with 'Limited by deployment schedule (variant 413)': 0.1963
+Similarity with 'Limited by deployment schedule (variant 53)': 0.1952
+Similarity with 'Limited by deployment schedule (variant 188)': 0.1905
+INFO:     127.0.0.1:55470 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Limited by deployment schedule (variant 323)': 0.4111
+Similarity with 'Limited by deployment schedule (variant 233)': 0.3882
+Similarity with 'Limited by deployment schedule': 0.3850
+Similarity with 'Limited by deployment schedule (variant 368)': 0.3750
+Similarity with 'Limited by deployment schedule (variant 413)': 0.3747
+INFO:     127.0.0.1:55493 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Can't work weekends': 0.1288
+Similarity with 'Has to meet strict performance SLAs': 0.0935
+Similarity with 'Has to meet strict performance SLAs (variant 539)': 0.0647
+Similarity with 'Has to meet strict performance SLAs (variant 494)': 0.0582
+Similarity with 'Must use Python 3.13 compatibility': 0.0542
+INFO:     127.0.0.1:55493 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Documents code thoroughly': 0.7037
+CONFLICT DETECTED: mem_1750677215190 (similarity: 0.7037)
+Similarity with 'Documents code thoroughly (variant 60)': 0.6385
+Similarity with 'Documents code thoroughly (variant 105)': 0.6343
+Similarity with 'Documents code thoroughly (variant 465)': 0.6175
+Similarity with 'Documents code thoroughly (variant 420)': 0.6127
+INFO:     127.0.0.1:55517 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Reviews PRs promptly': 0.8074
+CONFLICT DETECTED: mem_1750677215729 (similarity: 0.8074)
+Similarity with 'Reviews PRs promptly (variant 213)': 0.7567
+CONFLICT DETECTED: mem_1750677218998 (similarity: 0.7567)
+Similarity with 'Reviews PRs promptly (variant 483)': 0.7513
+CONFLICT DETECTED: mem_1750677222844 (similarity: 0.7513)
+Similarity with 'Reviews PRs promptly (variant 168)': 0.7393
+CONFLICT DETECTED: mem_1750677218412 (similarity: 0.7393)
+Similarity with 'Reviews PRs promptly (variant 393)': 0.7280
+CONFLICT DETECTED: mem_1750677221537 (similarity: 0.7280)
+INFO:     127.0.0.1:55531 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Participates actively in design discussions': 0.3396
+Similarity with 'Participates actively in design discussions (variant 267)': 0.3025
+Similarity with 'Participates actively in design discussions (variant 312)': 0.2922
+Similarity with 'Participates actively in design discussions (variant 357)': 0.2867
+Similarity with 'Participates actively in design discussions (variant 132)': 0.2840
+INFO:     127.0.0.1:55531 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Values direct feedback over politeness': 0.2392
+Similarity with 'Focuses on maintainable solutions': 0.2266
+Similarity with 'Values first-principles thinking': 0.2193
+Similarity with 'Values first-principles thinking': 0.2193
+Similarity with 'Focuses on maintainable solutions (variant 124)': 0.1912
+INFO:     127.0.0.1:55549 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Focuses on maintainable solutions': 0.2798
+Similarity with 'Focuses on maintainable solutions (variant 259)': 0.2507
+Similarity with 'Values first-principles thinking': 0.2386
+Similarity with 'Values first-principles thinking': 0.2386
+Similarity with 'Focuses on maintainable solutions (variant 79)': 0.2197
+INFO:     127.0.0.1:55549 - "POST /memories HTTP/1.1" 200 OK
+Checking for conflicts with similarity threshold 0.65...
+Similarity with 'Focuses on maintainable solutions': 0.2719
+Similarity with 'Prioritizes user experience': 0.2667
+Similarity with 'Believes in eliminating before optimizing': 0.2614
+Similarity with 'Believes in eliminating before optimizing': 0.2614
+Similarity with 'Prioritizes user experience (variant 205)': 0.2434
+INFO:     127.0.0.1:55574 - "POST /memories HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
 DEBUG: Identified 1 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1751443862365': [{'id': 'mem_1751443862365', 'text': 'User loves detailed explanations', 'tag': 'preference', 'timestamp': '2025-07-02T12:11:01.427917Z', 'similarity': 0.3327144384384155, 'last_accessed': '2025-07-02T12:23:50.513711Z'}, {'id': 'mem_1751366740980', 'text': 'I like detailed explanations for complex topics', 'tag': 'preference', 'timestamp': '2025-07-01T14:45:40.495717Z', 'similarity': None, 'last_accessed': '2025-07-02T12:13:39.269559Z'}]}
-INFO:     127.0.0.1:50381 - "POST /memories/search HTTP/1.1" 200 OK
-
-DEBUG: Found 1 results total
-DEBUG: Built 10 memory responses
-DEBUG: Identified 5 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750750986760': [{'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': 0.4564740061759949, 'last_accessed': '2025-07-02T12:24:39.576112Z'}, {'id': 'mem_1750664417933', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.922233Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.920961Z'}, {'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': None, 'last_accessed': '2025-07-01T16:20:38.909656Z'}, {'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.923363Z'}, {'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.927636Z'}, {'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': None, 'last_accessed': '2025-07-01T17:06:48.933419Z'}], 'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.44822871685028076, 'last_accessed': '2025-07-02T12:24:39.586714Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.44822871685028076, 'last_accessed': '2025-07-02T12:24:39.589367Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.44822871685028076, 'last_accessed': '2025-07-02T12:24:39.593970Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.44822871685028076, 'last_accessed': '2025-07-02T12:24:39.598364Z'}]}
-INFO:     127.0.0.1:50483 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Adding conflict sets to response: {'mem_1750679154997': [{'id': 'mem_1750679154997', 'text': 'Prefers dark mode in code editors', 'tag': 'preference', 'timestamp': '2025-06-23T15:45:54.726809Z', 'similarity': 0.3844546675682068, 'last_accessed': '2025-07-03T12:07:19.337063Z'}, {'id': 'mem_1751522774098', 'text': 'User prefers dark mode in all apps', 'tag': 'preference', 'timestamp': '2025-07-03T10:06:13.709311Z', 'similarity': None, 'last_accessed': '2025-07-03T10:06:14.132273Z'}]}
+INFO:     127.0.0.1:60383 - "POST /memories/search HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
 DEBUG: Identified 4 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:28:11.961821Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:28:11.974534Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:28:11.986806Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:28:11.997458Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}]}
-INFO:     127.0.0.1:51155 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Adding conflict sets to response: {'mem_1750745613846': [{'id': 'mem_1750745613846', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:13:33.163713)', 'tag': 'preference', 'timestamp': '2025-06-24T10:13:33.163713Z', 'similarity': 0.40414977073669434, 'last_accessed': '2025-07-03T12:07:25.699192Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.730508Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:29.200080Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.742141Z'}, {'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:27.988312Z'}], 'mem_1750746562796': [{'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': 0.40233325958251953, 'last_accessed': '2025-07-03T12:07:25.710575Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:29.200080Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.730508Z'}, {'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.736701Z'}, {'id': 'mem_1750745792946', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.752220Z'}, {'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:27.988312Z'}, {'id': 'mem_1750747242651', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:42.559875Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.747647Z'}], 'mem_1750746327839': [{'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': 0.40163516998291016, 'last_accessed': '2025-07-03T12:07:25.718243Z'}, {'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.736701Z'}, {'id': 'mem_1750745792946', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.752220Z'}, {'id': 'mem_1750745689869', 'text': 'I prefer working at night (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:14:49.626106Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746513696', 'text': 'I prefer working at night (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:28:33.816073Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:29.200080Z'}, {'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:27.988312Z'}, {'id': 'mem_1750747242651', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:42.559875Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.747647Z'}], 'mem_1750746513777': [{'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': 0.40111708641052246, 'last_accessed': '2025-07-03T12:07:25.730713Z'}, {'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.736701Z'}, {'id': 'mem_1750745792946', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.752220Z'}, {'id': 'mem_1750746513696', 'text': 'I prefer working at night (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:28:33.816073Z'}, {'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:27.988312Z'}, {'id': 'mem_1750747242651', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:42.559875Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.747647Z'}]}
+INFO:     127.0.0.1:60396 - "POST /memories/search HTTP/1.1" 200 OK
 
 DEBUG: Found 1 results total
 DEBUG: Built 10 memory responses
-DEBUG: Identified 4 conflict sets
-DEBUG: Adding conflict sets to response: {'mem_1750664417971': [{'id': 'mem_1750664417971', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.952628Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:34:01.582861Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664418009': [{'id': 'mem_1750664418009', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:17.996126Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:34:01.585857Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664418108': [{'id': 'mem_1750664418108', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.097461Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:34:01.594075Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}], 'mem_1750664419045': [{'id': 'mem_1750664419045', 'text': 'Prefers blunt, fast communication', 'tag': 'preference', 'timestamp': '2025-06-23T11:40:18.934944Z', 'similarity': 0.6343610882759094, 'last_accessed': '2025-07-02T12:34:01.600956Z'}, {'id': 'mem_1750750986760', 'text': 'Prefers fast, blunt communication without fluff', 'tag': 'preference', 'timestamp': '2025-06-24T11:43:06.304787Z', 'similarity': None, 'last_accessed': '2025-07-02T12:24:39.576112Z'}]}
-INFO:     127.0.0.1:52142 - "POST /memories/search HTTP/1.1" 200 OK
+DEBUG: Identified 2 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750677215190': [{'id': 'mem_1750677215190', 'text': 'Documents code thoroughly', 'tag': 'habit', 'timestamp': '2025-06-23T19:13:33.746625Z', 'similarity': 0.5989864468574524, 'last_accessed': '2025-07-03T12:07:32.935549Z'}, {'id': 'mem_1751527791067', 'text': 'Always document code', 'tag': 'habit', 'timestamp': '2025-07-03T11:29:50.963094Z', 'similarity': None, 'last_accessed': '2025-07-03T11:29:51.073171Z'}], 'mem_1751527791067': [{'id': 'mem_1751527791067', 'text': 'Always document code', 'tag': 'habit', 'timestamp': '2025-07-03T11:29:50.963094Z', 'similarity': 0.5291889905929565, 'last_accessed': '2025-07-03T12:07:32.963469Z'}]}
+INFO:     127.0.0.1:60429 - "POST /memories/search HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:60444 - "POST /memories/search HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+INFO:     127.0.0.1:60444 - "POST /memories/search HTTP/1.1" 200 OK
+
+DEBUG: Found 1 results total
+DEBUG: Built 10 memory responses
+DEBUG: Identified 3 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750747242651': [{'id': 'mem_1750747242651', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:42.559875Z', 'similarity': 0.43389636278152466, 'last_accessed': '2025-07-03T12:07:48.396719Z'}, {'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:27.988312Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.710575Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.718243Z'}, {'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.736701Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.730713Z'}], 'mem_1750746807985': [{'id': 'mem_1750746807985', 'text': 'I prefer working in the mornings (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:27.895955Z', 'similarity': 0.41053879261016846, 'last_accessed': '2025-07-03T12:07:48.411818Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.710575Z'}, {'id': 'mem_1750745613846', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:13:33.163713)', 'tag': 'preference', 'timestamp': '2025-06-24T10:13:33.163713Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.699192Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.730713Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.718243Z'}, {'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': None, 'last_accessed': '2025-06-24T10:40:43.736701Z'}], 'mem_1750745689920': [{'id': 'mem_1750745689920', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:14:49.626106)', 'tag': 'preference', 'timestamp': '2025-06-24T10:14:49.626106Z', 'similarity': 0.3915112614631653, 'last_accessed': '2025-07-03T12:07:48.441555Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.718243Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.730713Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-07-03T12:07:25.710575Z'}]}
+INFO:     127.0.0.1:60463 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32994]
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-32994-bnej_67h'}
+  warnings.warn(
