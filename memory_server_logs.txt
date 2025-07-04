@@ -380,3 +380,367 @@ INFO:     Application shutdown complete.
 INFO:     Finished server process [32994]
 /opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-32994-bnej_67h'}
   warnings.warn(
+Loaded 645 memory hashes for deduplication
+INFO:     Started server process [72422]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+SEARCH REQUEST: query='testing new logging functionality', limit=3, tag_filter=None
+RAW SEARCH RESULTS: found 3 memories
+TOP 3 SIMILARITIES: [0.5684578120708466, 0.5670525133609772, 0.5668067932128906]
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:238: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  current_time = datetime.utcnow().isoformat() + "Z"
+
+DEBUG: Found 1 results total
+DEBUG: Built 3 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 3 memories with 0 conflict sets
+INFO:     127.0.0.1:56716 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [72422]
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-72422-3nbidvw6'}
+  warnings.warn(
+Loaded 645 memory hashes for deduplication
+INFO:     Started server process [81679]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:238: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  current_time = datetime.utcnow().isoformat() + "Z"
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:57611 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:57806 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:57854 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='test logging fix', limit=3, tag_filter=None
+RAW SEARCH RESULTS: found 3 memories
+TOP 3 SIMILARITIES: [0.48926496505737305, 0.47795963287353516, 0.47457534074783325]
+
+DEBUG: Found 1 results total
+DEBUG: Built 3 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 3 memories with 0 conflict sets
+INFO:     127.0.0.1:58301 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='fixed logging test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5626269578933716, 0.5597245693206787]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:58607 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:58903 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='final logging test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5638426244258881, 0.5592445135116577]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:59446 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:59560 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:59714 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:59801 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:59882 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='logging test check', limit=1, tag_filter=None
+RAW SEARCH RESULTS: found 1 memories
+TOP 3 SIMILARITIES: [0.5087141990661621]
+
+DEBUG: Found 1 results total
+DEBUG: Built 1 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 1 memories with 0 conflict sets
+INFO:     127.0.0.1:60093 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: Found 1 results total
+DEBUG: Built 2 memory responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:60238 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [81679]
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-81679-uj1ra0h4'}
+  warnings.warn(
+Loaded 645 memory hashes for deduplication
+INFO:     Started server process [20735]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+SEARCH REQUEST: query='restart test', limit=1, tag_filter=None
+RAW SEARCH RESULTS: found 1 memories
+TOP 3 SIMILARITIES: [0.6133319139480591]
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:238: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  current_time = datetime.utcnow().isoformat() + "Z"
+
+DEBUG: ChromaDB returned 1 memories, built 1 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 1 memories with 0 conflict sets
+INFO:     127.0.0.1:60659 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:60716 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:61392 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:61485 - "POST /memories/search HTTP/1.1" 200 OK
+
+DELIMITER
+SEARCH REQUEST: query='testing enhanced logging', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.5710166096687317, 0.5680092573165894]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:61724 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='communication preferences written calls email small talk detailed', limit=10, tag_filter=None
+RAW SEARCH RESULTS: found 10 memories
+TOP 3 SIMILARITIES: [0.6639911532402039, 0.6271724104881287, 0.5253609716892242]
+
+DEBUG: ChromaDB returned 10 memories, built 10 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 10 memories with 0 conflict sets
+INFO:     127.0.0.1:62486 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64103 - "GET /health HTTP/1.1" 200 OK
+SEARCH REQUEST: query='diagnostic test', limit=1, tag_filter=None
+RAW SEARCH RESULTS: found 1 memories
+TOP 3 SIMILARITIES: [0.6027081608772278]
+
+DEBUG: ChromaDB returned 1 memories, built 1 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 1 memories with 0 conflict sets
+INFO:     127.0.0.1:64133 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='memory content test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.8865504413843155, 0.6498697400093079]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:64966 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [20735]
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-20735-bt_6lzum'}
+  warnings.warn(
+Loaded 645 memory hashes for deduplication
+INFO:     Started server process [77240]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+SEARCH REQUEST: query='final memory content test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.8435231745243073, 0.6416394710540771]
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:238: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  current_time = datetime.utcnow().isoformat() + "Z"
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+MEMORY DETAILS:
+- mem_1751366419544: "test memory" (goal, sim: 0.844)
+- mem_1750677533411: "This is a test memory for deduplication demo" (preference, sim: 0.642)
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:49935 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='working mornings night preferences', limit=3, tag_filter=None
+RAW SEARCH RESULTS: found 3 memories
+TOP 3 SIMILARITIES: [0.7468567788600922, 0.7468567788600922, 0.6796441972255707]
+
+DEBUG: ChromaDB returned 3 memories, built 3 responses
+MEMORY DETAILS:
+- mem_1750679155068: "Prefers to work in early morning hours" (preference, sim: 0.747)
+- mem_1750679155083: "Prefers to work in early morning hours" (habit, sim: 0.747)
+- mem_1750744037115: "I enjoy working in the morning, not at night" (preference, sim: 0.680)
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 3 memories with 0 conflict sets
+INFO:     127.0.0.1:51475 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='enhanced timestamp logging test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.4349634647369385, 0.4240241050720215]
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+MEMORY DETAILS:
+- mem_1750677222473: "Writes tests before implementation (variant 456)" (habit, sim: 0.435)
+- mem_1750677221841: "Writes tests before implementation (variant 411)" (habit, sim: 0.424)
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:51802 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='email communication love hate', limit=3, tag_filter=None
+RAW SEARCH RESULTS: found 3 memories
+TOP 3 SIMILARITIES: [0.7718494534492493, 0.5154715776443481, 0.445318341255188]
+
+DEBUG: ChromaDB returned 3 memories, built 3 responses
+MEMORY DETAILS:
+- mem_1751372223952: "I love email communication" (preference, sim: 0.772)
+- mem_1751522808741: "User hates small talk" (preference, sim: 0.515)
+- mem_1750751442901: "Likes detailed and comprehensive communication" (preference, sim: 0.445)
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 3 memories with 0 conflict sets
+INFO:     127.0.0.1:51872 - "POST /memories/search HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [77240]
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-77240-a98zqfai'}
+  warnings.warn(
+Loaded 645 memory hashes for deduplication
+INFO:     Started server process [34176]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+SEARCH REQUEST: query='enhanced logging with timestamps test', limit=2, tag_filter=None
+RAW SEARCH RESULTS: found 2 memories
+TOP 3 SIMILARITIES: [0.47005975246429443, 0.46977704763412476]
+/Users/user/Programming_Projects/MCP_Memory/memory_server.py:238: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  current_time = datetime.utcnow().isoformat() + "Z"
+
+DEBUG: ChromaDB returned 2 memories, built 2 responses
+MEMORY DETAILS:
+- mem_1750677217393: "building a minimal logging using ChakraUI (variant..." (project, sim: 0.470, ts: 06-23, accessed: 07-03)
+- mem_1750677221522: "building a minimal logging using ChakraUI (variant..." (project, sim: 0.470, ts: 06-23, accessed: 07-03)
+DEBUG: Identified 0 conflict sets
+DEBUG: No conflict sets detected, performing manual conflict check
+SEARCH RESPONSE: returning 2 memories with 0 conflict sets
+INFO:     127.0.0.1:52484 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='working time preferences morning night', limit=4, tag_filter=None
+RAW SEARCH RESULTS: found 4 memories
+TOP 3 SIMILARITIES: [0.7602358460426331, 0.7602358460426331, 0.6461255550384521]
+
+DEBUG: ChromaDB returned 4 memories, built 4 responses
+MEMORY DETAILS:
+- mem_1750679155068: "Prefers to work in early morning hours" (preference, sim: 0.760, ts: 06-23, accessed: 07-03)
+- mem_1750679155083: "Prefers to work in early morning hours" (habit, sim: 0.760, ts: 06-23, accessed: 07-03)
+- mem_1750745792946: "I prefer working in the mornings (test: 2025-06-24..." (preference, sim: 0.646, ts: 06-24, accessed: 07-03)
+- mem_1750745792917: "I prefer working at night (test: 2025-06-24T10:16:..." (preference, sim: 0.642, ts: 06-24, accessed: 07-03)
+DEBUG: Identified 2 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750745792946': [{'id': 'mem_1750745792946', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': 0.6461255550384521, 'last_accessed': '2025-07-03T14:52:40.513833Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.330172Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-07-03T12:46:39.836844Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.324398Z'}], 'mem_1750745792917': [{'id': 'mem_1750745792917', 'text': 'I prefer working at night (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': 0.6423827409744263, 'last_accessed': '2025-07-03T14:52:40.518843Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746513696', 'text': 'I prefer working at night (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:28:33.816073Z'}, {'id': 'mem_1750746562741', 'text': 'I prefer working at night (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-06-24T10:29:22.829727Z'}, {'id': 'mem_1750746806830', 'text': 'I prefer working at night (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:25.985658Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:29.066658Z'}, {'id': 'mem_1750747241477', 'text': 'I prefer working at night (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:41.320256Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.319814Z'}]}
+SEARCH RESPONSE: returning 4 memories with 2 conflict sets
+INFO:     127.0.0.1:52686 - "POST /memories/search HTTP/1.1" 200 OK
+SEARCH REQUEST: query='working time preferences morning night', limit=4, tag_filter=None
+RAW SEARCH RESULTS: found 4 memories
+TOP 3 SIMILARITIES: [0.7602358460426331, 0.7602358460426331, 0.6461255550384521]
+
+DEBUG: ChromaDB returned 4 memories, built 4 responses
+MEMORY DETAILS:
+- mem_1750679155068: "Prefers to work in early morning hours" (preference, sim: 0.760, ts: 06-23, accessed: 07-03)
+- mem_1750679155083: "Prefers to work in early morning hours" (habit, sim: 0.760, ts: 06-23, accessed: 07-03)
+- mem_1750745792946: "I prefer working in the mornings (test: 2025-06-24..." (preference, sim: 0.646, ts: 06-24, accessed: 07-03)
+- mem_1750745792917: "I prefer working at night (test: 2025-06-24T10:16:..." (preference, sim: 0.642, ts: 06-24, accessed: 07-03)
+DEBUG: Identified 2 conflict sets
+DEBUG: Adding conflict sets to response: {'mem_1750745792946': [{'id': 'mem_1750745792946', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': 0.6461255550384521, 'last_accessed': '2025-07-03T15:08:47.083670Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746327839', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.330172Z'}, {'id': 'mem_1750746513777', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-07-03T12:46:39.836844Z'}, {'id': 'mem_1750746562796', 'text': 'I prefer working in the mornings (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.324398Z'}], 'mem_1750745792917': [{'id': 'mem_1750745792917', 'text': 'I prefer working at night (test: 2025-06-24T10:16:32.640457)', 'tag': 'preference', 'timestamp': '2025-06-24T10:16:32.640457Z', 'similarity': 0.6423827409744263, 'last_accessed': '2025-07-03T15:08:47.095290Z'}, {'id': 'mem_1750746327659', 'text': 'I prefer working at night (test: 2025-06-24T10:25:27.108799)', 'tag': 'preference', 'timestamp': '2025-06-24T10:25:27.108799Z', 'similarity': None, 'last_accessed': '2025-06-24T10:25:27.974027Z'}, {'id': 'mem_1750746513696', 'text': 'I prefer working at night (test: 2025-06-24T10:28:33.208869)', 'tag': 'preference', 'timestamp': '2025-06-24T10:28:33.208869Z', 'similarity': None, 'last_accessed': '2025-06-24T10:28:33.816073Z'}, {'id': 'mem_1750746562741', 'text': 'I prefer working at night (test: 2025-06-24T10:29:22.501137)', 'tag': 'preference', 'timestamp': '2025-06-24T10:29:22.501137Z', 'similarity': None, 'last_accessed': '2025-06-24T10:29:22.829727Z'}, {'id': 'mem_1750746806830', 'text': 'I prefer working at night (demo: 2025-06-24T10:33:25.985642)', 'tag': 'preference', 'timestamp': '2025-06-24T10:33:25.985658Z', 'similarity': None, 'last_accessed': '2025-06-24T10:33:29.066658Z'}, {'id': 'mem_1750747241477', 'text': 'I prefer working at night (demo: 2025-06-24T10:40:41.320246)', 'tag': 'preference', 'timestamp': '2025-06-24T10:40:41.320256Z', 'similarity': None, 'last_accessed': '2025-07-03T12:47:08.319814Z'}]}
+SEARCH RESPONSE: returning 4 memories with 2 conflict sets
+INFO:     127.0.0.1:55138 - "POST /memories/search HTTP/1.1" 200 OK
