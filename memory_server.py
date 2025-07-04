@@ -12,6 +12,8 @@ import json
 import os
 import hashlib
 from datetime import datetime, timedelta
+import numpy as np
+from numpy.linalg import norm
 
 app = FastAPI(title="Memory System v0")
 
@@ -105,6 +107,26 @@ async def store_memory(memory: MemoryItem):
     
     # Generate embedding
     embedding = model.encode(memory.text).tolist()
+    
+    # Check for semantic duplicates (similarity > 0.95) before storing
+    DUPLICATE_THRESHOLD = 0.95
+    if collection.count() > 0:  # Skip check for first memory
+        duplicate_results = collection.query(
+            query_embeddings=[embedding],
+            n_results=3,  # Check top 3 similar memories
+            where={"tag": memory.tag}
+        )
+        
+        if duplicate_results['distances'] and duplicate_results['distances'][0]:
+            for i, distance in enumerate(duplicate_results['distances'][0]):
+                # Convert distance to similarity (0-1 range)
+                similarity = max(0, 1 - (distance / 2))
+                if similarity > DUPLICATE_THRESHOLD:
+                    duplicate_id = duplicate_results['ids'][0][i]
+                    duplicate_text = duplicate_results['documents'][0][i]
+                    print(f"SEMANTIC DUPLICATE DETECTED: '{memory.text}' too similar to existing memory '{duplicate_text}' (similarity: {similarity:.4f})")
+                    print(f"Skipping storage to prevent duplicate proliferation")
+                    return {"status": "duplicate", "message": f"Memory too similar to existing memory {duplicate_id}", "similarity": similarity}
     
     # Create unique ID
     memory_id = f"mem_{int(datetime.utcnow().timestamp() * 1000)}"
@@ -279,6 +301,48 @@ async def search_memories(request: SearchRequest):
                             # Add to conflict set
                             conflict_sets[memory_id].append(dict(conflict_memory))
     
+    # Apply semantic deduplication to conflict sets
+    for memory_id, conflicts in conflict_sets.items():
+        if len(conflicts) > 1:
+            # Extract embeddings for similarity calculation
+            unique_conflicts = []
+            
+            for conflict in conflicts:
+                # Check if this conflict is semantically similar to any existing unique conflict
+                is_duplicate = False
+                conflict_embedding = model.encode([conflict['text']])
+                
+                for unique_conflict in unique_conflicts:
+                    unique_embedding = model.encode([unique_conflict['text']])
+                    
+                    # Calculate cosine similarity between embeddings
+                    
+                    # Flatten embeddings for calculation
+                    emb1 = conflict_embedding[0]
+                    emb2 = unique_embedding[0]
+                    
+                    # Calculate cosine similarity
+                    similarity = np.dot(emb1, emb2) / (norm(emb1) * norm(emb2))
+                    
+                    # If similarity > 0.95, it's a duplicate
+                    if similarity > 0.95:
+                        is_duplicate = True
+                        # Keep the more recent one
+                        if conflict['timestamp'] > unique_conflict['timestamp']:
+                            unique_conflicts.remove(unique_conflict)
+                            unique_conflicts.append(conflict)
+                        break
+                
+                # If not a duplicate, add to unique conflicts
+                if not is_duplicate:
+                    unique_conflicts.append(conflict)
+            
+            # Sort unique conflicts by timestamp (most recent first)
+            unique_conflicts.sort(key=lambda x: x['timestamp'], reverse=True)
+            
+            # Update conflict set with deduplicated conflicts
+            conflict_sets[memory_id] = unique_conflicts
+    
     # Build final response
     response = {
         "query": request.query,
@@ -323,7 +387,19 @@ async def search_memories(request: SearchRequest):
     
     # Add conflict sets if any exist
     if conflict_sets:
-        print(f"DEBUG: Adding conflict sets to response: {conflict_sets}")
+        # Clean conflict summary logging
+        conflict_summaries = []
+        for memory_id, conflicts in conflict_sets.items():
+            conflict_count = len(conflicts) - 1  # Subtract 1 because it includes the original memory
+            if conflicts:
+                main_memory = conflicts[0]
+                text_snippet = main_memory['text'][:50] + "..." if len(main_memory['text']) > 50 else main_memory['text']
+                conflict_summaries.append(f"{memory_id}: '{text_snippet}' ({conflict_count} conflicts)")
+        
+        print(f"CONFLICT SETS: {len(conflict_sets)} sets detected")
+        for summary in conflict_summaries:
+            print(f"- {summary}")
+        
         response["conflict_sets"] = conflict_sets
     else:
         # Manually check for conflicts among the returned results
