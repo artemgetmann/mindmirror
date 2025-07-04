@@ -84,6 +84,7 @@ Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `t
 
 5. **Mock test** first: drive the MCP wrapper with a simple Python client that simulates LLM questions.
 
+
 ## Implementation Roadmap
 
 1. **Integrate conflict + pruning code into memory_server.py**
