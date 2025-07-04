@@ -218,7 +218,7 @@ async def search_memories(request: SearchRequest):
         where=where_clause
     )
     
-    # Log raw search results
+    # Log raw search results  
     total_results = len(results['documents'][0]) if results['documents'] and results['documents'][0] else 0
     print(f"RAW SEARCH RESULTS: found {total_results} memories")
     if total_results > 0:
@@ -287,8 +287,38 @@ async def search_memories(request: SearchRequest):
     }
     
     # Debug: print conflict detection information
-    print(f"\nDEBUG: Found {len(results['ids'])} results total")
-    print(f"DEBUG: Built {len(memories)} memory responses")
+    print(f"\nDEBUG: ChromaDB returned {total_results} memories, built {len(memories)} responses")
+    
+    # Log memory content details
+    if memories:
+        print("MEMORY DETAILS:")
+        for memory in memories:
+            memory_dict = memory if isinstance(memory, dict) else dict(memory)
+            text_snippet = memory_dict['text'][:50] + "..." if len(memory_dict['text']) > 50 else memory_dict['text']
+            similarity = memory_dict.get('similarity', 'N/A')
+            
+            # Extract short dates from timestamps
+            created_date = "unknown"
+            accessed_date = "unknown"
+            
+            if 'timestamp' in memory_dict and memory_dict['timestamp']:
+                try:
+                    # Convert "2025-07-01T14:40:19.175601Z" to "07-01"
+                    created_date = memory_dict['timestamp'].split('T')[0][5:]  # Take YYYY-MM-DD, extract MM-DD
+                except:
+                    created_date = "unknown"
+                    
+            if 'last_accessed' in memory_dict and memory_dict['last_accessed']:
+                try:
+                    # Convert "2025-07-03T14:37:18.063049Z" to "07-03"
+                    accessed_date = memory_dict['last_accessed'].split('T')[0][5:]  # Take YYYY-MM-DD, extract MM-DD
+                except:
+                    accessed_date = "unknown"
+            
+            print(f"- {memory_dict['id']}: \"{text_snippet}\" ({memory_dict['tag']}, sim: {similarity:.3f}, ts: {created_date}, accessed: {accessed_date})")
+    else:
+        print("MEMORY DETAILS: No memories returned")
+    
     print(f"DEBUG: Identified {len(conflict_sets)} conflict sets")
     
     # Add conflict sets if any exist
