@@ -1,0 +1,5065 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  architecture.md
+  claude_integration.md
+  compatibility.md
+  docker_usage.md
+  user_guide.md
+examples/
+  claude_desktop_config.md
+  retrieve_memory_example.py
+  store_memory_example.py
+memory_mcp/
+  auto_memory/
+    __init__.py
+    auto_capture.py
+    system_prompt.py
+  domains/
+    __init__.py
+    episodic.py
+    manager.py
+    persistence.py
+    semantic.py
+    temporal.py
+  mcp/
+    __init__.py
+    server.py
+    tools.py
+  utils/
+    compatibility/
+      __init__.py
+      version_checker.py
+    __init__.py
+    config.py
+    embeddings.py
+    schema.py
+  __init__.py
+  __main__.py
+tests/
+  __init__.py
+  test_memory_mcp.py
+docker-compose.yml
+Dockerfile
+LICENSE
+pyproject.toml
+README.md
+requirements.txt
+setup.sh
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/architecture.md">
+# Memory MCP Server Architecture
+
+This document outlines the architecture for the Claude Memory MCP server, which provides persistent memory capabilities for Large Language Models.
+
+## Architectural Overview
+
+The server follows a functional domain-based architecture rather than a traditional layered approach. This design is inspired by cognitive memory processing patterns and focuses on four primary domains:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Claude Desktop                        │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────┐
+│                     MCP Interface                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────┐ │
+│  │ Tool Definitions│  │ Request Handler │  │ Security │ │
+│  └─────────────────┘  └─────────────────┘  └──────────┘ │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────┐
+│                Memory Domain Manager                    │
+├─────────────────┬─────────────────┬────────────────────┤
+│  Episodic Domain│  Semantic Domain│  Temporal Domain   │
+├─────────────────┴─────────────────┴────────────────────┤
+│                  Persistence Domain                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Domain Details
+
+### 1. Episodic Domain
+
+The Episodic Domain is responsible for managing memory of specific events, conversations, and experiences.
+
+**Responsibilities:**
+- Recording and retrieving conversation histories
+- Managing session-based interactions
+- Contextualizing memories with temporal and situational details
+- Narrative memory construction
+- Recording agent reflections and observations
+
+**Key Components:**
+- `EpisodicProcessor`: Processes new episodic memories
+- `EpisodicRetrieval`: Retrieves relevant episodic memories based on context
+- `ConversationManager`: Manages conversation history and context
+- `ReflectionEngine`: Creates reflection memories from experiences
+
+### 2. Semantic Domain
+
+The Semantic Domain handles factual knowledge, conceptual understanding, and relational knowledge.
+
+**Responsibilities:**
+- Managing factual information and knowledge
+- Organizing categorical and conceptual information
+- Handling entity relationships and attributes
+- Knowledge consolidation and organization
+- Abstract concept representation
+
+**Key Components:**
+- `KnowledgeProcessor`: Processes factual information
+- `EntityManager`: Manages entity information and relationships
+- `ConceptualOrganizer`: Organizes related concepts
+- `KnowledgeRetrieval`: Retrieves relevant knowledge based on context
+
+### 3. Temporal Domain
+
+The Temporal Domain provides time-aware processing across all memory operations.
+
+**Responsibilities:**
+- Managing memory decay and importance over time
+- Temporal indexing and sequencing
+- Chronological relationship tracking
+- Time-based memory consolidation
+- Recency effects in retrieval
+
+**Key Components:**
+- `TemporalProcessor`: Adds temporal context to memories
+- `DecayManager`: Implements importance decay algorithms
+- `ChronologicalIndexer`: Maintains temporal indices
+- `TimeAwareRetrieval`: Incorporates time in retrieval relevance
+
+### 4. Persistence Domain
+
+The Persistence Domain handles the storage, retrieval, and management of memories across sessions.
+
+**Responsibilities:**
+- File system operations
+- Vector embedding generation and storage
+- Index management
+- Memory file structure 
+- Backup and recovery
+- Efficient storage formats
+
+**Key Components:**
+- `FileManager`: Handles reading and writing to the memory file
+- `EmbeddingManager`: Generates and stores vector embeddings
+- `IndexManager`: Manages semantic and other indices
+- `BackupManager`: Handles backup and recovery operations
+
+## Communication Patterns
+
+The domains communicate through the Memory Domain Manager, which orchestrates interactions between domains. This design allows for:
+
+1. **Parallel Processing**: Domains can process information concurrently
+2. **Domain Specialization**: Each domain focuses on specific memory tasks
+3. **Cross-Domain Integration**: Information flows naturally between domains
+4. **Cohesive Memory Operations**: Complex operations utilize multiple domains
+
+## MCP Interface
+
+The MCP Interface layer handles communication with Claude Desktop through the Model Context Protocol:
+
+### Tool Definitions
+
+The server exposes these memory-related tools:
+
+- `store_memory`: Store new information in memory
+- `retrieve_memory`: Retrieve relevant memories based on query
+- `list_memories`: List available memories with filtering options
+- `update_memory`: Update existing memory entries
+- `delete_memory`: Remove specific memories
+- `memory_stats`: Get statistics about the memory store
+
+### Request Handler
+
+The Request Handler processes incoming MCP requests:
+- Validates request parameters
+- Routes requests to appropriate domain operations
+- Formats responses according to MCP protocol
+- Handles errors and exceptions
+
+### Security
+
+The Security component provides:
+- Input validation and sanitization
+- Access control for file operations
+- Rate limiting to prevent abuse
+- Secure error handling
+
+## Memory File Structure
+
+The memory system uses a JSON-based file structure with the following components:
+
+```json
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "ISO-8601 timestamp",
+    "updated_at": "ISO-8601 timestamp"
+  },
+  "memory_index": {
+    // Vector index for fast semantic search
+  },
+  "short_term_memory": [
+    // Recent and frequently accessed memories
+  ],
+  "long_term_memory": [
+    // Older or less frequently accessed memories
+  ],
+  "archived_memory": [
+    // Rarely accessed but potentially valuable memories
+  ],
+  "memory_schema": {
+    // Schema definitions for memory entries
+  },
+  "config": {
+    // Configuration settings for memory management
+  }
+}
+```
+
+## Memory Management Operations
+
+The system performs these key memory operations:
+
+### 1. Addition
+New memories are added with:
+- Unique ID generation
+- Embedding vector creation
+- Metadata population
+- Index updating
+
+### 2. Retrieval
+Memories are retrieved through:
+- Semantic search via the index
+- Filtering by metadata (type, time, tags)
+- Contextual relationships
+- Hybrid ranking (combining semantic similarity, recency, importance)
+
+### 3. Consolidation
+Periodic consolidation processes:
+- Move memories between tiers based on access patterns
+- Update importance scores based on usage
+- Merge related memories when appropriate
+- Summarize lengthy content for efficiency
+
+### 4. Forgetting
+Controlled memory management:
+- Archive less important memories
+- Prune redundant information
+- Delete obsolete or low-value memories
+- Maintain a forgetting curve inspired by human memory
+
+## Research Foundation
+
+This architecture is based on comprehensive research of current LLM persistent memory techniques:
+
+- **Tiered Memory Architecture**: Inspired by MemGPT's OS-inspired approach
+- **Context-Sensitivity**: Drawn from academic research on episodic memory for LLMs
+- **Embedding-Based Retrieval**: Building on vector database approaches
+- **Self-Reflection**: Incorporating ideas from LLM memory consolidation research
+
+The functional domain-based architecture represents an evolution beyond simple component decomposition, organizing the system around cognitive memory functions rather than technical boundaries.
+</file>
+
+<file path="docs/claude_integration.md">
+# Claude Desktop Integration Guide
+
+This guide explains how to set up and use the Memory MCP Server with the Claude Desktop application.
+
+## Installation
+
+First, ensure you have installed the Memory MCP Server by following the instructions in the [README.md](../README.md) file.
+
+## Configuration
+
+### 1. Configure Claude Desktop
+
+To enable the Memory MCP Server in Claude Desktop, you need to add it to the Claude Desktop configuration file.
+
+The configuration file is typically located at:
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+Edit the file to add the following MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "python",
+      "args": ["-m", "memory_mcp"],
+      "env": {
+        "MEMORY_FILE_PATH": "/path/to/your/memory.json"
+      }
+    }
+  }
+}
+```
+
+### 2. Configure Environment Variables (Optional)
+
+You can customize the behavior of the Memory MCP Server by setting environment variables:
+
+- `MCP_DATA_DIR`: Directory for memory data (default: `~/.memory_mcp`)
+- `MCP_CONFIG_DIR`: Directory for configuration files (default: `~/.memory_mcp/config`)
+
+### 3. Customize Memory File Location (Optional)
+
+By default, the Memory MCP Server stores memory data in:
+- `~/.memory_mcp/data/memory.json`
+
+You can customize this location by setting the `MEMORY_FILE_PATH` environment variable in the Claude Desktop configuration.
+
+## Using Memory Features in Claude
+
+### 1. Starting Claude Desktop
+
+After configuring the MCP server, start Claude Desktop. The Memory MCP Server will start automatically when Claude connects to it.
+
+### 2. Available Memory Tools
+
+Claude has access to the following memory-related tools:
+
+#### store_memory
+Store new information in memory.
+
+```json
+{
+  "type": "conversation|fact|document|entity|reflection|code",
+  "content": {
+    // Type-specific content structure
+  },
+  "importance": 0.75, // Optional: 0.0-1.0 (higher is more important)
+  "metadata": {}, // Optional: Additional metadata
+  "context": {} // Optional: Contextual information
+}
+```
+
+#### retrieve_memory
+Retrieve relevant memories based on a query.
+
+```json
+{
+  "query": "What is the capital of France?",
+  "limit": 5, // Optional: Maximum number of results
+  "types": ["fact", "document"], // Optional: Memory types to include
+  "min_similarity": 0.6, // Optional: Minimum similarity score
+  "include_metadata": true // Optional: Include metadata in results
+}
+```
+
+#### list_memories
+List available memories with filtering options.
+
+```json
+{
+  "types": ["conversation", "fact"], // Optional: Memory types to include
+  "limit": 20, // Optional: Maximum number of results
+  "offset": 0, // Optional: Offset for pagination
+  "tier": "short_term", // Optional: Memory tier to filter by
+  "include_content": true // Optional: Include memory content in results
+}
+```
+
+#### update_memory
+Update existing memory entries.
+
+```json
+{
+  "memory_id": "mem_1234567890",
+  "updates": {
+    "content": {}, // Optional: New content
+    "importance": 0.8, // Optional: New importance score
+    "metadata": {}, // Optional: Updates to metadata
+    "context": {} // Optional: Updates to context
+  }
+}
+```
+
+#### delete_memory
+Remove specific memories.
+
+```json
+{
+  "memory_ids": ["mem_1234567890", "mem_0987654321"]
+}
+```
+
+#### memory_stats
+Get statistics about the memory store.
+
+```json
+{}
+```
+
+### 3. Example Usage
+
+Claude can use these memory tools to store and retrieve information. Here are some example prompts:
+
+#### Storing a Fact
+
+```
+Please remember that Paris is the capital of France.
+```
+
+Claude might use the `store_memory` tool to save this fact:
+
+```json
+{
+  "type": "fact",
+  "content": {
+    "fact": "Paris is the capital of France",
+    "confidence": 0.98,
+    "domain": "geography"
+  },
+  "importance": 0.7
+}
+```
+
+#### Retrieving Information
+
+```
+What important geographical facts do you remember?
+```
+
+Claude might use the `retrieve_memory` tool to find relevant facts:
+
+```json
+{
+  "query": "important geographical facts",
+  "types": ["fact"],
+  "min_similarity": 0.6
+}
+```
+
+#### Saving User Preferences
+
+```
+Please remember that I prefer to see code examples in Python, not JavaScript.
+```
+
+Claude might use the `store_memory` tool to save this preference:
+
+```json
+{
+  "type": "entity",
+  "content": {
+    "name": "user",
+    "entity_type": "person",
+    "attributes": {
+      "code_preference": "Python"
+    }
+  },
+  "importance": 0.8
+}
+```
+
+### 4. Memory Persistence
+
+The Memory MCP Server maintains memory persistence across conversations. 
+
+When Claude starts a new conversation, it can access memories from previous conversations. The memory system uses a tiered approach:
+
+- **Short-term memory**: Recently created or accessed memories
+- **Long-term memory**: Older, less frequently accessed memories
+- **Archived memory**: Rarely accessed memories that may still be valuable
+
+The system automatically manages the movement of memories between tiers based on access patterns, importance, and other factors.
+
+## Advanced Configuration
+
+### Memory Consolidation
+
+The Memory MCP Server automatically consolidates memories based on the configured interval (default: 24 hours). 
+
+You can customize this behavior by setting the `consolidation_interval_hours` parameter in the configuration file.
+
+### Memory Tiers
+
+The memory tiers have default size limits that you can adjust in the configuration:
+
+```json
+{
+  "memory": {
+    "max_short_term_items": 100,
+    "max_long_term_items": 1000,
+    "max_archival_items": 10000
+  }
+}
+```
+
+### Embedding Model
+
+The Memory MCP Server uses an embedding model to convert text into vector representations for semantic search.
+
+You can customize the embedding model in the configuration:
+
+```json
+{
+  "embedding": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimensions": 384,
+    "cache_dir": "~/.memory_mcp/cache"
+  }
+}
+```
+
+## Troubleshooting
+
+### Checking Server Status
+
+The Memory MCP Server logs to standard error. In the Claude Desktop console output, you should see messages indicating the server is running.
+
+### Common Issues
+
+#### Server won't start
+
+- Check if the path to the memory file is valid
+- Verify that all dependencies are installed
+- Check permissions for data directories
+
+#### Memory not persisting
+
+- Verify that the memory file path is correct
+- Check if the memory file exists and is writable
+- Ensure Claude has permission to execute the MCP server
+
+#### Embedding model issues
+
+- Check if the embedding model is installed
+- Verify that the model name is correct
+- Ensure you have sufficient disk space for model caching
+
+## Security Considerations
+
+The Memory MCP Server stores memories on your local file system. Consider these security aspects:
+
+- **Data Privacy**: The memory file contains all stored memories, which may include sensitive information.
+- **File Permissions**: Ensure the memory file has appropriate permissions to prevent unauthorized access.
+- **Encryption**: Consider encrypting the memory file if it contains sensitive information.
+
+## Further Resources
+
+- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
+- [Claude Desktop Documentation](https://claude.ai/docs)
+- [Memory MCP Server GitHub Repository](https://github.com/WhenMoon-afk/claude-memory-mcp)
+</file>
+
+<file path="docs/compatibility.md">
+# Compatibility Guide
+
+This guide helps you resolve compatibility issues with the Memory MCP Server.
+
+## Supported Environments
+
+The Memory MCP Server is compatible with:
+
+- **Python Versions**: 3.8, 3.9, 3.10, 3.11, 3.12
+- **Operating Systems**: Windows, macOS, Linux
+
+## Key Dependencies
+
+| Dependency | Supported Versions | Notes |
+|------------|-------------------|-------|
+| NumPy | 1.20.0 - 1.x.x | **Not compatible with NumPy 2.x** |
+| Pydantic | 2.4.0 - 2.x.x | |
+| sentence-transformers | 2.2.2 - 2.x.x | |
+| MCP libraries | 0.1.0 - 0.2.x | |
+
+## Common Issues and Solutions
+
+### NumPy 2.x Incompatibility
+
+**Issue**: The error message mentions NumPy version incompatibility.
+
+**Solution**:
+```bash
+pip uninstall numpy
+pip install "numpy>=1.20.0,<2.0.0"
+```
+
+### Python Version Errors
+
+**Issue**: You see an error about unsupported Python version.
+
+**Solution**:
+1. Check your Python version: `python --version`
+2. Install a supported Python version (3.8-3.12)
+3. Create a new virtual environment with the supported version:
+   ```bash
+   python3.10 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+### MCP Libraries Not Found
+
+**Issue**: Error about missing MCP libraries.
+
+**Solution**:
+```bash
+pip install mcp-cli>=0.1.0,<0.3.0 mcp-server>=0.1.0,<0.3.0
+```
+
+If you need a newer version of the MCP libraries, you can install them directly:
+```bash
+pip install git+https://github.com/anthropics/mcp-cli.git
+pip install git+https://github.com/anthropics/mcp-server.git
+```
+
+### Other Dependency Issues
+
+**Solution**:
+1. Create a fresh virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Docker Option
+
+If you continue to have dependency issues, consider using Docker instead:
+
+```bash
+docker run -d \
+  --name memory-mcp \
+  -v "$(pwd)/config:/app/config" \
+  -v "$(pwd)/data:/app/data" \
+  whenmoon-afk/claude-memory-mcp
+```
+
+See the [Docker Usage Guide](docker_usage.md) for more details.
+
+## Bypassing Compatibility Check
+
+If you want to skip the compatibility check (not recommended):
+
+```bash
+python -m memory_mcp --skip-compatibility-check
+```
+</file>
+
+<file path="docs/docker_usage.md">
+# Docker Deployment
+
+This document explains how to run the Memory MCP Server using Docker.
+
+## Prerequisites
+
+- Docker installed on your system
+- Docker Compose (optional, for easier deployment)
+
+## Option 1: Using Docker Compose (Recommended)
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/WhenMoon-afk/claude-memory-mcp.git
+   cd claude-memory-mcp
+   ```
+
+2. Start the service:
+   ```
+   docker-compose up -d
+   ```
+
+3. Configure Claude Desktop to use the containerized MCP server by adding the following to your Claude configuration file:
+   ```json
+   {
+     "mcpServers": {
+       "memory": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "claude-memory-mcp_memory-mcp_1",
+           "python",
+           "-m", 
+           "memory_mcp"
+         ],
+         "env": {
+           "MEMORY_FILE_PATH": "/app/data/memory.json"
+         }
+       }
+     }
+   }
+   ```
+
+## Option 2: Using Docker Directly
+
+1. Build the Docker image:
+   ```
+   docker build -t memory-mcp .
+   ```
+
+2. Create directories for configuration and data:
+   ```
+   mkdir -p config data
+   ```
+
+3. Run the container:
+   ```
+   docker run -d \
+     --name memory-mcp \
+     -v "$(pwd)/config:/app/config" \
+     -v "$(pwd)/data:/app/data" \
+     memory-mcp
+   ```
+
+4. Configure Claude Desktop to use the containerized MCP server by adding the following to your Claude configuration file:
+   ```json
+   {
+     "mcpServers": {
+       "memory": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "memory-mcp",
+           "python",
+           "-m", 
+           "memory_mcp"
+         ],
+         "env": {
+           "MEMORY_FILE_PATH": "/app/data/memory.json"
+         }
+       }
+     }
+   }
+   ```
+
+## Using Prebuilt Images
+
+You can also use the prebuilt Docker image from Docker Hub:
+
+```
+docker run -d \
+  --name memory-mcp \
+  -v "$(pwd)/config:/app/config" \
+  -v "$(pwd)/data:/app/data" \
+  whenmoon-afk/claude-memory-mcp
+```
+
+## Customizing Configuration
+
+You can customize the server configuration by creating a `config.json` file in the `config` directory before starting the container.
+</file>
+
+<file path="docs/user_guide.md">
+# User Guide: Claude Memory MCP Server
+
+This guide explains how to set up and use the Memory MCP Server with Claude Desktop for persistent memory capabilities.
+
+## Table of Contents
+
+1. [Installation](#installation)
+2. [Configuration](#configuration)
+3. [How Memory Works](#how-memory-works)
+4. [Usage Examples](#usage-examples)
+5. [Advanced Configuration](#advanced-configuration)
+6. [Troubleshooting](#troubleshooting)
+
+## Installation
+
+### Option 1: Standard Installation
+
+1. **Prerequisites**:
+   - Python 3.8-3.12
+   - pip package manager
+
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/WhenMoon-afk/claude-memory-mcp.git
+   cd claude-memory-mcp
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run setup script**:
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+### Option 2: Docker Installation (Recommended)
+
+See the [Docker Usage Guide](docker_usage.md) for detailed instructions on running the server in a container.
+
+## Configuration
+
+### Claude Desktop Integration
+
+To integrate with Claude Desktop, add the Memory MCP Server to your Claude configuration file:
+
+**Location**:
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+**Configuration**:
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "python",
+      "args": ["-m", "memory_mcp"],
+      "env": {
+        "MEMORY_FILE_PATH": "/path/to/your/memory.json"
+      }
+    }
+  }
+}
+```
+
+### Memory System Prompt
+
+For optimal memory usage, add these instructions to your Claude Desktop System Prompt:
+
+```
+This Claude instance has been enhanced with persistent memory capabilities.
+Claude will automatically:
+1. Remember important details about you across conversations
+2. Store key facts and preferences you share
+3. Recall relevant information when needed
+
+You don't need to explicitly ask Claude to remember or recall information.
+Simply have natural conversations, and Claude will maintain memory of important details.
+
+To see what Claude remembers about you, just ask "What do you remember about me?"
+```
+
+## How Memory Works
+
+### Memory Types
+
+The Memory MCP Server supports several types of memories:
+
+1. **Entity Memories**: Information about people, places, things
+   - User preferences and traits
+   - Personal information
+
+2. **Fact Memories**: Factual information
+   - General knowledge
+   - Specific facts shared by the user
+
+3. **Conversation Memories**: Important parts of conversations
+   - Significant exchanges
+   - Key discussion points
+
+4. **Reflection Memories**: Insights and patterns
+   - Observations about the user
+   - Recurring themes
+
+### Memory Tiers
+
+Memories are stored in three tiers:
+
+1. **Short-term Memory**: Recently created or accessed memories
+   - Higher importance (>0.3 by default)
+   - Frequently accessed
+
+2. **Long-term Memory**: Older, less frequently accessed memories
+   - Lower importance (<0.3 by default)
+   - Less frequently accessed
+
+3. **Archived Memory**: Rarely accessed but potentially valuable memories
+   - Used for long-term storage
+   - Still searchable but less likely to be retrieved
+
+## Usage Examples
+
+### Scenario 1: Remembering User Preferences
+
+**User**: "I really prefer to code in Python rather than JavaScript."
+
+*Claude will automatically store this preference without any explicit command. In future conversations, Claude will remember this preference and tailor responses accordingly.*
+
+**User**: "What programming language do I prefer?"
+
+*Claude will automatically retrieve the memory:*
+
+**Claude**: "You've mentioned that you prefer to code in Python rather than JavaScript."
+
+### Scenario 2: Storing and Retrieving Personal Information
+
+**User**: "My dog's name is Buddy, he's a golden retriever."
+
+*Claude will automatically store this entity information.*
+
+**User**: "What do you remember about my pet?"
+
+**Claude**: "You mentioned that you have a golden retriever named Buddy."
+
+### Scenario 3: Explicit Memory Operations (if needed)
+
+While automatic memory is enabled by default, you can still use explicit commands:
+
+**User**: "Please remember that my favorite color is blue."
+
+**Claude**: "I'll remember that your favorite color is blue."
+
+**User**: "What's my favorite color?"
+
+**Claude**: "Your favorite color is blue."
+
+## Advanced Configuration
+
+### Custom Configuration File
+
+Create a custom configuration file at `~/.memory_mcp/config/config.json`:
+
+```json
+{
+  "auto_memory": {
+    "enabled": true,
+    "threshold": 0.6,
+    "store_assistant_messages": false,
+    "entity_extraction_enabled": true
+  },
+  "memory": {
+    "max_short_term_items": 200,
+    "max_long_term_items": 2000,
+    "consolidation_interval_hours": 48
+  }
+}
+```
+
+### Auto-Memory Settings
+
+- `enabled`: Enable/disable automatic memory (default: true)
+- `threshold`: Minimum importance threshold for auto-storage (0.0-1.0)
+- `store_assistant_messages`: Whether to store assistant messages (default: false)
+- `entity_extraction_enabled`: Enable entity extraction from messages (default: true)
+
+## Troubleshooting
+
+### Memory Not Being Stored
+
+1. **Check auto-memory settings**: Ensure auto_memory.enabled is true in config
+2. **Check threshold**: Lower the auto_memory.threshold value (e.g., to 0.4)
+3. **Use explicit commands**: You can always use explicit "please remember..." commands
+
+### Memory Not Being Retrieved
+
+1. **Check query relevance**: Ensure your query is related to stored memories
+2. **Check memory existence**: Use the list_memories tool to see if the memory exists
+3. **Try more specific queries**: Be more specific in your retrieval queries
+
+### Server Not Starting
+
+See the [Compatibility Guide](compatibility.md) for resolving dependency and compatibility issues.
+
+### Additional Help
+
+If you continue to experience issues, please:
+1. Check the server logs for error messages
+2. Refer to the [Compatibility Guide](compatibility.md)
+3. Open an issue on GitHub with detailed information about your problem
+</file>
+
+<file path="examples/claude_desktop_config.md">
+# Claude Desktop Integration Guide
+
+This guide explains how to integrate the Memory MCP Server with the Claude Desktop application for enhanced memory capabilities.
+
+## Overview
+
+The Memory MCP Server implements the Model Context Protocol (MCP) to provide Claude with persistent memory capabilities. After setting up the server, you can configure Claude Desktop to use it for remembering information across conversations.
+
+## Prerequisites
+
+- Claude Desktop application installed
+- Memory MCP Server installed and configured
+
+## Configuration
+
+### 1. Locate Claude Desktop Configuration
+
+The Claude Desktop configuration file is typically located at:
+
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+### 2. Add Memory MCP Server Configuration
+
+Edit your `claude_desktop_config.json` file to include the Memory MCP Server:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "python",
+      "args": ["-m", "memory_mcp"],
+      "env": {
+        "MEMORY_FILE_PATH": "/path/to/your/memory.json"
+      }
+    }
+  }
+}
+```
+
+Replace `/path/to/your/memory.json` with your desired memory file location.
+
+### 3. Optional: Configure MCP Server
+
+You can customize the Memory MCP Server by creating a configuration file at `~/.memory_mcp/config/config.json`:
+
+```json
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "debug": false
+  },
+  "memory": {
+    "max_short_term_items": 100,
+    "max_long_term_items": 1000,
+    "max_archival_items": 10000,
+    "consolidation_interval_hours": 24,
+    "short_term_threshold": 0.3,
+    "file_path": "/path/to/your/memory.json"
+  },
+  "embedding": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimensions": 384,
+    "cache_dir": "~/.memory_mcp/cache"
+  },
+  "retrieval": {
+    "default_top_k": 5,
+    "semantic_threshold": 0.75,
+    "recency_weight": 0.3,
+    "importance_weight": 0.7
+  }
+}
+```
+
+### 4. Docker Container Option
+
+Alternatively, you can run the Memory MCP Server as a Docker container:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "-v", "/path/to/memory/directory:/app/memory",
+        "--rm",
+        "whenmoon-afk/claude-memory-mcp"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "/app/memory/memory.json"
+      }
+    }
+  }
+}
+```
+
+Make sure to create the directory `/path/to/memory/directory` on your host system before running.
+
+## Using Memory Tools in Claude
+
+Once configured, Claude Desktop will automatically connect to the Memory MCP Server. You can use the provided memory tools in your conversations with Claude:
+
+### Store Memory
+
+To explicitly store information in memory:
+
+```
+Could you remember that my favorite color is blue?
+```
+
+Claude will use the `store_memory` tool to save this information.
+
+### Retrieve Memory
+
+To recall information from memory:
+
+```
+What's my favorite color?
+```
+
+Claude will use the `retrieve_memory` tool to search for relevant memories.
+
+### System Prompt
+
+For optimal memory usage, consider adding these instructions to your Claude Desktop System Prompt:
+
+```
+Follow these steps for each interaction:
+
+1. Memory Retrieval:
+   - Always begin your chat by saying only "Remembering..." and retrieve all relevant information from your knowledge graph
+   - Always refer to your knowledge graph as your "memory"
+
+2. Memory Update:
+   - While conversing with the user, be attentive to any new information about the user
+   - If any new information was gathered during the interaction, update your memory
+```
+
+## Troubleshooting
+
+### Memory Server Not Starting
+
+If the Memory MCP Server fails to start:
+
+1. Check your Python installation and ensure all dependencies are installed
+2. Verify the configuration file paths are correct
+3. Check if the memory file directory exists and is writable
+4. Look for error messages in the Claude Desktop logs
+
+### Memory Not Being Stored
+
+If Claude is not storing memories:
+
+1. Ensure the MCP server is running (check Claude Desktop logs)
+2. Verify that your system prompt includes instructions to use memory
+3. Make sure Claude has clear information to store (be explicit)
+
+### Memory File Corruption
+
+If the memory file becomes corrupted:
+
+1. Stop Claude Desktop
+2. Rename the corrupted file
+3. The MCP server will create a new empty memory file on next start
+
+## Advanced Configuration
+
+### Custom Embedding Models
+
+You can use different embedding models by changing the `embedding.model` configuration:
+
+```json
+"embedding": {
+  "model": "sentence-transformers/paraphrase-MiniLM-L6-v2",
+  "dimensions": 384
+}
+```
+
+### Memory Consolidation Settings
+
+Adjust memory consolidation behavior:
+
+```json
+"memory": {
+  "consolidation_interval_hours": 12,
+  "importance_decay_rate": 0.02
+}
+```
+
+### Retrieval Fine-Tuning
+
+Fine-tune memory retrieval by adjusting these parameters:
+
+```json
+"retrieval": {
+  "recency_weight": 0.4,
+  "importance_weight": 0.6
+}
+```
+
+Increase `recency_weight` to prioritize recent memories, or increase `importance_weight` to prioritize important memories.
+</file>
+
+<file path="examples/retrieve_memory_example.py">
+#!/usr/bin/env python3
+"""
+Example script showing how to retrieve memories using the Memory MCP Server API.
+"""
+
+import json
+import asyncio
+import argparse
+import sys
+import os
+import subprocess
+from typing import Dict, Any, List
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
+async def retrieve_memory_example(query: str, limit: int = 5, memory_types: List[str] = None, 
+                                 min_similarity: float = 0.6) -> None:
+    """
+    Example of retrieving memories using subprocess to communicate with the MCP server.
+    
+    Args:
+        query: Query string to search for memories
+        limit: Maximum number of memories to retrieve
+        memory_types: Types of memories to include (None for all types)
+        min_similarity: Minimum similarity score for results
+    """
+    # Construct the request
+    request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "executeFunction",
+        "params": {
+            "name": "retrieve_memory",
+            "arguments": {
+                "query": query,
+                "limit": limit,
+                "types": memory_types,
+                "min_similarity": min_similarity,
+                "include_metadata": True
+            }
+        }
+    }
+    
+    # Convert to JSON
+    request_json = json.dumps(request)
+    
+    # Execute MCP server process
+    process = subprocess.Popen(
+        ["python", "-m", "memory_mcp"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    
+    # Send request
+    stdout, stderr = process.communicate(input=request_json + "\n")
+    
+    # Parse response
+    try:
+        response = json.loads(stdout)
+        if "result" in response and "value" in response["result"]:
+            result = json.loads(response["result"]["value"][0]["text"])
+            if result.get("success"):
+                memories = result.get("memories", [])
+                if not memories:
+                    print(f"No memories found for query: '{query}'")
+                else:
+                    print(f"Found {len(memories)} memories for query: '{query}'")
+                    for i, memory in enumerate(memories):
+                        print(f"\nMemory {i+1}:")
+                        print(f"  Type: {memory['type']}")
+                        print(f"  Similarity: {memory.get('similarity', 0.0):.2f}")
+                        
+                        if memory["type"] == "fact":
+                            print(f"  Fact: {memory['content'].get('fact', 'N/A')}")
+                        elif memory["type"] == "entity":
+                            print(f"  Entity: {memory['content'].get('name', 'N/A')}")
+                            print(f"  Attributes: {memory['content'].get('attributes', {})}")
+                        elif memory["type"] == "conversation":
+                            print(f"  Role: {memory['content'].get('role', 'N/A')}")
+                            print(f"  Message: {memory['content'].get('message', 'N/A')}")
+                        
+                        if "metadata" in memory:
+                            print(f"  Created: {memory.get('created_at', 'N/A')}")
+                            print(f"  Last Accessed: {memory.get('last_accessed', 'N/A')}")
+                            print(f"  Importance: {memory.get('importance', 0.0)}")
+            else:
+                print(f"Error retrieving memories: {result.get('error')}")
+        else:
+            print(f"Unexpected response: {response}")
+    except json.JSONDecodeError:
+        print(f"Error parsing response: {stdout}")
+        print(f"Error output: {stderr}")
+
+
+def main() -> None:
+    """Main function for the example script."""
+    parser = argparse.ArgumentParser(description="Memory MCP Retrieve Example")
+    parser.add_argument("--query", default="user preferences", help="Query string to search for memories")
+    parser.add_argument("--limit", type=int, default=5, help="Maximum number of memories to retrieve")
+    parser.add_argument("--types", nargs="+", choices=["conversation", "fact", "entity", "reflection", "code"], 
+                      help="Types of memories to include")
+    parser.add_argument("--min-similarity", type=float, default=0.6, help="Minimum similarity score (0.0-1.0)")
+    
+    args = parser.parse_args()
+    
+    # Run the example
+    asyncio.run(retrieve_memory_example(args.query, args.limit, args.types, args.min_similarity))
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="examples/store_memory_example.py">
+#!/usr/bin/env python3
+"""
+Example script showing how to store a memory using the Memory MCP Server API.
+"""
+
+import json
+import asyncio
+import argparse
+import sys
+import os
+import subprocess
+from typing import Dict, Any
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
+async def store_memory_example(memory_type: str, content: Dict[str, Any], importance: float) -> None:
+    """
+    Example of storing a memory using subprocess to communicate with the MCP server.
+    
+    Args:
+        memory_type: Type of memory (conversation, fact, entity, etc.)
+        content: Memory content as a dictionary
+        importance: Importance score (0.0-1.0)
+    """
+    # Construct the request
+    request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "executeFunction",
+        "params": {
+            "name": "store_memory",
+            "arguments": {
+                "type": memory_type,
+                "content": content,
+                "importance": importance
+            }
+        }
+    }
+    
+    # Convert to JSON
+    request_json = json.dumps(request)
+    
+    # Execute MCP server process
+    process = subprocess.Popen(
+        ["python", "-m", "memory_mcp"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    
+    # Send request
+    stdout, stderr = process.communicate(input=request_json + "\n")
+    
+    # Parse response
+    try:
+        response = json.loads(stdout)
+        if "result" in response and "value" in response["result"]:
+            result = json.loads(response["result"]["value"][0]["text"])
+            if result.get("success"):
+                print(f"Memory stored successfully with ID: {result.get('memory_id')}")
+            else:
+                print(f"Error storing memory: {result.get('error')}")
+        else:
+            print(f"Unexpected response: {response}")
+    except json.JSONDecodeError:
+        print(f"Error parsing response: {stdout}")
+        print(f"Error output: {stderr}")
+
+
+def main() -> None:
+    """Main function for the example script."""
+    parser = argparse.ArgumentParser(description="Memory MCP Store Example")
+    parser.add_argument("--type", choices=["conversation", "fact", "entity", "reflection", "code"], default="fact")
+    parser.add_argument("--content", help="Content string for the memory")
+    parser.add_argument("--importance", type=float, default=0.7, help="Importance score (0.0-1.0)")
+    
+    args = parser.parse_args()
+    
+    # Construct memory content based on type
+    if args.type == "fact":
+        content = {
+            "fact": args.content or "Paris is the capital of France",
+            "confidence": 0.95,
+            "domain": "geography"
+        }
+    elif args.type == "entity":
+        content = {
+            "name": "user",
+            "entity_type": "person",
+            "attributes": {
+                "preference": args.content or "Python programming language"
+            }
+        }
+    elif args.type == "conversation":
+        content = {
+            "role": "user",
+            "message": args.content or "I really enjoy machine learning and data science."
+        }
+    elif args.type == "reflection":
+        content = {
+            "subject": "user preferences",
+            "reflection": args.content or "The user seems to prefer technical discussions about AI and programming."
+        }
+    elif args.type == "code":
+        content = {
+            "language": "python",
+            "code": args.content or "print('Hello, world!')",
+            "description": "Simple hello world program"
+        }
+    
+    # Run the example
+    asyncio.run(store_memory_example(args.type, content, args.importance))
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="memory_mcp/auto_memory/__init__.py">
+"""
+Automatic memory management module.
+
+This module provides automatic memory capture and retrieval capabilities
+to make memory functionality more intuitive and seamless.
+"""
+
+from .system_prompt import get_memory_system_prompt, get_memory_integration_template
+from .auto_capture import should_store_memory, extract_memory_content
+</file>
+
+<file path="memory_mcp/auto_memory/auto_capture.py">
+"""
+Automatic memory capture utilities.
+
+This module provides functions for automatically determining
+when to store memories and extracting content from messages.
+"""
+
+import re
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+
+
+def should_store_memory(message: str, threshold: float = 0.6) -> bool:
+    """
+    Determine if a message contains information worth storing in memory.
+    
+    Uses simple heuristics to decide if the message likely contains personal
+    information, preferences, or important facts.
+    
+    Args:
+        message: The message to analyze
+        threshold: Threshold for importance (0.0-1.0)
+        
+    Returns:
+        True if the message should be stored, False otherwise
+    """
+    # Check for personal preference indicators
+    preference_patterns = [
+        r"I (?:like|love|enjoy|prefer|favorite|hate|dislike)",
+        r"my favorite",
+        r"I am (?:a|an)",
+        r"I'm (?:a|an)",
+        r"my name is",
+        r"call me",
+        r"I work",
+        r"I live",
+        r"my (?:husband|wife|partner|spouse|child|son|daughter|pet)",
+        r"I have (?:a|an|\\d+)",
+        r"I often",
+        r"I usually",
+        r"I always",
+        r"I never",
+    ]
+    
+    # Check for factual information
+    fact_patterns = [
+        r"(?:is|are|was|were) (?:born|founded|created|established|started) (?:in|on|by)",
+        r"(?:is|are|was|were) (?:the|a|an) (?:capital|largest|smallest|best|worst|most|least)",
+        r"(?:is|are|was|were) (?:located|situated|found|discovered)",
+        r"(?:is|are|was|were) (?:invented|designed|developed)",
+    ]
+    
+    # Calculate message complexity (proxy for information richness)
+    words = message.split()
+    complexity = min(1.0, len(words) / 50.0)  # Normalize to 0.0-1.0
+    
+    # Check for presence of preference indicators
+    preference_score = 0.0
+    for pattern in preference_patterns:
+        if re.search(pattern, message, re.IGNORECASE):
+            preference_score = 0.8
+            break
+    
+    # Check for presence of fact indicators
+    fact_score = 0.0
+    for pattern in fact_patterns:
+        if re.search(pattern, message, re.IGNORECASE):
+            fact_score = 0.6
+            break
+    
+    # Question sentences typically don't contain storable information
+    question_ratio = len(re.findall(r"\?", message)) / max(1, len(re.findall(r"[.!?]", message)))
+    
+    # Combined score
+    combined_score = max(preference_score, fact_score) * (1.0 - question_ratio) * complexity
+    
+    return combined_score >= threshold
+
+
+def extract_memory_content(message: str) -> Tuple[str, Dict[str, Any], float]:
+    """
+    Extract memory content, type, and importance from a message.
+    
+    Args:
+        message: The message to extract from
+        
+    Returns:
+        Tuple of (memory_type, content_dict, importance)
+    """
+    # Check if it's likely about the user (preferences, personal info)
+    user_patterns = [
+        r"I (?:like|love|enjoy|prefer|favorite|hate|dislike)",
+        r"my favorite", 
+        r"I am (?:a|an)",
+        r"I'm (?:a|an)",
+        r"my name is",
+        r"call me",
+        r"I work",
+        r"I live",
+    ]
+    
+    # Check for fact patterns
+    fact_patterns = [
+        r"(?:is|are|was|were) (?:born|founded|created|established|started) (?:in|on|by)",
+        r"(?:is|are|was|were) (?:the|a|an) (?:capital|largest|smallest|best|worst|most|least)",
+        r"(?:is|are|was|were) (?:located|situated|found|discovered)",
+        r"(?:is|are|was|were) (?:invented|designed|developed)",
+    ]
+    
+    # Default values
+    memory_type = "conversation"
+    content = {"role": "user", "message": message}
+    importance = 0.5
+    
+    # Check for user preferences or traits (entity memory)
+    for pattern in user_patterns:
+        if re.search(pattern, message, re.IGNORECASE):
+            memory_type = "entity"
+            # Basic extraction of attribute
+            attribute_match = re.search(r"I (?:like|love|enjoy|prefer|hate|dislike) (.+?)(?:\.|$|,)", message, re.IGNORECASE)
+            if attribute_match:
+                attribute_value = attribute_match.group(1).strip()
+                content = {
+                    "name": "user",
+                    "entity_type": "person",
+                    "attributes": {
+                        "preference": attribute_value
+                    }
+                }
+                importance = 0.7
+                return memory_type, content, importance
+                
+            # Check for "I am" statements
+            trait_match = re.search(r"I (?:am|'m) (?:a|an) (.+?)(?:\.|$|,)", message, re.IGNORECASE)
+            if trait_match:
+                trait_value = trait_match.group(1).strip()
+                content = {
+                    "name": "user",
+                    "entity_type": "person",
+                    "attributes": {
+                        "trait": trait_value
+                    }
+                }
+                importance = 0.7
+                return memory_type, content, importance
+                
+            # Default entity if specific extraction fails
+            content = {
+                "name": "user",
+                "entity_type": "person",
+                "attributes": {
+                    "statement": message
+                }
+            }
+            importance = 0.6
+            return memory_type, content, importance
+    
+    # Check for factual information
+    for pattern in fact_patterns:
+        if re.search(pattern, message, re.IGNORECASE):
+            memory_type = "fact"
+            content = {
+                "fact": message,
+                "confidence": 0.8,
+                "domain": "general"
+            }
+            importance = 0.6
+            return memory_type, content, importance
+    
+    # Default as conversation memory with moderate importance
+    return memory_type, content, importance
+</file>
+
+<file path="memory_mcp/auto_memory/system_prompt.py">
+"""
+System prompt templates for memory integration.
+
+This module provides system prompt templates that instruct Claude
+how to effectively use the memory tools without requiring explicit
+commands from the user.
+"""
+
+def get_memory_system_prompt() -> str:
+    """
+    Get the system prompt template for memory integration.
+    
+    Returns:
+        System prompt template for memory integration
+    """
+    return """
+When starting a new conversation or when relevant to the current topic, automatically check your memory to retrieve relevant information about the user or topic without being explicitly asked to do so.
+
+Follow these memory guidelines:
+
+1. Automatic Memory Retrieval:
+   - At the start of conversations, silently use the retrieve_memory tool to find relevant memories
+   - Do not mention the retrieval process to the user unless they ask about your memory directly
+   - Naturally incorporate relevant memories into your responses
+
+2. Automatic Memory Storage:
+   - Store important user information when learned (preferences, facts, personal details)
+   - Capture key facts or information shared in conversation
+   - Don't explicitly tell the user you're storing information unless they ask
+   - Assign higher importance (0.7-0.9) to personal user information
+   - Assign medium importance (0.4-0.6) to general facts and preferences
+   
+3. Memory Types Usage:
+   - Use "entity" type for user preferences, traits, and personal information
+   - Use "fact" type for factual information shared by the user
+   - Use "conversation" type for significant conversational exchanges
+   - Use "reflection" type for insights about the user
+
+4. When Asked About Memory:
+   - If the user asks what you remember, use the retrieve_memory tool with their name/topic
+   - Present the information in a natural, conversational way
+   - If asked how your memory works, explain you maintain persistent memory across conversations
+
+Always prioritize creating a natural conversation experience where memory augments the interaction without becoming the focus.
+"""
+
+
+def get_memory_integration_template() -> str:
+    """
+    Get the template for instructing Claude how to integrate with memory.
+    
+    Returns:
+        Template for memory integration instructions
+    """
+    return """
+This Claude instance has been enhanced with persistent memory capabilities.
+Claude will automatically:
+1. Remember important details about you across conversations
+2. Store key facts and preferences you share
+3. Recall relevant information when needed
+
+You don't need to explicitly ask Claude to remember or recall information.
+Simply have natural conversations, and Claude will maintain memory of important details.
+
+To see what Claude remembers about you, just ask "What do you remember about me?"
+"""
+</file>
+
+<file path="memory_mcp/domains/__init__.py">
+"""
+Domain modules for the memory system.
+
+The memory system is organized into functional domains:
+- Episodic Domain: Manages episodic memories (conversations, experiences)
+- Semantic Domain: Manages semantic memories (facts, knowledge)
+- Temporal Domain: Manages time-aware memory processing
+- Persistence Domain: Manages storage and retrieval
+"""
+</file>
+
+<file path="memory_mcp/domains/episodic.py">
+"""
+Episodic Domain for managing episodic memories.
+
+The Episodic Domain is responsible for:
+- Recording and retrieving conversation histories
+- Managing session-based interactions
+- Contextualizing memories with temporal and situational details
+- Narrative memory construction
+- Recording agent reflections and observations
+"""
+
+from typing import Any, Dict, List
+
+from loguru import logger
+
+from memory_mcp.domains.persistence import PersistenceDomain
+
+
+class EpisodicDomain:
+    """
+    Manages episodic memories (conversations, experiences, reflections).
+    
+    This domain handles memories that are experiential in nature,
+    including conversation histories, reflections, and interactions.
+    """
+    
+    def __init__(self, config: Dict[str, Any], persistence_domain: PersistenceDomain) -> None:
+        """
+        Initialize the episodic domain.
+        
+        Args:
+            config: Configuration dictionary
+            persistence_domain: Reference to the persistence domain
+        """
+        self.config = config
+        self.persistence_domain = persistence_domain
+    
+    async def initialize(self) -> None:
+        """Initialize the episodic domain."""
+        logger.info("Initializing Episodic Domain")
+        # Initialization logic will be implemented here
+    
+    async def process_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process an episodic memory.
+        
+        This includes extracting key information, generating embeddings,
+        and enriching the memory with additional metadata.
+        
+        Args:
+            memory: The memory to process
+            
+        Returns:
+            Processed memory
+        """
+        logger.debug(f"Processing episodic memory: {memory['id']}")
+        
+        # Extract text representation for embedding
+        text_content = self._extract_text_content(memory)
+        
+        # Generate embedding
+        embedding = await self.persistence_domain.generate_embedding(text_content)
+        memory["embedding"] = embedding
+        
+        # Additional processing will be implemented here
+        
+        return memory
+    
+    def _extract_text_content(self, memory: Dict[str, Any]) -> str:
+        """
+        Extract text content from a memory for embedding generation.
+        
+        Args:
+            memory: The memory to extract text from
+            
+        Returns:
+            Text representation of the memory
+        """
+        if memory["type"] == "conversation":
+            # For conversation memories, extract from the message content
+            if "role" in memory["content"] and "message" in memory["content"]:
+                return f"{memory['content']['role']}: {memory['content']['message']}"
+                
+            # Handle conversation arrays
+            if "messages" in memory["content"]:
+                messages = memory["content"]["messages"]
+                if isinstance(messages, list):
+                    return "\n".join([f"{m.get('role', 'unknown')}: {m.get('content', '')}" for m in messages])
+        
+        elif memory["type"] == "reflection":
+            # For reflection memories, combine subject and reflection
+            if "subject" in memory["content"] and "reflection" in memory["content"]:
+                return f"{memory['content']['subject']}: {memory['content']['reflection']}"
+        
+        # Fallback: try to convert content to string
+        try:
+            return str(memory["content"])
+        except:
+            return f"Memory {memory['id']} of type {memory['type']}"
+    
+    async def get_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics about the episodic domain.
+        
+        Returns:
+            Episodic domain statistics
+        """
+        return {
+            "memory_types": {
+                "conversation": 0,
+                "reflection": 0
+            },
+            "status": "initialized"
+        }
+</file>
+
+<file path="memory_mcp/domains/manager.py">
+"""
+Memory Domain Manager that orchestrates all memory operations.
+"""
+
+import uuid
+from typing import Any, Dict, List, Optional, Union
+
+from loguru import logger
+
+from memory_mcp.domains.episodic import EpisodicDomain
+from memory_mcp.domains.semantic import SemanticDomain
+from memory_mcp.domains.temporal import TemporalDomain
+from memory_mcp.domains.persistence import PersistenceDomain
+
+
+class MemoryDomainManager:
+    """
+    Orchestrates operations across all memory domains.
+    
+    This class coordinates interactions between the different functional domains
+    of the memory system. It provides a unified interface for memory operations
+    while delegating specific tasks to the appropriate domain.
+    """
+    
+    def __init__(self, config: Dict[str, Any]) -> None:
+        """
+        Initialize the memory domain manager.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config
+        
+        # Initialize domains
+        self.persistence_domain = PersistenceDomain(config)
+        self.episodic_domain = EpisodicDomain(config, self.persistence_domain)
+        self.semantic_domain = SemanticDomain(config, self.persistence_domain)
+        self.temporal_domain = TemporalDomain(config, self.persistence_domain)
+    
+    async def initialize(self) -> None:
+        """Initialize all domains."""
+        logger.info("Initializing Memory Domain Manager")
+        
+        # Initialize domains in order (persistence first)
+        await self.persistence_domain.initialize()
+        await self.episodic_domain.initialize()
+        await self.semantic_domain.initialize()
+        await self.temporal_domain.initialize()
+        
+        logger.info("Memory Domain Manager initialized")
+    
+    async def store_memory(
+        self,
+        memory_type: str,
+        content: Dict[str, Any],
+        importance: float = 0.5,
+        metadata: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """
+        Store a new memory.
+        
+        Args:
+            memory_type: Type of memory (conversation, fact, document, entity, reflection, code)
+            content: Memory content (type-specific structure)
+            importance: Importance score (0.0-1.0)
+            metadata: Additional metadata
+            context: Contextual information
+            
+        Returns:
+            Memory ID
+        """
+        # Generate a unique ID for the memory
+        memory_id = f"mem_{str(uuid.uuid4())}"
+        
+        # Create memory object
+        memory = {
+            "id": memory_id,
+            "type": memory_type,
+            "content": content,
+            "importance": importance,
+            "metadata": metadata or {},
+            "context": context or {}
+        }
+        
+        # Add temporal information
+        memory = await self.temporal_domain.process_new_memory(memory)
+        
+        # Process based on memory type
+        if memory_type in ["conversation", "reflection"]:
+            memory = await self.episodic_domain.process_memory(memory)
+        elif memory_type in ["fact", "document", "entity"]:
+            memory = await self.semantic_domain.process_memory(memory)
+        elif memory_type == "code":
+            # Code memories get processed by both domains
+            memory = await self.episodic_domain.process_memory(memory)
+            memory = await self.semantic_domain.process_memory(memory)
+        
+        # Determine memory tier based on importance and recency
+        tier = "short_term"
+        if importance < self.config["memory"].get("short_term_threshold", 0.3):
+            tier = "long_term"
+        
+        # Store the memory
+        await self.persistence_domain.store_memory(memory, tier)
+        
+        logger.info(f"Stored {memory_type} memory with ID {memory_id} in {tier} tier")
+        
+        return memory_id
+    
+    async def retrieve_memories(
+        self,
+        query: str,
+        limit: int = 5,
+        memory_types: Optional[List[str]] = None,
+        min_similarity: float = 0.6,
+        include_metadata: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve memories based on a query.
+        
+        Args:
+            query: Query string
+            limit: Maximum number of memories to retrieve
+            memory_types: Types of memories to include (None for all types)
+            min_similarity: Minimum similarity score for results
+            include_metadata: Whether to include metadata in the results
+            
+        Returns:
+            List of relevant memories
+        """
+        # Generate query embedding
+        embedding = await self.persistence_domain.generate_embedding(query)
+        
+        # Retrieve memories using semantic search
+        memories = await self.persistence_domain.search_memories(
+            embedding=embedding,
+            limit=limit,
+            types=memory_types,
+            min_similarity=min_similarity
+        )
+        
+        # Apply temporal adjustments to relevance
+        memories = await self.temporal_domain.adjust_memory_relevance(memories, query)
+        
+        # Format results
+        result_memories = []
+        for memory in memories:
+            result_memory = {
+                "id": memory["id"],
+                "type": memory["type"],
+                "content": memory["content"],
+                "similarity": memory.get("similarity", 0.0)
+            }
+            
+            # Include metadata if requested
+            if include_metadata:
+                result_memory["metadata"] = memory.get("metadata", {})
+                result_memory["created_at"] = memory.get("created_at")
+                result_memory["last_accessed"] = memory.get("last_accessed")
+                result_memory["importance"] = memory.get("importance", 0.5)
+            
+            result_memories.append(result_memory)
+        
+        # Update access time for retrieved memories
+        for memory in memories:
+            await self.temporal_domain.update_memory_access(memory["id"])
+        
+        return result_memories
+    
+    async def list_memories(
+        self,
+        memory_types: Optional[List[str]] = None,
+        limit: int = 20,
+        offset: int = 0,
+        tier: Optional[str] = None,
+        include_content: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        List available memories with filtering options.
+        
+        Args:
+            memory_types: Types of memories to include (None for all types)
+            limit: Maximum number of memories to retrieve
+            offset: Offset for pagination
+            tier: Memory tier to retrieve from (None for all tiers)
+            include_content: Whether to include memory content in the results
+            
+        Returns:
+            List of memories
+        """
+        # Retrieve memories from persistence domain
+        memories = await self.persistence_domain.list_memories(
+            types=memory_types,
+            limit=limit,
+            offset=offset,
+            tier=tier
+        )
+        
+        # Format results
+        result_memories = []
+        for memory in memories:
+            result_memory = {
+                "id": memory["id"],
+                "type": memory["type"],
+                "created_at": memory.get("created_at"),
+                "last_accessed": memory.get("last_accessed"),
+                "importance": memory.get("importance", 0.5),
+                "tier": memory.get("tier", "short_term")
+            }
+            
+            # Include content if requested
+            if include_content:
+                result_memory["content"] = memory["content"]
+            
+            result_memories.append(result_memory)
+        
+        return result_memories
+    
+    async def update_memory(
+        self,
+        memory_id: str,
+        updates: Dict[str, Any]
+    ) -> bool:
+        """
+        Update an existing memory.
+        
+        Args:
+            memory_id: ID of the memory to update
+            updates: Updates to apply to the memory
+            
+        Returns:
+            Success flag
+        """
+        # Retrieve the memory
+        memory = await self.persistence_domain.get_memory(memory_id)
+        if not memory:
+            logger.error(f"Memory {memory_id} not found")
+            return False
+        
+        # Apply updates
+        if "content" in updates:
+            memory["content"] = updates["content"]
+            
+            # Re-process embedding if content changes
+            if memory["type"] in ["conversation", "reflection"]:
+                memory = await self.episodic_domain.process_memory(memory)
+            elif memory["type"] in ["fact", "document", "entity"]:
+                memory = await self.semantic_domain.process_memory(memory)
+            elif memory["type"] == "code":
+                memory = await self.episodic_domain.process_memory(memory)
+                memory = await self.semantic_domain.process_memory(memory)
+        
+        if "importance" in updates:
+            memory["importance"] = updates["importance"]
+        
+        if "metadata" in updates:
+            memory["metadata"].update(updates["metadata"])
+        
+        if "context" in updates:
+            memory["context"].update(updates["context"])
+        
+        # Update last_modified timestamp
+        memory = await self.temporal_domain.update_memory_modification(memory)
+        
+        # Determine if memory tier should change based on updates
+        current_tier = await self.persistence_domain.get_memory_tier(memory_id)
+        new_tier = current_tier
+        
+        if "importance" in updates:
+            if updates["importance"] >= self.config["memory"].get("short_term_threshold", 0.3) and current_tier != "short_term":
+                new_tier = "short_term"
+            elif updates["importance"] < self.config["memory"].get("short_term_threshold", 0.3) and current_tier == "short_term":
+                new_tier = "long_term"
+        
+        # Store the updated memory
+        await self.persistence_domain.update_memory(memory, new_tier)
+        
+        logger.info(f"Updated memory {memory_id}")
+        
+        return True
+    
+    async def delete_memories(
+        self,
+        memory_ids: List[str]
+    ) -> bool:
+        """
+        Delete memories.
+        
+        Args:
+            memory_ids: IDs of memories to delete
+            
+        Returns:
+            Success flag
+        """
+        success = await self.persistence_domain.delete_memories(memory_ids)
+        
+        if success:
+            logger.info(f"Deleted {len(memory_ids)} memories")
+        else:
+            logger.error(f"Failed to delete memories")
+        
+        return success
+    
+    async def get_memory_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics about the memory store.
+        
+        Returns:
+            Memory statistics
+        """
+        # Get basic stats from persistence domain
+        stats = await self.persistence_domain.get_memory_stats()
+        
+        # Enrich with domain-specific stats
+        episodic_stats = await self.episodic_domain.get_stats()
+        semantic_stats = await self.semantic_domain.get_stats()
+        temporal_stats = await self.temporal_domain.get_stats()
+        
+        stats.update({
+            "episodic_domain": episodic_stats,
+            "semantic_domain": semantic_stats,
+            "temporal_domain": temporal_stats
+        })
+        
+        return stats
+</file>
+
+<file path="memory_mcp/domains/persistence.py">
+"""
+Persistence Domain for storage and retrieval of memories.
+
+The Persistence Domain is responsible for:
+- File system operations
+- Vector embedding generation and storage
+- Index management
+- Memory file structure 
+- Backup and recovery
+- Efficient storage formats
+"""
+
+import os
+import json
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+from loguru import logger
+from sentence_transformers import SentenceTransformer
+
+
+class PersistenceDomain:
+    """
+    Manages the storage and retrieval of memories.
+    
+    This domain handles file operations, embedding generation,
+    and index management for the memory system.
+    """
+    
+    def __init__(self, config: Dict[str, Any]) -> None:
+        """
+        Initialize the persistence domain.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config
+        self.memory_file_path = self.config["memory"].get("file_path", "memory.json")
+        self.embedding_model_name = self.config["embedding"].get("default_model", "sentence-transformers/all-MiniLM-L6-v2")
+        self.embedding_dimensions = self.config["embedding"].get("dimensions", 384)
+        
+        # Will be initialized during initialize()
+        self.embedding_model = None
+        self.memory_data = None
+    
+    async def initialize(self) -> None:
+        """Initialize the persistence domain."""
+        logger.info("Initializing Persistence Domain")
+        logger.info(f"Using memory file: {self.memory_file_path}")
+        
+        # Create memory file directory if it doesn't exist
+        os.makedirs(os.path.dirname(self.memory_file_path), exist_ok=True)
+        
+        # Load memory file or create if it doesn't exist
+        self.memory_data = await self._load_memory_file()
+        
+        # Initialize embedding model
+        logger.info(f"Loading embedding model: {self.embedding_model_name}")
+        self.embedding_model = SentenceTransformer(self.embedding_model_name)
+        
+        logger.info("Persistence Domain initialized")
+    
+    async def generate_embedding(self, text: str) -> List[float]:
+        """
+        Generate an embedding vector for text.
+        
+        Args:
+            text: Text to embed
+            
+        Returns:
+            Embedding vector as a list of floats
+        """
+        if not self.embedding_model:
+            raise RuntimeError("Embedding model not initialized")
+        
+        # Generate embedding
+        embedding = self.embedding_model.encode(text)
+        
+        # Convert to list of floats for JSON serialization
+        return embedding.tolist()
+    
+    async def store_memory(self, memory: Dict[str, Any], tier: str = "short_term") -> None:
+        """
+        Store a memory.
+        
+        Args:
+            memory: Memory to store
+            tier: Memory tier (short_term, long_term, archived)
+        """
+        # Ensure memory has all required fields
+        if "id" not in memory:
+            raise ValueError("Memory must have an ID")
+        
+        # Add to appropriate tier
+        valid_tiers = ["short_term", "long_term", "archived"]
+        if tier not in valid_tiers:
+            raise ValueError(f"Invalid tier: {tier}. Must be one of {valid_tiers}")
+        
+        tier_key = f"{tier}_memory"
+        if tier_key not in self.memory_data:
+            self.memory_data[tier_key] = []
+        
+        # Check for existing memory with same ID
+        existing_index = None
+        for i, existing_memory in enumerate(self.memory_data[tier_key]):
+            if existing_memory.get("id") == memory["id"]:
+                existing_index = i
+                break
+        
+        if existing_index is not None:
+            # Update existing memory
+            self.memory_data[tier_key][existing_index] = memory
+        else:
+            # Add new memory
+            self.memory_data[tier_key].append(memory)
+        
+        # Update memory index if embedding exists
+        if "embedding" in memory:
+            await self._update_memory_index(memory, tier)
+        
+        # Update memory stats
+        self._update_memory_stats()
+        
+        # Save memory file
+        await self._save_memory_file()
+    
+    async def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a memory by ID.
+        
+        Args:
+            memory_id: Memory ID
+            
+        Returns:
+            Memory dict or None if not found
+        """
+        # Check all tiers
+        for tier in ["short_term_memory", "long_term_memory", "archived_memory"]:
+            if tier not in self.memory_data:
+                continue
+                
+            for memory in self.memory_data[tier]:
+                if memory.get("id") == memory_id:
+                    return memory
+        
+        return None
+    
+    async def get_memory_tier(self, memory_id: str) -> Optional[str]:
+        """
+        Get the tier of a memory.
+        
+        Args:
+            memory_id: Memory ID
+            
+        Returns:
+            Memory tier or None if not found
+        """
+        # Check all tiers
+        for tier_key in ["short_term_memory", "long_term_memory", "archived_memory"]:
+            if tier_key not in self.memory_data:
+                continue
+                
+            for memory in self.memory_data[tier_key]:
+                if memory.get("id") == memory_id:
+                    # Convert tier_key to tier name
+                    return tier_key.replace("_memory", "")
+        
+        return None
+    
+    async def update_memory(self, memory: Dict[str, Any], tier: str) -> None:
+        """
+        Update an existing memory.
+        
+        Args:
+            memory: Updated memory dict
+            tier: Memory tier
+        """
+        # Get current tier
+        current_tier = await self.get_memory_tier(memory["id"])
+        
+        if current_tier is None:
+            # Memory doesn't exist, store as new
+            await self.store_memory(memory, tier)
+            return
+        
+        if current_tier == tier:
+            # Same tier, just update the memory
+            tier_key = f"{tier}_memory"
+            for i, existing_memory in enumerate(self.memory_data[tier_key]):
+                if existing_memory.get("id") == memory["id"]:
+                    self.memory_data[tier_key][i] = memory
+                    break
+            
+            # Update memory index if embedding exists
+            if "embedding" in memory:
+                await self._update_memory_index(memory, tier)
+            
+            # Save memory file
+            await self._save_memory_file()
+        else:
+            # Different tier, remove from old tier and add to new tier
+            old_tier_key = f"{current_tier}_memory"
+            
+            # Remove from old tier
+            self.memory_data[old_tier_key] = [
+                m for m in self.memory_data[old_tier_key]
+                if m.get("id") != memory["id"]
+            ]
+            
+            # Add to new tier
+            await self.store_memory(memory, tier)
+    
+    async def delete_memories(self, memory_ids: List[str]) -> bool:
+        """
+        Delete memories.
+        
+        Args:
+            memory_ids: List of memory IDs to delete
+            
+        Returns:
+            Success flag
+        """
+        deleted_count = 0
+        
+        # Check all tiers
+        for tier_key in ["short_term_memory", "long_term_memory", "archived_memory"]:
+            if tier_key not in self.memory_data:
+                continue
+            
+            # Filter out memories to delete
+            original_count = len(self.memory_data[tier_key])
+            self.memory_data[tier_key] = [
+                memory for memory in self.memory_data[tier_key]
+                if memory.get("id") not in memory_ids
+            ]
+            deleted_count += original_count - len(self.memory_data[tier_key])
+        
+        # Update memory index
+        for memory_id in memory_ids:
+            await self._remove_from_memory_index(memory_id)
+        
+        # Update memory stats
+        self._update_memory_stats()
+        
+        # Save memory file
+        await self._save_memory_file()
+        
+        return deleted_count > 0
+    
+    async def search_memories(
+        self,
+        embedding: List[float],
+        limit: int = 5,
+        types: Optional[List[str]] = None,
+        min_similarity: float = 0.6
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for memories using vector similarity.
+        
+        Args:
+            embedding: Query embedding vector
+            limit: Maximum number of results
+            types: Memory types to include (None for all)
+            min_similarity: Minimum similarity score
+            
+        Returns:
+            List of matching memories with similarity scores
+        """
+        # Convert embedding to numpy array
+        query_embedding = np.array(embedding)
+        
+        # Get all memories with embeddings
+        memories_with_embeddings = []
+        
+        for tier_key in ["short_term_memory", "long_term_memory", "archived_memory"]:
+            if tier_key not in self.memory_data:
+                continue
+                
+            for memory in self.memory_data[tier_key]:
+                if "embedding" in memory:
+                    # Filter by type if specified
+                    if types and memory.get("type") not in types:
+                        continue
+                        
+                    memories_with_embeddings.append(memory)
+        
+        # Calculate similarities
+        results_with_scores = []
+        
+        for memory in memories_with_embeddings:
+            memory_embedding = np.array(memory["embedding"])
+            
+            # Calculate cosine similarity
+            similarity = self._cosine_similarity(query_embedding, memory_embedding)
+            
+            if similarity >= min_similarity:
+                # Create a copy to avoid modifying the original
+                result = memory.copy()
+                result["similarity"] = float(similarity)
+                results_with_scores.append(result)
+        
+        # Sort by similarity
+        results_with_scores.sort(key=lambda x: x["similarity"], reverse=True)
+        
+        # Limit results
+        return results_with_scores[:limit]
+    
+    async def list_memories(
+        self,
+        types: Optional[List[str]] = None,
+        limit: int = 20,
+        offset: int = 0,
+        tier: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        List memories with filtering options.
+        
+        Args:
+            types: Memory types to include (None for all)
+            limit: Maximum number of memories to return
+            offset: Offset for pagination
+            tier: Memory tier to filter by (None for all)
+            
+        Returns:
+            List of memories
+        """
+        all_memories = []
+        
+        # Determine which tiers to include
+        tiers_to_include = []
+        if tier:
+            tiers_to_include = [f"{tier}_memory"]
+        else:
+            tiers_to_include = ["short_term_memory", "long_term_memory", "archived_memory"]
+        
+        # Collect memories from selected tiers
+        for tier_key in tiers_to_include:
+            if tier_key not in self.memory_data:
+                continue
+                
+            for memory in self.memory_data[tier_key]:
+                # Filter by type if specified
+                if types and memory.get("type") not in types:
+                    continue
+                    
+                # Add tier info
+                memory_copy = memory.copy()
+                memory_copy["tier"] = tier_key.replace("_memory", "")
+                all_memories.append(memory_copy)
+        
+        # Sort by creation time (newest first)
+        all_memories.sort(
+            key=lambda m: m.get("created_at", ""),
+            reverse=True
+        )
+        
+        # Apply pagination
+        paginated_memories = all_memories[offset:offset+limit]
+        
+        return paginated_memories
+    
+    async def get_metadata(self, key: str) -> Optional[str]:
+        """
+        Get metadata value.
+        
+        Args:
+            key: Metadata key
+            
+        Returns:
+            Metadata value or None if not found
+        """
+        metadata = self.memory_data.get("metadata", {})
+        return metadata.get(key)
+    
+    async def set_metadata(self, key: str, value: str) -> None:
+        """
+        Set metadata value.
+        
+        Args:
+            key: Metadata key
+            value: Metadata value
+        """
+        if "metadata" not in self.memory_data:
+            self.memory_data["metadata"] = {}
+            
+        self.memory_data["metadata"][key] = value
+        
+        # Save memory file
+        await self._save_memory_file()
+    
+    async def get_memory_stats(self) -> Dict[str, Any]:
+        """
+        Get memory statistics.
+        
+        Returns:
+            Memory statistics
+        """
+        return self.memory_data.get("metadata", {}).get("memory_stats", {})
+    
+    async def _load_memory_file(self) -> Dict[str, Any]:
+        """
+        Load the memory file.
+        
+        Returns:
+            Memory data
+        """
+        if not os.path.exists(self.memory_file_path):
+            logger.info(f"Memory file not found, creating new file: {self.memory_file_path}")
+            return self._create_empty_memory_file()
+        
+        try:
+            with open(self.memory_file_path, "r") as f:
+                data = json.load(f)
+                logger.info(f"Loaded memory file with {self._count_memories(data)} memories")
+                return data
+        except json.JSONDecodeError:
+            logger.error(f"Error parsing memory file: {self.memory_file_path}")
+            logger.info("Creating new memory file")
+            return self._create_empty_memory_file()
+    
+    def _create_empty_memory_file(self) -> Dict[str, Any]:
+        """
+        Create an empty memory file structure.
+        
+        Returns:
+            Empty memory data
+        """
+        return {
+            "metadata": {
+                "version": "1.0",
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "memory_stats": {
+                    "total_memories": 0,
+                    "active_memories": 0,
+                    "archived_memories": 0
+                }
+            },
+            "memory_index": {
+                "index_type": "hnsw",
+                "index_parameters": {
+                    "m": 16,
+                    "ef_construction": 200,
+                    "ef": 50
+                },
+                "entries": {}
+            },
+            "short_term_memory": [],
+            "long_term_memory": [],
+            "archived_memory": [],
+            "memory_schema": {
+                "conversation": {
+                    "required_fields": ["role", "message"],
+                    "optional_fields": ["summary", "entities", "sentiment", "intent"]
+                },
+                "fact": {
+                    "required_fields": ["fact", "confidence"],
+                    "optional_fields": ["domain", "entities", "references"]
+                },
+                "document": {
+                    "required_fields": ["title", "text"],
+                    "optional_fields": ["summary", "chunks", "metadata"]
+                },
+                "code": {
+                    "required_fields": ["language", "code"],
+                    "optional_fields": ["description", "purpose", "dependencies"]
+                }
+            },
+            "config": {
+                "memory_management": {
+                    "max_short_term_memories": 100,
+                    "max_long_term_memories": 10000,
+                    "archival_threshold_days": 30,
+                    "deletion_threshold_days": 365,
+                    "importance_decay_rate": 0.01,
+                    "minimum_importance_threshold": 0.2
+                },
+                "retrieval": {
+                    "default_top_k": 5,
+                    "semantic_threshold": 0.75,
+                    "recency_weight": 0.3,
+                    "importance_weight": 0.7
+                },
+                "embedding": {
+                    "default_model": self.embedding_model_name,
+                    "dimensions": self.embedding_dimensions,
+                    "batch_size": 8
+                }
+            }
+        }
+    
+    async def _save_memory_file(self) -> None:
+        """Save the memory file."""
+        # Update metadata
+        self.memory_data["metadata"]["updated_at"] = datetime.now().isoformat()
+        
+        # Create temp file
+        temp_file = f"{self.memory_file_path}.tmp"
+        
+        try:
+            with open(temp_file, "w") as f:
+                json.dump(self.memory_data, f, indent=2)
+            
+            # Rename temp file to actual file (atomic operation)
+            os.replace(temp_file, self.memory_file_path)
+            logger.debug(f"Memory file saved: {self.memory_file_path}")
+        except Exception as e:
+            logger.error(f"Error saving memory file: {str(e)}")
+            # Clean up temp file if it exists
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+    
+    def _count_memories(self, data: Dict[str, Any]) -> int:
+        """
+        Count the total number of memories.
+        
+        Args:
+            data: Memory data
+            
+        Returns:
+            Total number of memories
+        """
+        count = 0
+        for tier in ["short_term_memory", "long_term_memory", "archived_memory"]:
+            if tier in data:
+                count += len(data[tier])
+        return count
+    
+    def _update_memory_stats(self) -> None:
+        """Update memory statistics."""
+        # Initialize stats if not present
+        if "metadata" not in self.memory_data:
+            self.memory_data["metadata"] = {}
+        
+        if "memory_stats" not in self.memory_data["metadata"]:
+            self.memory_data["metadata"]["memory_stats"] = {}
+        
+        # Count memories in each tier
+        short_term_count = len(self.memory_data.get("short_term_memory", []))
+        long_term_count = len(self.memory_data.get("long_term_memory", []))
+        archived_count = len(self.memory_data.get("archived_memory", []))
+        
+        # Update stats
+        stats = self.memory_data["metadata"]["memory_stats"]
+        stats["total_memories"] = short_term_count + long_term_count + archived_count
+        stats["active_memories"] = short_term_count + long_term_count
+        stats["archived_memories"] = archived_count
+        stats["short_term_count"] = short_term_count
+        stats["long_term_count"] = long_term_count
+    
+    async def _update_memory_index(self, memory: Dict[str, Any], tier: str) -> None:
+        """
+        Update the memory index.
+        
+        Args:
+            memory: Memory to index
+            tier: Memory tier
+        """
+        if "memory_index" not in self.memory_data:
+            self.memory_data["memory_index"] = {
+                "index_type": "hnsw",
+                "index_parameters": {
+                    "m": 16,
+                    "ef_construction": 200,
+                    "ef": 50
+                },
+                "entries": {}
+            }
+        
+        if "entries" not in self.memory_data["memory_index"]:
+            self.memory_data["memory_index"]["entries"] = {}
+        
+        # Add to index
+        memory_id = memory["id"]
+        
+        self.memory_data["memory_index"]["entries"][memory_id] = {
+            "tier": tier,
+            "type": memory.get("type", "unknown"),
+            "importance": memory.get("importance", 0.5),
+            "recency": memory.get("created_at", datetime.now().isoformat())
+        }
+    
+    async def _remove_from_memory_index(self, memory_id: str) -> None:
+        """
+        Remove a memory from the index.
+        
+        Args:
+            memory_id: Memory ID
+        """
+        if "memory_index" not in self.memory_data or "entries" not in self.memory_data["memory_index"]:
+            return
+        
+        if memory_id in self.memory_data["memory_index"]["entries"]:
+            del self.memory_data["memory_index"]["entries"][memory_id]
+    
+    def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
+        """
+        Calculate cosine similarity between two vectors.
+        
+        Args:
+            a: First vector
+            b: Second vector
+            
+        Returns:
+            Cosine similarity (0.0-1.0)
+        """
+        norm_a = np.linalg.norm(a)
+        norm_b = np.linalg.norm(b)
+        
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        
+        return float(np.dot(a, b) / (norm_a * norm_b))
+</file>
+
+<file path="memory_mcp/domains/semantic.py">
+"""
+Semantic Domain for managing semantic memories.
+
+The Semantic Domain is responsible for:
+- Managing factual information and knowledge
+- Organizing categorical and conceptual information
+- Handling entity relationships and attributes
+- Knowledge consolidation and organization
+- Abstract concept representation
+"""
+
+from typing import Any, Dict, List
+
+from loguru import logger
+
+from memory_mcp.domains.persistence import PersistenceDomain
+
+
+class SemanticDomain:
+    """
+    Manages semantic memories (facts, knowledge, entities).
+    
+    This domain handles factual information, knowledge, and
+    entity-relationship structures.
+    """
+    
+    def __init__(self, config: Dict[str, Any], persistence_domain: PersistenceDomain) -> None:
+        """
+        Initialize the semantic domain.
+        
+        Args:
+            config: Configuration dictionary
+            persistence_domain: Reference to the persistence domain
+        """
+        self.config = config
+        self.persistence_domain = persistence_domain
+    
+    async def initialize(self) -> None:
+        """Initialize the semantic domain."""
+        logger.info("Initializing Semantic Domain")
+        # Initialization logic will be implemented here
+    
+    async def process_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a semantic memory.
+        
+        This includes extracting key information, generating embeddings,
+        and enriching the memory with additional metadata.
+        
+        Args:
+            memory: The memory to process
+            
+        Returns:
+            Processed memory
+        """
+        logger.debug(f"Processing semantic memory: {memory['id']}")
+        
+        # Extract text representation for embedding
+        text_content = self._extract_text_content(memory)
+        
+        # Generate embedding
+        embedding = await self.persistence_domain.generate_embedding(text_content)
+        memory["embedding"] = embedding
+        
+        # Additional processing based on memory type
+        if memory["type"] == "entity":
+            memory = self._process_entity_memory(memory)
+        elif memory["type"] == "fact":
+            memory = self._process_fact_memory(memory)
+        
+        return memory
+    
+    def _extract_text_content(self, memory: Dict[str, Any]) -> str:
+        """
+        Extract text content from a memory for embedding generation.
+        
+        Args:
+            memory: The memory to extract text from
+            
+        Returns:
+            Text representation of the memory
+        """
+        if memory["type"] == "fact":
+            # For fact memories, use the fact text
+            if "fact" in memory["content"]:
+                return memory["content"]["fact"]
+        
+        elif memory["type"] == "document":
+            # For document memories, combine title and text
+            title = memory["content"].get("title", "")
+            text = memory["content"].get("text", "")
+            return f"{title}\n{text}"
+            
+        elif memory["type"] == "entity":
+            # For entity memories, combine name and attributes
+            name = memory["content"].get("name", "")
+            entity_type = memory["content"].get("entity_type", "")
+            
+            # Extract attributes as text
+            attributes = memory["content"].get("attributes", {})
+            attr_text = ""
+            if attributes and isinstance(attributes, dict):
+                attr_text = "\n".join([f"{k}: {v}" for k, v in attributes.items()])
+            
+            return f"{name} ({entity_type})\n{attr_text}"
+        
+        # Fallback: try to convert content to string
+        try:
+            return str(memory["content"])
+        except:
+            return f"Memory {memory['id']} of type {memory['type']}"
+    
+    def _process_entity_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process an entity memory.
+        
+        Args:
+            memory: The entity memory to process
+            
+        Returns:
+            Processed memory
+        """
+        # Entity-specific processing
+        # This is a placeholder for future implementation
+        return memory
+    
+    def _process_fact_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a fact memory.
+        
+        Args:
+            memory: The fact memory to process
+            
+        Returns:
+            Processed memory
+        """
+        # Fact-specific processing
+        # This is a placeholder for future implementation
+        return memory
+    
+    async def get_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics about the semantic domain.
+        
+        Returns:
+            Semantic domain statistics
+        """
+        return {
+            "memory_types": {
+                "fact": 0,
+                "document": 0,
+                "entity": 0
+            },
+            "status": "initialized"
+        }
+</file>
+
+<file path="memory_mcp/domains/temporal.py">
+"""
+Temporal Domain for time-aware memory processing.
+
+The Temporal Domain is responsible for:
+- Managing memory decay and importance over time
+- Temporal indexing and sequencing
+- Chronological relationship tracking
+- Time-based memory consolidation
+- Recency effects in retrieval
+"""
+
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
+from loguru import logger
+
+from memory_mcp.domains.persistence import PersistenceDomain
+
+
+class TemporalDomain:
+    """
+    Manages time-aware memory processing.
+    
+    This domain handles temporal aspects of memory, including
+    decay over time, recency-based relevance, and time-based
+    consolidation of memories.
+    """
+    
+    def __init__(self, config: Dict[str, Any], persistence_domain: PersistenceDomain) -> None:
+        """
+        Initialize the temporal domain.
+        
+        Args:
+            config: Configuration dictionary
+            persistence_domain: Reference to the persistence domain
+        """
+        self.config = config
+        self.persistence_domain = persistence_domain
+        self.last_consolidation = datetime.now()
+    
+    async def initialize(self) -> None:
+        """Initialize the temporal domain."""
+        logger.info("Initializing Temporal Domain")
+        
+        # Schedule initial consolidation if needed
+        consolidation_interval = self.config["memory"].get("consolidation_interval_hours", 24)
+        self.consolidation_interval = timedelta(hours=consolidation_interval)
+        
+        # Get last consolidation time from persistence
+        last_consolidation = await self.persistence_domain.get_metadata("last_consolidation")
+        if last_consolidation:
+            try:
+                self.last_consolidation = datetime.fromisoformat(last_consolidation)
+            except ValueError:
+                logger.warning(f"Invalid last_consolidation timestamp: {last_consolidation}")
+                self.last_consolidation = datetime.now()
+        
+        # Check if consolidation is due
+        if datetime.now() - self.last_consolidation > self.consolidation_interval:
+            logger.info("Consolidation is due. Will run after initialization.")
+            # Note: We don't run consolidation here to avoid slow startup
+            # It will run on the next memory operation
+    
+    async def process_new_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a new memory with temporal information.
+        
+        Args:
+            memory: The memory to process
+            
+        Returns:
+            Processed memory with temporal information
+        """
+        # Add timestamps
+        now = datetime.now().isoformat()
+        memory["created_at"] = now
+        memory["last_accessed"] = now
+        memory["last_modified"] = now
+        memory["access_count"] = 0
+        
+        return memory
+    
+    async def update_memory_access(self, memory_id: str) -> None:
+        """
+        Update the access time for a memory.
+        
+        Args:
+            memory_id: ID of the memory to update
+        """
+        # Get the memory
+        memory = await self.persistence_domain.get_memory(memory_id)
+        if not memory:
+            logger.warning(f"Memory {memory_id} not found for access update")
+            return
+        
+        # Update access time and count
+        memory["last_accessed"] = datetime.now().isoformat()
+        memory["access_count"] = memory.get("access_count", 0) + 1
+        
+        # Save the updated memory
+        current_tier = await self.persistence_domain.get_memory_tier(memory_id)
+        await self.persistence_domain.update_memory(memory, current_tier)
+        
+        # Check if consolidation is due
+        await self._check_consolidation()
+    
+    async def update_memory_modification(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update the modification time for a memory.
+        
+        Args:
+            memory: The memory to update
+            
+        Returns:
+            Updated memory
+        """
+        memory["last_modified"] = datetime.now().isoformat()
+        return memory
+    
+    async def adjust_memory_relevance(
+        self,
+        memories: List[Dict[str, Any]],
+        query: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Adjust memory relevance based on temporal factors.
+        
+        Args:
+            memories: List of memories to adjust
+            query: The query string
+            
+        Returns:
+            Adjusted memories
+        """
+        # Weight configuration
+        recency_weight = self.config["memory"].get("retrieval", {}).get("recency_weight", 0.3)
+        importance_weight = self.config["memory"].get("retrieval", {}).get("importance_weight", 0.7)
+        
+        now = datetime.now()
+        adjusted_memories = []
+        
+        for memory in memories:
+            # Calculate recency score
+            last_accessed_str = memory.get("last_accessed", memory.get("created_at"))
+            try:
+                last_accessed = datetime.fromisoformat(last_accessed_str)
+                days_since_access = (now - last_accessed).days
+                # Recency score: 1.0 for just accessed, decreasing with time
+                recency_score = 1.0 / (1.0 + days_since_access)
+            except (ValueError, TypeError):
+                recency_score = 0.5  # Default if timestamp is invalid
+            
+            # Get importance score
+            importance_score = memory.get("importance", 0.5)
+            
+            # Get similarity score (from semantic search)
+            similarity_score = memory.get("similarity", 0.5)
+            
+            # Combine scores
+            combined_score = (
+                similarity_score * (1.0 - recency_weight - importance_weight) +
+                recency_score * recency_weight +
+                importance_score * importance_weight
+            )
+            
+            # Update memory with combined score
+            memory["adjusted_score"] = combined_score
+            memory["recency_score"] = recency_score
+            
+            adjusted_memories.append(memory)
+        
+        # Sort by combined score
+        adjusted_memories.sort(key=lambda m: m["adjusted_score"], reverse=True)
+        
+        return adjusted_memories
+    
+    async def _check_consolidation(self) -> None:
+        """Check if memory consolidation is due and run if needed."""
+        now = datetime.now()
+        
+        # Check if enough time has passed since last consolidation
+        if now - self.last_consolidation > self.consolidation_interval:
+            logger.info("Running memory consolidation")
+            await self._consolidate_memories()
+            
+            # Update last consolidation time
+            self.last_consolidation = now
+            await self.persistence_domain.set_metadata("last_consolidation", now.isoformat())
+    
+    async def _consolidate_memories(self) -> None:
+        """
+        Consolidate memories based on temporal patterns.
+        
+        This includes:
+        - Moving old short-term memories to long-term
+        - Archiving rarely accessed long-term memories
+        - Adjusting importance scores based on access patterns
+        """
+        # Placeholder for consolidation logic
+        logger.info("Memory consolidation not yet implemented")
+    
+    async def get_stats(self) -> Dict[str, Any]:
+        """
+        Get statistics about the temporal domain.
+        
+        Returns:
+            Temporal domain statistics
+        """
+        return {
+            "last_consolidation": self.last_consolidation.isoformat(),
+            "next_consolidation": (self.last_consolidation + self.consolidation_interval).isoformat(),
+            "status": "initialized"
+        }
+</file>
+
+<file path="memory_mcp/mcp/__init__.py">
+"""
+MCP (Model Context Protocol) functionality for the Memory MCP Server.
+"""
+</file>
+
+<file path="memory_mcp/mcp/server.py">
+"""
+MCP server implementation for the memory system.
+"""
+
+import json
+import sys
+from typing import Any, Dict, List, Optional
+
+from loguru import logger
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+
+from memory_mcp.mcp.tools import MemoryToolDefinitions
+from memory_mcp.domains.manager import MemoryDomainManager
+
+
+class MemoryMcpServer:
+    """
+    MCP server implementation for the memory system.
+    
+    This class sets up an MCP server that exposes memory-related tools
+    and handles MCP protocol communication with Claude Desktop.
+    """
+    
+    def __init__(self, config: Dict[str, Any]) -> None:
+        """
+        Initialize the Memory MCP Server.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config
+        self.domain_manager = MemoryDomainManager(config)
+        self.app = Server("memory-mcp-server")
+        self.tool_definitions = MemoryToolDefinitions(self.domain_manager)
+        
+        # Register tools
+        self._register_tools()
+    
+    def _register_tools(self) -> None:
+        """Register memory-related tools with the MCP server."""
+        
+        # Store memory
+        @self.app.tool(
+            name="store_memory",
+            description="Store new information in memory",
+            schema=self.tool_definitions.store_memory_schema
+        )
+        async def store_memory_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle store_memory tool requests."""
+            try:
+                memory_id = await self.domain_manager.store_memory(
+                    memory_type=arguments["type"],
+                    content=arguments["content"],
+                    importance=arguments.get("importance", 0.5),
+                    metadata=arguments.get("metadata", {}),
+                    context=arguments.get("context", {})
+                )
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": True,
+                        "memory_id": memory_id
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in store_memory: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+        
+        # Retrieve memory
+        @self.app.tool(
+            name="retrieve_memory",
+            description="Retrieve relevant memories based on query",
+            schema=self.tool_definitions.retrieve_memory_schema
+        )
+        async def retrieve_memory_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle retrieve_memory tool requests."""
+            try:
+                query = arguments["query"]
+                limit = arguments.get("limit", 5)
+                memory_types = arguments.get("types", None)
+                min_similarity = arguments.get("min_similarity", 0.6)
+                include_metadata = arguments.get("include_metadata", False)
+                
+                memories = await self.domain_manager.retrieve_memories(
+                    query=query,
+                    limit=limit,
+                    memory_types=memory_types,
+                    min_similarity=min_similarity,
+                    include_metadata=include_metadata
+                )
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": True,
+                        "memories": memories
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in retrieve_memory: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+        
+        # List memories
+        @self.app.tool(
+            name="list_memories",
+            description="List available memories with filtering options",
+            schema=self.tool_definitions.list_memories_schema
+        )
+        async def list_memories_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle list_memories tool requests."""
+            try:
+                memory_types = arguments.get("types", None)
+                limit = arguments.get("limit", 20)
+                offset = arguments.get("offset", 0)
+                tier = arguments.get("tier", None)
+                include_content = arguments.get("include_content", False)
+                
+                memories = await self.domain_manager.list_memories(
+                    memory_types=memory_types,
+                    limit=limit,
+                    offset=offset,
+                    tier=tier,
+                    include_content=include_content
+                )
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": True,
+                        "memories": memories
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in list_memories: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+        
+        # Update memory
+        @self.app.tool(
+            name="update_memory",
+            description="Update existing memory entries",
+            schema=self.tool_definitions.update_memory_schema
+        )
+        async def update_memory_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle update_memory tool requests."""
+            try:
+                memory_id = arguments["memory_id"]
+                updates = arguments["updates"]
+                
+                success = await self.domain_manager.update_memory(
+                    memory_id=memory_id,
+                    updates=updates
+                )
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": success
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in update_memory: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+        
+        # Delete memory
+        @self.app.tool(
+            name="delete_memory",
+            description="Remove specific memories",
+            schema=self.tool_definitions.delete_memory_schema
+        )
+        async def delete_memory_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle delete_memory tool requests."""
+            try:
+                memory_ids = arguments["memory_ids"]
+                
+                success = await self.domain_manager.delete_memories(
+                    memory_ids=memory_ids
+                )
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": success
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in delete_memory: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+        
+        # Memory stats
+        @self.app.tool(
+            name="memory_stats",
+            description="Get statistics about the memory store",
+            schema=self.tool_definitions.memory_stats_schema
+        )
+        async def memory_stats_handler(arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Handle memory_stats tool requests."""
+            try:
+                stats = await self.domain_manager.get_memory_stats()
+                
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": True,
+                        "stats": stats
+                    })
+                }]
+            except Exception as e:
+                logger.error(f"Error in memory_stats: {str(e)}")
+                return [{
+                    "type": "text",
+                    "text": json.dumps({
+                        "success": False,
+                        "error": str(e)
+                    }),
+                    "is_error": True
+                }]
+    
+    async def start(self) -> None:
+        """Start the MCP server."""
+        # Initialize the memory domain manager
+        await self.domain_manager.initialize()
+        
+        logger.info("Starting Memory MCP Server using stdio transport")
+        
+        # Start the server using stdio transport
+        async with stdio_server() as streams:
+            await self.app.run(
+                streams[0],
+                streams[1],
+                self.app.create_initialization_options()
+            )
+</file>
+
+<file path="memory_mcp/mcp/tools.py">
+"""
+MCP tool definitions for the memory system.
+"""
+
+from typing import Dict, Any
+
+from memory_mcp.domains.manager import MemoryDomainManager
+
+
+class MemoryToolDefinitions:
+    """
+    Defines MCP tools for the memory system.
+    
+    This class contains the schema definitions and validation for
+    the MCP tools exposed by the memory server.
+    """
+    
+    def __init__(self, domain_manager: MemoryDomainManager) -> None:
+        """
+        Initialize the tool definitions.
+        
+        Args:
+            domain_manager: The memory domain manager
+        """
+        self.domain_manager = domain_manager
+    
+    @property
+    def store_memory_schema(self) -> Dict[str, Any]:
+        """Schema for the store_memory tool."""
+        return {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Type of memory to store (conversation, fact, document, entity, reflection)",
+                    "enum": ["conversation", "fact", "document", "entity", "reflection", "code"]
+                },
+                "content": {
+                    "type": "object",
+                    "description": "Content of the memory (type-specific structure)"
+                },
+                "importance": {
+                    "type": "number",
+                    "description": "Importance score (0.0-1.0, higher is more important)",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "metadata": {
+                    "type": "object",
+                    "description": "Additional metadata for the memory"
+                },
+                "context": {
+                    "type": "object",
+                    "description": "Contextual information for the memory"
+                }
+            },
+            "required": ["type", "content"]
+        }
+    
+    @property
+    def retrieve_memory_schema(self) -> Dict[str, Any]:
+        """Schema for the retrieve_memory tool."""
+        return {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Query string to search for relevant memories"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of memories to retrieve (default: 5)",
+                    "minimum": 1,
+                    "maximum": 50
+                },
+                "types": {
+                    "type": "array",
+                    "description": "Types of memories to include (null for all types)",
+                    "items": {
+                        "type": "string",
+                        "enum": ["conversation", "fact", "document", "entity", "reflection", "code"]
+                    }
+                },
+                "min_similarity": {
+                    "type": "number",
+                    "description": "Minimum similarity score (0.0-1.0) for results",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "include_metadata": {
+                    "type": "boolean",
+                    "description": "Whether to include metadata in the results"
+                }
+            },
+            "required": ["query"]
+        }
+    
+    @property
+    def list_memories_schema(self) -> Dict[str, Any]:
+        """Schema for the list_memories tool."""
+        return {
+            "type": "object",
+            "properties": {
+                "types": {
+                    "type": "array",
+                    "description": "Types of memories to include (null for all types)",
+                    "items": {
+                        "type": "string",
+                        "enum": ["conversation", "fact", "document", "entity", "reflection", "code"]
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of memories to retrieve (default: 20)",
+                    "minimum": 1,
+                    "maximum": 100
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Offset for pagination (default: 0)",
+                    "minimum": 0
+                },
+                "tier": {
+                    "type": "string",
+                    "description": "Memory tier to retrieve from (null for all tiers)",
+                    "enum": ["short_term", "long_term", "archived"]
+                },
+                "include_content": {
+                    "type": "boolean",
+                    "description": "Whether to include memory content in the results (default: false)"
+                }
+            }
+        }
+    
+    @property
+    def update_memory_schema(self) -> Dict[str, Any]:
+        """Schema for the update_memory tool."""
+        return {
+            "type": "object",
+            "properties": {
+                "memory_id": {
+                    "type": "string",
+                    "description": "ID of the memory to update"
+                },
+                "updates": {
+                    "type": "object",
+                    "description": "Updates to apply to the memory",
+                    "properties": {
+                        "content": {
+                            "type": "object",
+                            "description": "New content for the memory"
+                        },
+                        "importance": {
+                            "type": "number",
+                            "description": "New importance score (0.0-1.0)",
+                            "minimum": 0.0,
+                            "maximum": 1.0
+                        },
+                        "metadata": {
+                            "type": "object",
+                            "description": "Updates to memory metadata"
+                        },
+                        "context": {
+                            "type": "object",
+                            "description": "Updates to memory context"
+                        }
+                    }
+                }
+            },
+            "required": ["memory_id", "updates"]
+        }
+    
+    @property
+    def delete_memory_schema(self) -> Dict[str, Any]:
+        """Schema for the delete_memory tool."""
+        return {
+            "type": "object",
+            "properties": {
+                "memory_ids": {
+                    "type": "array",
+                    "description": "IDs of memories to delete",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": ["memory_ids"]
+        }
+    
+    @property
+    def memory_stats_schema(self) -> Dict[str, Any]:
+        """Schema for the memory_stats tool."""
+        return {
+            "type": "object",
+            "properties": {}
+        }
+</file>
+
+<file path="memory_mcp/utils/compatibility/__init__.py">
+"""
+Compatibility utility for checking and reporting version issues.
+"""
+
+from .version_checker import check_compatibility, CompatibilityReport
+</file>
+
+<file path="memory_mcp/utils/compatibility/version_checker.py">
+"""
+Version compatibility checker for memory_mcp.
+"""
+
+import importlib
+import importlib.metadata
+import sys
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
+from loguru import logger
+
+
+@dataclass
+class CompatibilityReport:
+    """Compatibility report for dependency versions."""
+    
+    compatible: bool
+    issues: List[str]
+    python_version: str
+
+
+def check_python_version() -> Tuple[bool, Optional[str]]:
+    """
+    Check if the current Python version is compatible.
+    
+    Returns:
+        Tuple of (is_compatible, error_message)
+    """
+    python_version = sys.version_info
+    
+    # We support Python 3.8 to 3.12
+    if python_version.major != 3 or python_version.minor < 8 or python_version.minor > 12:
+        return False, f"Python version {python_version.major}.{python_version.minor}.{python_version.micro} is not supported. Please use Python 3.8-3.12."
+    
+    return True, None
+
+
+def check_dependency_version(package_name: str, min_version: str, max_version: str) -> Tuple[bool, Optional[str]]:
+    """
+    Check if a dependency version is within the expected range.
+    
+    Args:
+        package_name: Name of the package to check
+        min_version: Minimum supported version (inclusive)
+        max_version: Maximum supported version (exclusive)
+        
+    Returns:
+        Tuple of (is_compatible, error_message)
+    """
+    try:
+        version = importlib.metadata.version(package_name)
+        
+        # Simple version comparison (assumes semantic versioning)
+        min_parts = [int(x) for x in min_version.split('.')]
+        max_parts = [int(x) for x in max_version.split('.')]
+        version_parts = [int(x) for x in version.split('.')]
+        
+        # Check minimum version
+        for i in range(len(min_parts)):
+            if i >= len(version_parts):
+                break
+            if version_parts[i] < min_parts[i]:
+                return False, f"{package_name} version {version} is lower than the minimum supported version {min_version}"
+            if version_parts[i] > min_parts[i]:
+                break
+        
+        # Check maximum version
+        for i in range(len(max_parts)):
+            if i >= len(version_parts):
+                break
+            if version_parts[i] >= max_parts[i]:
+                return False, f"{package_name} version {version} is higher than the maximum supported version {max_version}"
+            if version_parts[i] < max_parts[i]:
+                break
+        
+        return True, None
+    except importlib.metadata.PackageNotFoundError:
+        return False, f"{package_name} is not installed"
+    except Exception as e:
+        return False, f"Error checking {package_name} version: {str(e)}"
+
+
+def check_compatibility() -> CompatibilityReport:
+    """
+    Check compatibility of the current environment.
+    
+    Returns:
+        CompatibilityReport with details about compatibility
+    """
+    issues = []
+    
+    # Check Python version
+    python_compatible, python_error = check_python_version()
+    if not python_compatible:
+        issues.append(python_error)
+    
+    # Critical dependencies and their version ranges
+    dependencies = {
+        "numpy": ("1.20.0", "2.0.0"),
+        "pydantic": ("2.4.0", "3.0.0"),
+        "sentence-transformers": ("2.2.2", "3.0.0"),
+        "hnswlib": ("0.7.0", "0.8.0"),
+        "mcp-cli": ("0.1.0", "0.3.0"),
+        "mcp-server": ("0.1.0", "0.3.0")
+    }
+    
+    # Check each dependency
+    for package, (min_version, max_version) in dependencies.items():
+        try:
+            compatible, error = check_dependency_version(package, min_version, max_version)
+            if not compatible:
+                issues.append(error)
+        except Exception as e:
+            issues.append(f"Error checking {package}: {str(e)}")
+    
+    # Special check for NumPy to ensure it's not v2.x
+    try:
+        import numpy
+        numpy_version = numpy.__version__
+        if numpy_version.startswith("2."):
+            issues.append(f"NumPy version {numpy_version} is not supported. Please use NumPy 1.x (e.g., 1.20.0 or higher).")
+    except ImportError:
+        # Already reported by the dependency check
+        pass
+    
+    return CompatibilityReport(
+        compatible=len(issues) == 0,
+        issues=issues,
+        python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
+
+
+def print_compatibility_report(report: CompatibilityReport) -> None:
+    """
+    Print a compatibility report to the logger.
+    
+    Args:
+        report: The compatibility report to print
+    """
+    if report.compatible:
+        logger.info(f"Environment is compatible (Python {report.python_version})")
+    else:
+        logger.error(f"Environment has compatibility issues (Python {report.python_version}):")
+        for issue in report.issues:
+            logger.error(f"  - {issue}")
+        
+        # Print helpful message
+        logger.info("To resolve these issues, you can try:")
+        logger.info("  - Use Python 3.8-3.12")
+        logger.info("  - Install dependencies with: pip install -r requirements.txt")
+        logger.info("  - If using NumPy 2.x, downgrade with: pip install \"numpy>=1.20.0,<2.0.0\"")
+</file>
+
+<file path="memory_mcp/utils/__init__.py">
+"""
+Utility modules for the memory MCP server.
+"""
+</file>
+
+<file path="memory_mcp/utils/config.py">
+"""
+Configuration utilities for the memory MCP server.
+"""
+
+import os
+import json
+from pathlib import Path
+from typing import Any, Dict
+
+from loguru import logger
+
+
+def load_config(config_path: str) -> Dict[str, Any]:
+    """
+    Load configuration from a JSON file.
+    
+    Args:
+        config_path: Path to the configuration file
+        
+    Returns:
+        Configuration dictionary
+    """
+    config_path = os.path.expanduser(config_path)
+    
+    # Check if config file exists
+    if not os.path.exists(config_path):
+        logger.warning(f"Configuration file not found: {config_path}")
+        return create_default_config(config_path)
+    
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+            logger.info(f"Loaded configuration from {config_path}")
+            
+            # Validate and merge with defaults
+            config = validate_config(config)
+            
+            return config
+    except json.JSONDecodeError:
+        logger.error(f"Error parsing configuration file: {config_path}")
+        return create_default_config(config_path)
+    except Exception as e:
+        logger.error(f"Error loading configuration: {str(e)}")
+        return create_default_config(config_path)
+
+
+def create_default_config(config_path: str) -> Dict[str, Any]:
+    """
+    Create default configuration.
+    
+    Args:
+        config_path: Path to save the configuration file
+        
+    Returns:
+        Default configuration dictionary
+    """
+    logger.info(f"Creating default configuration at {config_path}")
+    
+    # Create config directory if it doesn't exist
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    
+    # Default configuration
+    config = {
+        "server": {
+            "host": "127.0.0.1",
+            "port": 8000,
+            "debug": False
+        },
+        "memory": {
+            "max_short_term_items": 100,
+            "max_long_term_items": 1000,
+            "max_archival_items": 10000,
+            "consolidation_interval_hours": 24,
+            "short_term_threshold": 0.3,
+            "file_path": os.path.join(
+                os.path.expanduser("~/.memory_mcp/data"),
+                "memory.json"
+            )
+        },
+        "embedding": {
+            "model": "sentence-transformers/all-MiniLM-L6-v2",
+            "dimensions": 384,
+            "cache_dir": os.path.expanduser("~/.memory_mcp/cache")
+        },
+        "retrieval": {
+            "default_top_k": 5,
+            "semantic_threshold": 0.75,
+            "recency_weight": 0.3,
+            "importance_weight": 0.7
+        }
+    }
+    
+    # Save default config
+    try:
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=2)
+    except Exception as e:
+        logger.error(f"Error saving default configuration: {str(e)}")
+    
+    return config
+
+
+def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate and normalize configuration.
+    
+    Args:
+        config: Configuration dictionary
+        
+    Returns:
+        Validated configuration dictionary
+    """
+    # Create default config
+    default_config = {
+        "server": {
+            "host": "127.0.0.1",
+            "port": 8000,
+            "debug": False
+        },
+        "memory": {
+            "max_short_term_items": 100,
+            "max_long_term_items": 1000,
+            "max_archival_items": 10000,
+            "consolidation_interval_hours": 24,
+            "short_term_threshold": 0.3,
+            "file_path": os.path.join(
+                os.path.expanduser("~/.memory_mcp/data"),
+                "memory.json"
+            )
+        },
+        "embedding": {
+            "model": "sentence-transformers/all-MiniLM-L6-v2",
+            "dimensions": 384,
+            "cache_dir": os.path.expanduser("~/.memory_mcp/cache")
+        },
+        "retrieval": {
+            "default_top_k": 5,
+            "semantic_threshold": 0.75,
+            "recency_weight": 0.3,
+            "importance_weight": 0.7
+        }
+    }
+    
+    # Merge with user config (deep merge)
+    merged_config = deep_merge(default_config, config)
+    
+    # Convert relative paths to absolute
+    if "memory" in merged_config and "file_path" in merged_config["memory"]:
+        file_path = merged_config["memory"]["file_path"]
+        if not os.path.isabs(file_path):
+            merged_config["memory"]["file_path"] = os.path.abspath(file_path)
+    
+    return merged_config
+
+
+def deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Deep merge two dictionaries.
+    
+    Args:
+        base: Base dictionary
+        override: Override dictionary
+        
+    Returns:
+        Merged dictionary
+    """
+    result = base.copy()
+    
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+    
+    return result
+</file>
+
+<file path="memory_mcp/utils/embeddings.py">
+"""
+Embedding utilities for the memory MCP server.
+"""
+
+import os
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+from loguru import logger
+from sentence_transformers import SentenceTransformer
+
+
+class EmbeddingManager:
+    """
+    Manages embedding generation and similarity calculations.
+    
+    This class handles the loading of embedding models, generation
+    of embeddings for text, and calculation of similarity between
+    embeddings.
+    """
+    
+    def __init__(self, config: Dict[str, Any]) -> None:
+        """
+        Initialize the embedding manager.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config
+        self.model_name = config["embedding"].get("model", "sentence-transformers/all-MiniLM-L6-v2")
+        self.dimensions = config["embedding"].get("dimensions", 384)
+        self.cache_dir = config["embedding"].get("cache_dir", None)
+        
+        # Model will be loaded on first use
+        self.model = None
+    
+    def get_model(self) -> SentenceTransformer:
+        """
+        Get or load the embedding model.
+        
+        Returns:
+            SentenceTransformer model
+        """
+        if self.model is None:
+            # Create cache directory if specified
+            if self.cache_dir:
+                os.makedirs(self.cache_dir, exist_ok=True)
+                
+            # Load model
+            logger.info(f"Loading embedding model: {self.model_name}")
+            try:
+                self.model = SentenceTransformer(
+                    self.model_name,
+                    cache_folder=self.cache_dir
+                )
+                logger.info(f"Embedding model loaded: {self.model_name}")
+            except Exception as e:
+                logger.error(f"Error loading embedding model: {str(e)}")
+                raise RuntimeError(f"Failed to load embedding model: {str(e)}")
+        
+        return self.model
+    
+    def generate_embedding(self, text: str) -> List[float]:
+        """
+        Generate an embedding vector for text.
+        
+        Args:
+            text: Text to embed
+            
+        Returns:
+            Embedding vector as a list of floats
+        """
+        model = self.get_model()
+        
+        # Generate embedding
+        try:
+            embedding = model.encode(text)
+            
+            # Convert to list of floats for JSON serialization
+            return embedding.tolist()
+        except Exception as e:
+            logger.error(f"Error generating embedding: {str(e)}")
+            # Return zero vector as fallback
+            return [0.0] * self.dimensions
+    
+    def batch_generate_embeddings(self, texts: List[str]) -> List[List[float]]:
+        """
+        Generate embeddings for multiple texts.
+        
+        Args:
+            texts: List of texts to embed
+            
+        Returns:
+            List of embedding vectors
+        """
+        model = self.get_model()
+        
+        # Generate embeddings in batch
+        try:
+            embeddings = model.encode(texts)
+            
+            # Convert to list of lists for JSON serialization
+            return [embedding.tolist() for embedding in embeddings]
+        except Exception as e:
+            logger.error(f"Error generating batch embeddings: {str(e)}")
+            # Return zero vectors as fallback
+            return [[0.0] * self.dimensions] * len(texts)
+    
+    def calculate_similarity(
+        self,
+        embedding1: Union[List[float], np.ndarray],
+        embedding2: Union[List[float], np.ndarray]
+    ) -> float:
+        """
+        Calculate cosine similarity between two embeddings.
+        
+        Args:
+            embedding1: First embedding vector
+            embedding2: Second embedding vector
+            
+        Returns:
+            Cosine similarity (0.0-1.0)
+        """
+        # Convert to numpy arrays if needed
+        if isinstance(embedding1, list):
+            embedding1 = np.array(embedding1)
+        if isinstance(embedding2, list):
+            embedding2 = np.array(embedding2)
+        
+        # Calculate cosine similarity
+        norm1 = np.linalg.norm(embedding1)
+        norm2 = np.linalg.norm(embedding2)
+        
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        
+        return float(np.dot(embedding1, embedding2) / (norm1 * norm2))
+    
+    def find_most_similar(
+        self,
+        query_embedding: Union[List[float], np.ndarray],
+        embeddings: List[Union[List[float], np.ndarray]],
+        min_similarity: float = 0.0,
+        limit: int = 5
+    ) -> List[Dict[str, Union[int, float]]]:
+        """
+        Find most similar embeddings to a query embedding.
+        
+        Args:
+            query_embedding: Query embedding vector
+            embeddings: List of embeddings to compare against
+            min_similarity: Minimum similarity threshold
+            limit: Maximum number of results
+            
+        Returns:
+            List of dictionaries with index and similarity
+        """
+        # Convert query to numpy array if needed
+        if isinstance(query_embedding, list):
+            query_embedding = np.array(query_embedding)
+        
+        # Calculate similarities
+        similarities = []
+        
+        for i, embedding in enumerate(embeddings):
+            # Convert to numpy array if needed
+            if isinstance(embedding, list):
+                embedding = np.array(embedding)
+            
+            # Calculate similarity
+            similarity = self.calculate_similarity(query_embedding, embedding)
+            
+            if similarity >= min_similarity:
+                similarities.append({
+                    "index": i,
+                    "similarity": similarity
+                })
+        
+        # Sort by similarity (descending)
+        similarities.sort(key=lambda x: x["similarity"], reverse=True)
+        
+        # Limit results
+        return similarities[:limit]
+</file>
+
+<file path="memory_mcp/utils/schema.py">
+"""
+Schema validation utilities for the memory MCP server.
+"""
+
+import re
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field, validator
+
+
+class MemoryBase(BaseModel):
+    """Base model for memory objects."""
+    id: str
+    type: str
+    importance: float = 0.5
+    
+    @validator("importance")
+    def validate_importance(cls, v: float) -> float:
+        """Validate importance score."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError("Importance must be between 0.0 and 1.0")
+        return v
+
+
+class ConversationMemory(MemoryBase):
+    """Model for conversation memories."""
+    type: str = "conversation"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate conversation content."""
+        if "role" not in v and "messages" not in v:
+            raise ValueError("Conversation must have either 'role' or 'messages'")
+        
+        if "role" in v and "message" not in v:
+            raise ValueError("Conversation with 'role' must have 'message'")
+            
+        if "messages" in v and not isinstance(v["messages"], list):
+            raise ValueError("Conversation 'messages' must be a list")
+            
+        return v
+
+
+class FactMemory(MemoryBase):
+    """Model for fact memories."""
+    type: str = "fact"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate fact content."""
+        if "fact" not in v:
+            raise ValueError("Fact must have 'fact' field")
+            
+        if "confidence" in v and not 0.0 <= v["confidence"] <= 1.0:
+            raise ValueError("Fact confidence must be between 0.0 and 1.0")
+            
+        return v
+
+
+class DocumentMemory(MemoryBase):
+    """Model for document memories."""
+    type: str = "document"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate document content."""
+        if "title" not in v or "text" not in v:
+            raise ValueError("Document must have 'title' and 'text' fields")
+            
+        return v
+
+
+class EntityMemory(MemoryBase):
+    """Model for entity memories."""
+    type: str = "entity"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate entity content."""
+        if "name" not in v or "entity_type" not in v:
+            raise ValueError("Entity must have 'name' and 'entity_type' fields")
+            
+        return v
+
+
+class ReflectionMemory(MemoryBase):
+    """Model for reflection memories."""
+    type: str = "reflection"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate reflection content."""
+        if "subject" not in v or "reflection" not in v:
+            raise ValueError("Reflection must have 'subject' and 'reflection' fields")
+            
+        return v
+
+
+class CodeMemory(MemoryBase):
+    """Model for code memories."""
+    type: str = "code"
+    content: Dict[str, Any]
+    
+    @validator("content")
+    def validate_content(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate code content."""
+        if "language" not in v or "code" not in v:
+            raise ValueError("Code must have 'language' and 'code' fields")
+            
+        return v
+
+
+def validate_memory(memory: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate a memory object against its schema.
+    
+    Args:
+        memory: Memory dictionary
+        
+    Returns:
+        Validated memory dictionary
+        
+    Raises:
+        ValueError: If memory is invalid
+    """
+    if "type" not in memory:
+        raise ValueError("Memory must have a 'type' field")
+        
+    memory_type = memory["type"]
+    
+    # Choose validator based on type
+    validators = {
+        "conversation": ConversationMemory,
+        "fact": FactMemory,
+        "document": DocumentMemory,
+        "entity": EntityMemory,
+        "reflection": ReflectionMemory,
+        "code": CodeMemory
+    }
+    
+    if memory_type not in validators:
+        raise ValueError(f"Unknown memory type: {memory_type}")
+        
+    # Validate using Pydantic model
+    model = validators[memory_type](**memory)
+    
+    # Return validated model as dict
+    return model.dict()
+
+
+def validate_iso_timestamp(timestamp: str) -> bool:
+    """
+    Validate ISO timestamp format.
+    
+    Args:
+        timestamp: Timestamp string
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    try:
+        datetime.fromisoformat(timestamp)
+        return True
+    except ValueError:
+        return False
+    
+    
+def validate_memory_id(memory_id: str) -> bool:
+    """
+    Validate memory ID format.
+    
+    Args:
+        memory_id: Memory ID string
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    # Memory IDs should start with "mem_" followed by alphanumeric chars
+    pattern = r"^mem_[a-zA-Z0-9_-]+$"
+    return bool(re.match(pattern, memory_id))
+</file>
+
+<file path="memory_mcp/__init__.py">
+"""
+Claude Memory MCP Server
+
+An MCP server implementation that provides persistent memory capabilities for Large Language Models,
+specifically designed to work with the Claude desktop application.
+"""
+
+__version__ = "0.1.0"
+</file>
+
+<file path="memory_mcp/__main__.py">
+"""
+Command-line entry point for the Memory MCP Server
+"""
+
+import os
+import logging
+import argparse
+from pathlib import Path
+
+from loguru import logger
+
+from memory_mcp.mcp.server import MemoryMcpServer
+from memory_mcp.utils.config import load_config
+
+
+def main() -> None:
+    """Entry point for the Memory MCP Server."""
+    parser = argparse.ArgumentParser(description="Memory MCP Server")
+    parser.add_argument(
+        "--config", 
+        type=str,
+        help="Path to configuration file"
+    )
+    parser.add_argument(
+        "--memory-file", 
+        type=str, 
+        help="Path to memory file"
+    )
+    parser.add_argument(
+        "--debug", 
+        action="store_true", 
+        help="Enable debug mode"
+    )
+    
+    args = parser.parse_args()
+    
+    # Configure logging
+    log_level = "DEBUG" if args.debug else "INFO"
+    logger.remove()
+    logger.add(
+        os.sys.stderr,
+        level=log_level,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    )
+    
+    # Load configuration
+    config_path = args.config
+    if not config_path:
+        config_dir = os.environ.get("MCP_CONFIG_DIR", os.path.expanduser("~/.memory_mcp/config"))
+        config_path = os.path.join(config_dir, "config.json")
+    
+    config = load_config(config_path)
+    
+    # Override memory file path if specified
+    if args.memory_file:
+        config["memory"]["file_path"] = args.memory_file
+    elif "MEMORY_FILE_PATH" in os.environ:
+        config["memory"]["file_path"] = os.environ["MEMORY_FILE_PATH"]
+    
+    memory_file_path = config["memory"]["file_path"]
+    
+    # Ensure memory file path exists
+    memory_file_dir = os.path.dirname(memory_file_path)
+    os.makedirs(memory_file_dir, exist_ok=True)
+    
+    logger.info(f"Starting Memory MCP Server")
+    logger.info(f"Using configuration from {config_path}")
+    logger.info(f"Using memory file: {memory_file_path}")
+    
+    # Start the server
+    server = MemoryMcpServer(config)
+    server.start()
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="tests/__init__.py">
+"""
+Test package for the Memory MCP Server.
+"""
+</file>
+
+<file path="tests/test_memory_mcp.py">
+"""
+Tests for the Memory MCP Server.
+"""
+
+import os
+import json
+import tempfile
+import unittest
+from typing import Dict, Any
+
+from memory_mcp.utils.config import load_config, create_default_config
+from memory_mcp.utils.schema import validate_memory
+from memory_mcp.utils.embeddings import EmbeddingManager
+
+
+class TestConfig(unittest.TestCase):
+    """Tests for configuration utilities."""
+    
+    def test_create_default_config(self):
+        """Test creating default configuration."""
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp:
+            try:
+                # Create default config
+                config = create_default_config(temp.name)
+                
+                # Check if config file was created
+                self.assertTrue(os.path.exists(temp.name))
+                
+                # Check if config has expected sections
+                self.assertIn("server", config)
+                self.assertIn("memory", config)
+                self.assertIn("embedding", config)
+                
+                # Load the created config
+                loaded_config = load_config(temp.name)
+                
+                # Check if loaded config matches
+                self.assertEqual(config, loaded_config)
+            finally:
+                # Clean up
+                os.unlink(temp.name)
+    
+    def test_load_nonexistent_config(self):
+        """Test loading nonexistent configuration."""
+        # Use a path that doesn't exist
+        with tempfile.NamedTemporaryFile(suffix=".json") as temp:
+            pass  # File is deleted on close
+        
+        # Load config (should create default)
+        config = load_config(temp.name)
+        
+        # Check if config has expected sections
+        self.assertIn("server", config)
+        self.assertIn("memory", config)
+        self.assertIn("embedding", config)
+        
+        # Clean up
+        if os.path.exists(temp.name):
+            os.unlink(temp.name)
+
+
+class TestSchema(unittest.TestCase):
+    """Tests for schema validation utilities."""
+    
+    def test_validate_conversation_memory(self):
+        """Test validating conversation memory."""
+        # Valid conversation with role/message
+        memory = {
+            "id": "mem_test1",
+            "type": "conversation",
+            "importance": 0.8,
+            "content": {
+                "role": "user",
+                "message": "Hello, Claude!"
+            }
+        }
+        
+        validated = validate_memory(memory)
+        self.assertEqual(validated["id"], "mem_test1")
+        self.assertEqual(validated["type"], "conversation")
+        
+        # Valid conversation with messages array
+        memory = {
+            "id": "mem_test2",
+            "type": "conversation",
+            "importance": 0.7,
+            "content": {
+                "messages": [
+                    {"role": "user", "content": "Hello"},
+                    {"role": "assistant", "content": "Hi there!"}
+                ]
+            }
+        }
+        
+        validated = validate_memory(memory)
+        self.assertEqual(validated["id"], "mem_test2")
+        self.assertEqual(validated["type"], "conversation")
+        
+        # Invalid: missing required fields
+        memory = {
+            "id": "mem_test3",
+            "type": "conversation",
+            "importance": 0.5,
+            "content": {}
+        }
+        
+        with self.assertRaises(ValueError):
+            validate_memory(memory)
+    
+    def test_validate_fact_memory(self):
+        """Test validating fact memory."""
+        # Valid fact
+        memory = {
+            "id": "mem_test4",
+            "type": "fact",
+            "importance": 0.9,
+            "content": {
+                "fact": "The capital of France is Paris.",
+                "confidence": 0.95
+            }
+        }
+        
+        validated = validate_memory(memory)
+        self.assertEqual(validated["id"], "mem_test4")
+        self.assertEqual(validated["type"], "fact")
+        
+        # Invalid: missing fact field
+        memory = {
+            "id": "mem_test5",
+            "type": "fact",
+            "importance": 0.7,
+            "content": {
+                "confidence": 0.8
+            }
+        }
+        
+        with self.assertRaises(ValueError):
+            validate_memory(memory)
+
+
+class TestEmbeddings(unittest.TestCase):
+    """Tests for embedding utilities."""
+    
+    def test_embedding_manager_init(self):
+        """Test initializing the embedding manager."""
+        config = {
+            "embedding": {
+                "model": "sentence-transformers/paraphrase-MiniLM-L3-v2",
+                "dimensions": 384,
+                "cache_dir": None
+            }
+        }
+        
+        manager = EmbeddingManager(config)
+        self.assertEqual(manager.model_name, "sentence-transformers/paraphrase-MiniLM-L3-v2")
+        self.assertEqual(manager.dimensions, 384)
+        self.assertIsNone(manager.model)  # Model should be None initially
+    
+    def test_similarity_calculation(self):
+        """Test similarity calculation between embeddings."""
+        config = {
+            "embedding": {
+                "model": "sentence-transformers/paraphrase-MiniLM-L3-v2",
+                "dimensions": 384
+            }
+        }
+        
+        manager = EmbeddingManager(config)
+        
+        # Test with numpy arrays
+        import numpy as np
+        v1 = np.array([1.0, 0.0, 0.0])
+        v2 = np.array([0.0, 1.0, 0.0])
+        v3 = np.array([1.0, 1.0, 0.0])
+        
+        # Orthogonal vectors should have similarity 0
+        self.assertAlmostEqual(manager.calculate_similarity(v1, v2), 0.0)
+        
+        # Same vector should have similarity 1
+        self.assertAlmostEqual(manager.calculate_similarity(v1, v1), 1.0)
+        
+        # Test with lists
+        v1_list = [1.0, 0.0, 0.0]
+        v2_list = [0.0, 1.0, 0.0]
+        
+        # Orthogonal vectors should have similarity 0
+        self.assertAlmostEqual(manager.calculate_similarity(v1_list, v2_list), 0.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+</file>
+
+<file path="docker-compose.yml">
+version: '3'
+
+services:
+  memory-mcp:
+    build: .
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    environment:
+      - MEMORY_FILE_PATH=/app/data/memory.json
+      - MCP_CONFIG_DIR=/app/config
+      - MCP_DATA_DIR=/app/data
+    restart: unless-stopped
+</file>
+
+<file path="Dockerfile">
+FROM python:3.10-slim as builder
+
+WORKDIR /app
+COPY requirements.txt pyproject.toml ./
+RUN pip install --user --no-warn-script-location -r requirements.txt
+
+FROM python:3.10-slim
+
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY . .
+
+ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONPATH=/app
+
+# Default configuration
+ENV MCP_CONFIG_DIR=/app/config
+ENV MCP_DATA_DIR=/app/data
+ENV MEMORY_FILE_PATH=/app/data/memory.json
+
+# Create necessary directories
+RUN mkdir -p /app/config /app/data /app/cache
+
+# Set permissions
+RUN chmod +x setup.sh
+
+# Create volume mount points for persistence
+VOLUME ["/app/config", "/app/data"]
+
+ENTRYPOINT ["python", "-m", "memory_mcp"]
+</file>
+
+<file path="LICENSE">
+MIT License
+
+Copyright (c) 2025 Claude Memory MCP Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</file>
+
+<file path="pyproject.toml">
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memory_mcp"
+version = "0.1.0"
+description = "MCP server implementation for LLM persistent memory"
+readme = "README.md"
+authors = [
+    {name = "Aurora", email = "example@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "mcp-cli>=0.1.0,<0.3.0",
+    "mcp-server>=0.1.0,<0.3.0",
+    "pydantic>=2.4.0,<3.0.0",
+    "sentence-transformers>=2.2.2,<3.0.0",
+    "numpy>=1.20.0,<2.0.0",
+    "hnswlib>=0.7.0,<0.8.0",
+    "fastapi>=0.100.0,<0.110.0",
+    "uvicorn>=0.23.0,<0.30.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "python-jose>=3.3.0,<4.0.0",
+    "loguru>=0.7.0,<0.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.3.1,<8.0.0",
+    "pytest-cov>=4.1.0,<5.0.0",
+    "black>=23.3.0,<24.0.0",
+    "isort>=5.12.0,<6.0.0",
+    "mypy>=1.3.0,<2.0.0",
+]
+
+[tool.setuptools]
+packages = ["memory_mcp"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+</file>
+
+<file path="README.md">
+# Claude Memory MCP Server
+
+An MCP (Model Context Protocol) server implementation that provides persistent memory capabilities for Large Language Models, specifically designed to integrate with the Claude desktop application.
+
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+## Overview
+
+This project implements optimal memory techniques based on comprehensive research of current approaches in the field. It provides a standardized way for Claude to maintain persistent memory across conversations and sessions.
+
+## Features
+
+- **Tiered Memory Architecture**: Short-term, long-term, and archival memory tiers
+- **Multiple Memory Types**: Support for conversations, knowledge, entities, and reflections
+- **Semantic Search**: Retrieve memories based on semantic similarity
+- **Automatic Memory Management**: Intelligent memory capture without explicit commands
+- **Memory Consolidation**: Automatic consolidation of short-term memories into long-term memory
+- **Memory Management**: Importance-based memory retention and forgetting
+- **Claude Integration**: Ready-to-use integration with Claude desktop application
+- **MCP Protocol Support**: Compatible with the Model Context Protocol
+- **Docker Support**: Easy deployment using Docker containers
+
+## Quick Start
+
+### Option 1: Using Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/WhenMoon-afk/claude-memory-mcp.git
+cd claude-memory-mcp
+
+# Start with Docker Compose
+docker-compose up -d
+```
+
+Configure Claude Desktop to use the containerized MCP server (see [Docker Usage Guide](docs/docker_usage.md) for details).
+
+### Option 2: Standard Installation
+
+1. **Prerequisites**:
+   - Python 3.8-3.12
+   - pip package manager
+
+2. **Installation**:
+   ```bash
+   # Clone the repository
+   git clone https://github.com/WhenMoon-afk/claude-memory-mcp.git
+   cd claude-memory-mcp
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Run setup script
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+3. **Claude Desktop Integration**:
+
+   Add the following to your Claude configuration file:
+
+   ```json
+   {
+     "mcpServers": {
+       "memory": {
+         "command": "python",
+         "args": ["-m", "memory_mcp"],
+         "env": {
+           "MEMORY_FILE_PATH": "/path/to/your/memory.json"
+         }
+       }
+     }
+   }
+   ```
+
+## Using Memory with Claude
+
+The Memory MCP Server enables Claude to remember information across conversations without requiring explicit commands. 
+
+1. **Automatic Memory**: Claude will automatically:
+   - Remember important details you share
+   - Store user preferences and facts
+   - Recall relevant information when needed
+
+2. **Memory Recall**: To see what Claude remembers, simply ask:
+   - "What do you remember about me?"
+   - "What do you know about my preferences?"
+
+3. **System Prompt**: For optimal memory usage, add this to your Claude system prompt:
+
+   ```
+   This Claude instance has been enhanced with persistent memory capabilities.
+   Claude will automatically remember important details about you across
+   conversations and recall them when relevant, without needing explicit commands.
+   ```
+
+See the [User Guide](docs/user_guide.md) for detailed usage instructions and examples.
+
+## Documentation
+
+- [User Guide](docs/user_guide.md)
+- [Docker Usage Guide](docs/docker_usage.md)
+- [Compatibility Guide](docs/compatibility.md)
+- [Architecture](docs/architecture.md)
+- [Claude Integration Guide](docs/claude_integration.md)
+
+## Examples
+
+The `examples` directory contains scripts demonstrating how to interact with the Memory MCP Server:
+
+- `store_memory_example.py`: Example of storing a memory
+- `retrieve_memory_example.py`: Example of retrieving memories
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Check the [Compatibility Guide](docs/compatibility.md) for dependency requirements
+2. Ensure your Python version is 3.8-3.12
+3. For NumPy issues, use: `pip install "numpy>=1.20.0,<2.0.0"`
+4. Try using Docker for simplified deployment
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+</file>
+
+<file path="requirements.txt">
+mcp-cli>=0.1.0,<0.3.0
+mcp-server>=0.1.0,<0.3.0
+pydantic>=2.4.0,<3.0.0
+sentence-transformers>=2.2.2,<3.0.0
+numpy>=1.20.0,<2.0.0
+hnswlib>=0.7.0,<0.8.0
+fastapi>=0.100.0,<0.110.0
+uvicorn>=0.23.0,<0.30.0
+python-dotenv>=1.0.0,<2.0.0
+pytest>=7.3.1,<8.0.0
+python-jose>=3.3.0,<4.0.0
+loguru>=0.7.0,<0.8.0
+</file>
+
+<file path="setup.sh">
+#!/bin/bash
+
+# Claude Memory MCP Setup Script
+
+echo "Setting up Claude Memory MCP Server..."
+
+# Create configuration directory
+CONFIG_DIR="$HOME/.memory_mcp/config"
+DATA_DIR="$HOME/.memory_mcp/data"
+
+mkdir -p $CONFIG_DIR
+mkdir -p $DATA_DIR
+
+# Generate default configuration if it doesn't exist
+if [ ! -f "$CONFIG_DIR/config.json" ]; then
+    echo "Creating default configuration..."
+    cat > "$CONFIG_DIR/config.json" << EOF
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "debug": false
+  },
+  "memory": {
+    "max_short_term_items": 100,
+    "max_long_term_items": 1000,
+    "max_archival_items": 10000,
+    "consolidation_interval_hours": 24,
+    "file_path": "$DATA_DIR/memory.json"
+  },
+  "embedding": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimensions": 384,
+    "cache_dir": "$HOME/.memory_mcp/cache"
+  }
+}
+EOF
+    echo "Default configuration created at $CONFIG_DIR/config.json"
+fi
+
+# Create default memory file if it doesn't exist
+if [ ! -f "$DATA_DIR/memory.json" ]; then
+    echo "Creating empty memory file..."
+    cat > "$DATA_DIR/memory.json" << EOF
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+    "updated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+    "memory_stats": {
+      "total_memories": 0,
+      "active_memories": 0,
+      "archived_memories": 0
+    }
+  },
+  "memory_index": {
+    "index_type": "hnsw",
+    "index_parameters": {
+      "m": 16,
+      "ef_construction": 200,
+      "ef": 50
+    },
+    "entries": {}
+  },
+  "short_term_memory": [],
+  "long_term_memory": [],
+  "archived_memory": [],
+  "memory_schema": {
+    "conversation": {
+      "required_fields": ["role", "message"],
+      "optional_fields": ["summary", "entities", "sentiment", "intent"]
+    },
+    "fact": {
+      "required_fields": ["fact", "confidence"],
+      "optional_fields": ["domain", "entities", "references"]
+    },
+    "document": {
+      "required_fields": ["title", "text"],
+      "optional_fields": ["summary", "chunks", "metadata"]
+    },
+    "code": {
+      "required_fields": ["language", "code"],
+      "optional_fields": ["description", "purpose", "dependencies"]
+    }
+  },
+  "config": {
+    "memory_management": {
+      "max_short_term_memories": 100,
+      "max_long_term_memories": 10000,
+      "archival_threshold_days": 30,
+      "deletion_threshold_days": 365,
+      "importance_decay_rate": 0.01,
+      "minimum_importance_threshold": 0.2
+    },
+    "retrieval": {
+      "default_top_k": 5,
+      "semantic_threshold": 0.75,
+      "recency_weight": 0.3,
+      "importance_weight": 0.7
+    },
+    "embedding": {
+      "default_model": "sentence-transformers/all-MiniLM-L6-v2",
+      "dimensions": 384,
+      "batch_size": 8
+    }
+  }
+}
+EOF
+    echo "Empty memory file created at $DATA_DIR/memory.json"
+fi
+
+# Install dependencies
+echo "Installing dependencies..."
+pip install -r requirements.txt
+
+echo "Setup complete! You can now start the memory MCP server with: python -m memory_mcp"
+</file>
+
+</files>

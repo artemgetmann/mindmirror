@@ -343,12 +343,113 @@ async def search_memories(request: SearchRequest):
             # Update conflict set with deduplicated conflicts
             conflict_sets[memory_id] = unique_conflicts
     
-    # Build final response
+    # Build initial response
     response = {
         "query": request.query,
         "results": memories,
         "count": len(memories)
     }
+    
+    # Group overlapping conflict sets using Union-Find for transitive merging
+    class UnionFind:
+        def __init__(self):
+            self.parent = {}
+            self.rank = {}
+        
+        def find(self, x):
+            if x not in self.parent:
+                self.parent[x] = x
+                self.rank[x] = 0
+            if self.parent[x] != x:
+                self.parent[x] = self.find(self.parent[x])  # Path compression
+            return self.parent[x]
+        
+        def union(self, x, y):
+            px, py = self.find(x), self.find(y)
+            if px == py:
+                return
+            # Union by rank for efficiency
+            if self.rank[px] < self.rank[py]:
+                px, py = py, px
+            self.parent[py] = px
+            if self.rank[px] == self.rank[py]:
+                self.rank[px] += 1
+        
+        def get_groups(self):
+            groups = {}
+            for x in self.parent:
+                root = self.find(x)
+                if root not in groups:
+                    groups[root] = []
+                groups[root].append(x)
+            return list(groups.values())
+    
+    # Build conflict groups using Union-Find
+    if conflict_sets:
+        uf = UnionFind()
+        
+        # Union memories that appear in the same conflict set
+        for memory_id, conflicts in conflict_sets.items():
+            memory_ids_in_set = {memory_id}
+            for conflict in conflicts:
+                memory_ids_in_set.add(conflict['id'])
+            
+            # Union all memories in this conflict set
+            memory_list = list(memory_ids_in_set)
+            for i in range(len(memory_list)):
+                for j in range(i + 1, len(memory_list)):
+                    uf.union(memory_list[i], memory_list[j])
+        
+        # Get unified conflict groups
+        memory_groups = uf.get_groups()
+        
+        # Filter out singleton groups (groups with only 1 memory = no real conflicts)
+        meaningful_groups = [group for group in memory_groups if len(group) >= 2]
+        
+        # Build final conflict groups with memory objects
+        conflict_groups = []
+        for group in meaningful_groups:
+            group_memories = []
+            for memory_id in group:
+                # Find memory object from original results or conflict sets
+                memory_obj = None
+                
+                # First check if it's in the main results
+                for memory in memories:
+                    if (isinstance(memory, dict) and memory['id'] == memory_id) or \
+                       (hasattr(memory, 'id') and memory.id == memory_id):
+                        memory_obj = dict(memory) if not isinstance(memory, dict) else memory
+                        break
+                
+                # If not found, look in conflict sets
+                if memory_obj is None:
+                    for conflicts in conflict_sets.values():
+                        for conflict in conflicts:
+                            if conflict['id'] == memory_id:
+                                memory_obj = conflict
+                                break
+                        if memory_obj:
+                            break
+                
+                if memory_obj:
+                    group_memories.append(memory_obj)
+            
+            # Sort group by timestamp (most recent first) and add to conflict groups
+            group_memories.sort(key=lambda x: x['timestamp'], reverse=True)
+            conflict_groups.append(group_memories)
+        
+        # Replace individual conflict_sets with unified conflict_groups
+        if conflict_groups:
+            response["conflict_groups"] = conflict_groups
+            print(f"UNIFIED CONFLICT GROUPS: {len(conflict_groups)} groups created from {len(conflict_sets)} individual sets")
+            for i, group in enumerate(conflict_groups):
+                print(f"- Group {i+1}: {len(group)} memories ({', '.join([m['text'][:30] + '...' for m in group])})")
+        else:
+            # Keep original conflict_sets if no meaningful groups found
+            response["conflict_sets"] = conflict_sets
+    else:
+        # No conflicts detected, keep original structure
+        response["conflict_sets"] = conflict_sets
     
     # Debug: print conflict detection information
     print(f"\nDEBUG: ChromaDB returned {total_results} memories, built {len(memories)} responses")
@@ -399,8 +500,6 @@ async def search_memories(request: SearchRequest):
         print(f"CONFLICT SETS: {len(conflict_sets)} sets detected")
         for summary in conflict_summaries:
             print(f"- {summary}")
-        
-        response["conflict_sets"] = conflict_sets
     else:
         # Manually check for conflicts among the returned results
         print("DEBUG: No conflict sets detected, performing manual conflict check")
@@ -438,14 +537,18 @@ async def search_memories(request: SearchRequest):
                             
                             manual_conflict_sets[memory_id].append(conflict_memory)
         
-        # Add manual conflict sets to response
-        if manual_conflict_sets:
+        # Add manual conflict sets to response (only if no conflict groups were created)
+        if manual_conflict_sets and "conflict_groups" not in response:
             print(f"DEBUG: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
             response["conflict_sets"] = manual_conflict_sets
     
     # Log final response summary
-    conflict_count = len(response.get("conflict_sets", {}))
-    print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict sets")
+    if "conflict_groups" in response:
+        conflict_count = len(response["conflict_groups"])
+        print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict groups")
+    else:
+        conflict_count = len(response.get("conflict_sets", {}))
+        print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict sets")
     
     return response
 
