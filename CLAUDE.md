@@ -55,6 +55,98 @@ python quick_demo.py               # Fast feature demo
 python pruning_demo.py             # Memory lifecycle demo
 ```
 
+### Manual Testing with curl
+
+For direct API testing without Python scripts, use these curl commands:
+
+#### Health Check
+```bash
+curl -s http://localhost:8003/health
+```
+
+#### Store Memory Examples
+```bash
+# Store a preference
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "User prefers working in the mornings", "tag": "preference"}'
+
+# Store a habit
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Take notes during meetings", "tag": "habit"}'
+
+# Store a routine
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Always makes time for morning exercise routine", "tag": "routine"}'
+```
+
+#### Search Memory Examples
+```bash
+# Semantic search with conflict detection
+curl -X POST "http://localhost:8003/memories/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "when do I work best", "limit": 10}' | jq
+
+# Context-aware search
+curl -X POST "http://localhost:8003/memories/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What time should I schedule my coding session?", "limit": 5}' | jq
+
+# Meeting-related context search
+curl -X POST "http://localhost:8003/memories/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "I have a team meeting tomorrow morning", "limit": 3}' | jq
+```
+
+#### List Memories Examples
+```bash
+# List all memories
+curl -s -X GET "http://localhost:8003/memories" | jq
+
+# Filter by tag
+curl -s -X GET "http://localhost:8003/memories?tag=preference" | jq
+
+# Get specific memory
+curl -s -X GET "http://localhost:8003/memories/mem_123456789" | jq
+```
+
+#### Demo Flow: Revolutionary Features
+
+**1. Automatic Conflict Detection**
+```bash
+# First, store a morning preference
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I prefer working in the mornings", "tag": "preference"}'
+
+# Then store a conflicting night preference - watch automatic conflict detection!
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I do my best work late at night when its quiet", "tag": "preference"}'
+```
+
+**2. Semantic Duplicate Prevention**
+```bash
+# Try to store a semantic duplicate - it will be blocked!
+curl -X POST "http://localhost:8003/memories" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I like working in the mornings", "tag": "preference"}'
+
+# Expected response: {"status":"duplicate","message":"Memory too similar...","similarity":0.95}
+```
+
+**3. Clean Conflict Grouping**
+```bash
+# See how conflicts are intelligently grouped instead of scattered
+curl -X POST "http://localhost:8003/memories/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "when do I work best", "limit": 10}' | jq '.conflict_groups'
+```
+
+**Note**: All curl examples use `jq` for JSON formatting. Install with `brew install jq` (macOS) or `apt-get install jq` (Ubuntu).
+
 ### Environment Setup
 ```bash
 # Python 3.8+ required

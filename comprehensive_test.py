@@ -1,12 +1,13 @@
 """
 Comprehensive Memory System Test Suite
 Tests vector search, ranking, edge cases, and all tag types
+Not sure if its the right way to test anymore
 """
 import requests
 import json
 import time
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8003"
 
 def clear_all_memories():
     """Clear existing memories for clean testing"""
