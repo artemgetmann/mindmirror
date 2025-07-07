@@ -237,6 +237,64 @@ When working with this codebase:
 4. **Check performance with batch_stress_test.py** after changes
 5. **Use interactive_tutorial.py** to understand system behavior
 
+### Backend-Frontend Dependency Pattern
+
+**CRITICAL**: This system has a backend-frontend architecture that requires coordinated updates:
+
+- **Backend** (`memory_server.py` port 8003) - Core API with data processing
+- **Frontend** (`memory_mcp_server.py`) - MCP integration layer for Claude Desktop
+
+**When you modify the backend API response format, you MUST update the frontend parsing:**
+
+1. **Backend Change**: Modify `memory_server.py` API response structure
+2. **Frontend Update**: Update `memory_mcp_server.py` to parse new response format  
+3. **Restart MCP**: Close and reopen Claude Desktop (MCP server runs inside Claude Desktop)
+4. **Test Integration**: Verify end-to-end flow with Claude Desktop
+
+**Example**: When we changed from `conflict_sets` to `conflict_groups`, both layers needed updates:
+```python
+# Backend (memory_server.py) - Returns new format
+response["conflict_groups"] = unified_groups
+
+# Frontend (memory_mcp_server.py) - Must parse new format  
+conflict_groups = result.get("conflict_groups", [])  # Updated from conflict_sets
+```
+
+**Testing Pattern**: Always test backend changes with curl first, then verify MCP integration
+
+### MCP Testing (Manual MCP Interaction)
+
+For manual MCP server testing (equivalent to curl for APIs), use the **MCP Inspector**:
+
+#### Install MCP Inspector
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+#### Test MCP Server Directly
+```bash
+# Test your MCP server in a web UI
+npx @modelcontextprotocol/inspector python memory_mcp_server.py
+```
+
+This opens a **web interface** where you can:
+- Call MCP tools directly (search_memory, store_memory, etc.)
+- See formatted responses
+- Test conflict detection without Claude Desktop
+
+#### Testing Workflow
+1. **Backend**: Test `memory_server.py` with curl commands
+2. **MCP Layer**: Test `memory_mcp_server.py` with MCP Inspector  
+3. **Integration**: Test full flow in Claude Desktop
+4. **Restart**: Close/reopen Claude Desktop if MCP code changed
+
+#### Alternative: Direct MCP Scripts
+```bash
+python test_mcp_client.py  # Existing MCP integration test
+```
+
+**Note**: MCP server runs **inside Claude Desktop process**, not as standalone server like memory_server.py
+
 ### Memory Schema
 ```json
 {
@@ -307,53 +365,22 @@ ONLY use the memory-system tools as described above.
 
 **Note:** Adjust this prompt if conflict detection or proactive memory searching needs tuning.
 
-## Current Debugging Session: Memory Server Response Issues
+## System Status
 
-**Active Problem:** Verbose conflict logging and duplicate memory proliferation overwhelming Claude Desktop
+### Current Production Status
+- ✅ **Memory storage, search, and retrieval** working reliably
+- ✅ **Automatic conflict detection** with semantic similarity > 0.65
+- ✅ **Semantic duplicate prevention** blocking similar memories > 0.95 similarity  
+- ✅ **Union-Find conflict grouping** organizing chaos into clean groups
+- ✅ **Clean server logging** with conflict summaries instead of JSON dumps
+- ✅ **MCP integration** passing conflicts to Claude Desktop properly
+- ✅ **Production-ready** for real-world testing and user feedback
 
-### Problems Identified
-1. **Verbose JSON logging**: Line 326 in memory_server.py dumps massive unreadable conflict_sets JSON
-2. **Duplicate memory proliferation**: Stress testing created 5-6 nearly identical memories with different timestamps  
-3. **Server response bloat**: API returns huge conflict_sets that overwhelm Claude Desktop
-4. **Ineffective deduplication**: MD5 only catches exact matches, not semantic duplicates
-
-### Solution Plan: Fix Memory Server Logging & Response Issues
-
-**Phase 1: Clean Conflict Logging (5 min)**
-- Replace line 326's JSON dump with clean conflict summaries
-- Format: `"CONFLICT SETS: 3 sets detected (mem_123: 2 conflicts, mem_456: 4 conflicts, mem_789: 1 conflict)"`
-- Add conflict details showing text snippets: `"- Set mem_123: 'I prefer email' vs 'I hate email' (2 memories)"`
-
-**Phase 2: Fix Duplicate Memory Problem (10 min)**
-- Implement semantic deduplication using embedding similarity (>0.95 = duplicate)
-- Add cleanup function to remove test duplicates from database
-- Prevent storing memories that are semantically identical even with different timestamps
-
-**Phase 3: Optimize Server Response (10 min)**  
-- Limit conflict_sets to 3 conflicts per memory maximum
-- Add response size monitoring and truncation
-- Provide conflict summaries instead of full conflict dumps in API responses
-
-**Files to modify:**
-- `memory_server.py` lines 326, 90-104 (deduplication), 255-280 (conflict building)
-
-**Expected outcome:**
-- Clean, readable logs with conflict summaries
-- No more duplicate memory storage
-- Manageable API responses for Claude Desktop
-
-## Known Bugs & Issues
-- **Line 326 JSON dump**: `print(f"DEBUG: Adding conflict sets to response: {conflict_sets}")` creates unreadable logs
-- **Duplicate memory storage**: MD5 deduplication fails on semantic duplicates with different timestamps
-- **Server response bloat**: conflict_sets contain 5-6 duplicate memories overwhelming Claude Desktop
-- **Enhanced logging working**: Lines 292-320 show clean memory details format correctly
-
-## Next TODOs
-- [ ] Replace line 326 JSON with clean conflict summaries format
-- [ ] Implement semantic deduplication (similarity > 0.95 = duplicate)
-- [ ] Limit conflict_sets to 3 conflicts maximum in API responses
-- [ ] Add database cleanup function for test duplicates
-- [ ] Test with fresh Claude Desktop session after fixes
+### Recent Fixes Completed
+- **Semantic Deduplication**: Prevents duplicate memory proliferation 
+- **Clean Conflict Logging**: Readable server logs with text snippets
+- **Unified Conflict Groups**: Union-Find algorithm groups related conflicts
+- **MCP Response Format**: Fixed conflict parsing for Claude Desktop integration
 
 ## MVP Status & Future Roadmap
 - ✅ Memory storage, search, and retrieval working reliably

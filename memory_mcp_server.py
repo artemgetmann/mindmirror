@@ -187,7 +187,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.T
             
             result = response.json()
             memories = result.get("results", [])  # Fixed: memory server returns "results" not "memories" 
-            conflict_sets = result.get("conflict_sets", {})
+            conflict_groups = result.get("conflict_groups", [])
             
             output = f"Search Results for: '{query}'\n"
             output += f"Found {len(memories)} memories\n\n"
@@ -198,17 +198,14 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.T
                 output += f"   ID: {memory.get('id', 'unknown')} | Similarity: {memory.get('similarity', 0):.3f}\n\n"
             
             # Show conflicts if any
-            if conflict_sets:
+            if conflict_groups:
                 output += "⚠️ CONFLICTS DETECTED:\n\n"
-                for primary_id, conflicts in conflict_sets.items():
-                    primary_memory = next((m for m in memories if m.get('id') == primary_id), None)
-                    if primary_memory:
-                        output += f"Primary: {primary_memory.get('text', '')}\n"
-                        output += f"Conflicts with:\n"
-                        for conflict in conflicts:
-                            if isinstance(conflict, dict):
-                                output += f"  - {conflict.get('text', '')}\n"
-                        output += "\n"
+                for i, group in enumerate(conflict_groups, 1):
+                    output += f"Conflict Group {i}:\n"
+                    for memory in group:
+                        timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'  # Just date part
+                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, {timestamp})\n"
+                    output += "\n"
             
             return [types.TextContent(type="text", text=output)]
         

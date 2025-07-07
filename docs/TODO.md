@@ -21,6 +21,37 @@
   ```
 - **Note**: Memory timestamps appear to work correctly, but need to update to modern datetime API for future-proofing
 
+## Deferred Installation Tasks
+
+### MCP Probe Installation (September 2025)
+- **When**: After macOS 26 official release (September 2025)
+- **Why Deferred**: Current macOS 26 pre-release has compatibility issues with Homebrew/Xcode
+- **Installation Commands**:
+  ```bash
+  # Option 1: One-liner installer
+  curl -fsSL https://raw.githubusercontent.com/conikeec/mcp-probe/master/install.sh | bash
+  
+  # Option 2: Homebrew (if available)
+  brew tap conikeec/tap
+  brew install mcp-probe
+  
+  # Option 3: Cargo (if Rust installed)
+  cargo install mcp-cli
+  ```
+- **Purpose**: Ultra-fast MCP server testing with TUI interface for rapid development iteration
+- **Alternative**: Continue using Claude Desktop testing (Inspector has compatibility issues with our server type)
+
+### MCP Inspector Compatibility Research (September 2025)
+- **Issue**: Official MCP Inspector fails to connect with our low-level MCP server implementation
+- **Error**: "Connection Error - Check if your MCP server is running and proxy token is correct"
+- **Root Cause**: Inspector expects FastMCP servers, not low-level Server class via stdio transport
+- **Current Workaround**: Claude Desktop testing works perfectly (proven with conflict resolution workflow)
+- **Research Questions**:
+  - How to configure Inspector for low-level MCP servers?
+  - Alternative MCP testing tools compatible with our architecture?
+  - Benefits of refactoring to FastMCP vs keeping current implementation?
+- **Priority**: Low (current testing workflow is sufficient)
+
 ## Implementation Notes
 
 - Consider whether to implement these features in our current ChromaDB system OR fork WhenMoon's architecture
