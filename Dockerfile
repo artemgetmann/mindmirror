@@ -1,8 +1,11 @@
 FROM python:3.12-slim
 
-# Install system dependencies
+# Install system dependencies and update SSL certificates
 RUN apt-get update && apt-get install -y \
     build-essential \
+    ca-certificates \
+    curl \
+    && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python tools
@@ -20,6 +23,9 @@ WORKDIR /app
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+
+# Pre-download the model during build to avoid runtime SSL issues
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 # Copy application files
 COPY memory_server.py .
