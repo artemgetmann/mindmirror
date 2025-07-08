@@ -86,7 +86,7 @@ Based on analysis of claude-memory-mcp, the following features have been identif
 - **Access Tracking & Importance** - Usage-based prioritization with decay algorithms
 
 ### Medium Priority Features  
-- **Memory Type System** - Flexible types beyond 9 fixed tags
+- **Memory Type System** - Move beyond 9 fixed tags to flexible user-defined types (see detailed analysis in mk2-roadmap.md)
 - **CLI Helper Wrapper** - Development workflow improvement
 - **Auto-Archive System** - Automatic cleanup of old memories
 

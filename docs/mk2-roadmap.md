@@ -165,17 +165,39 @@ relevance_score = (
 ### Memory Type System ⭐⭐⭐
 **Move beyond fixed tags to flexible memory types**
 
-**Problem**: Our 9 fixed tags are rigid
-**Solution**: Flexible memory types (conversation, fact, entity, reflection, code)
-**Why**: Better content structure, type-specific processing
-**Reference**: WhenMoon-afk_claude-memory-mcp (utils/schema.py memory types)
-**Implementation Effort**: (★★★☆☆) - Schema flexibility, validation updates, UI changes
+**Current Limitation**: Hard-coded 9 fixed tags with strict validation
+```python
+# memory_server.py lines 47-50
+VALID_TAGS = ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"]
 
-**Implementation Details**:
-- **Type System**: Replace fixed tags with user-defined + system-suggested types
-- **Validation**: Schema validation for type-specific fields
-- **Migration**: Automatic mapping from current tags to new type system
-- **Processing**: Type-specific search and relevance algorithms
+# Rigid validation (line 82-86)
+if memory.tag not in VALID_TAGS:
+    raise HTTPException(status_code=400, detail=f"Invalid tag. Must be one of: {VALID_TAGS}")
+```
+
+**Problem**: Users need domain-specific categorization (e.g., `meeting_notes`, `book_highlights`, `health_data`, `patient_notes`)
+
+**WhenMoon's Approach**: Flexible, user-defined memory types
+- **Base Types**: `conversation`, `fact`, `entity`, `reflection`, `code`
+- **User-Defined**: Custom types created dynamically 
+- **Hierarchical**: Type relationships and inheritance
+- **Schema Validation**: Type-specific field requirements
+- **Processing**: Type-aware search and relevance algorithms
+
+**Implementation Strategy**:
+1. **Phase 1**: Add `custom_type` field alongside existing tags for backward compatibility
+2. **Phase 2**: Replace VALID_TAGS validation with flexible type registry  
+3. **Phase 3**: Migration utility to convert fixed tags to flexible types
+4. **Phase 4**: Type-specific processing and schema validation
+
+**Technical Details**:
+- **Database**: Add `memory_type` field, keep `tag` for migration
+- **Validation**: Replace hard list with type registry + user creation API
+- **API**: `POST /memory-types` for custom type creation
+- **Migration**: `goal` → `personal_goal`, `habit` → `daily_habit`, etc.
+- **Backward Compatibility**: Accept both old tags and new types during transition
+
+**Implementation Effort**: (★★★☆☆) - Database migration, validation rewrite, type management system
 
 ### CLI Helper Wrapper ⭐⭐
 **Improve development and testing workflow**
