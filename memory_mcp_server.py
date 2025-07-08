@@ -9,6 +9,7 @@ Connects to our existing memory system via HTTP API.
 import asyncio
 import json
 import sys
+import os
 from typing import Any, Dict, List, Optional
 import httpx
 from mcp.server.models import InitializationOptions
@@ -25,6 +26,7 @@ import mcp.types as types
 
 # Configuration
 MEMORY_API_BASE = "http://localhost:8003"
+AUTH_TOKEN = os.getenv("AUTH_TOKEN", "default_token_here")
 
 # Initialize the MCP server
 server = Server("memory-server")
@@ -33,9 +35,11 @@ server = Server("memory-server")
 http_client = None
 
 async def setup_http_client():
-    """Initialize HTTP client"""
+    """Initialize HTTP client with authentication"""
     global http_client
-    http_client = httpx.AsyncClient(base_url=MEMORY_API_BASE)
+    # Add authentication token to all requests
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    http_client = httpx.AsyncClient(base_url=MEMORY_API_BASE, headers=headers)
 
 @server.list_resources()
 async def handle_list_resources() -> List[Resource]:
