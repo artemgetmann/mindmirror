@@ -2,7 +2,8 @@
 Minimal Viable Memory System (v0)
 Cloud-based vector memory with FastAPI + SentenceTransformers + Chroma
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import chromadb
@@ -14,13 +15,68 @@ import hashlib
 from datetime import datetime, timedelta
 import numpy as np
 from numpy.linalg import norm
+import sqlite3
+import secrets
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Memory System v0")
+# Global variables
+db_path = "auth_tokens.db"
+security = HTTPBearer(auto_error=False)
+
+# Database initialization
+def init_auth_db():
+    """Initialize authentication database"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
+            user_name TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1
+        )
+    """)
+    
+    # Create default token if none exists
+    cursor.execute("SELECT COUNT(*) FROM auth_tokens WHERE is_active = 1")
+    if cursor.fetchone()[0] == 0:
+        default_token = secrets.token_urlsafe(32)
+        cursor.execute("""
+            INSERT INTO auth_tokens (token, user_id, user_name) 
+            VALUES (?, ?, ?)
+        """, (default_token, "default_user", "Default User"))
+        
+        print(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
+        print(f"🔗 Use this URL: http://localhost:8003/memories?token={default_token}")
+    
+    conn.commit()
+    conn.close()
+
+# Initialize auth database
+init_auth_db()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan events"""
+    # Startup
+    print("🚀 Memory Server starting up...")
+    yield
+    # Shutdown
+    print("🛑 Memory Server shutting down...")
+
+app = FastAPI(title="Memory System v0", lifespan=lifespan)
 
 # Initialize embedding model and vector store
 model = SentenceTransformer('all-MiniLM-L6-v2')
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="memories")
+
+# Multi-user collections cache
+user_collections = {}
 
 # Create memory hash cache for deduplication
 memory_hashes = set()
@@ -55,6 +111,52 @@ ACCESS_THRESHOLD_DAYS = 30  # Archive if not accessed in last 30 days
 CORE_TAGS = ["identity", "value"]  # Never prune these core memories
 SIMILARITY_THRESHOLD = 0.65  # Threshold for conflict detection
 
+# Authentication functions
+def get_user_from_token(token: str) -> Optional[str]:
+    """Get user_id from token"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT user_id FROM auth_tokens 
+        WHERE token = ? AND is_active = 1
+    """, (token,))
+    
+    result = cursor.fetchone()
+    
+    if result:
+        # Update last_used timestamp
+        cursor.execute("""
+            UPDATE auth_tokens 
+            SET last_used = CURRENT_TIMESTAMP 
+            WHERE token = ?
+        """, (token,))
+        conn.commit()
+    
+    conn.close()
+    return result[0] if result else None
+
+def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Get current user from token (URL param or Authorization header)"""
+    token = None
+    
+    # Check URL parameter first (Zapier-style)
+    if "token" in request.query_params:
+        token = request.query_params["token"]
+    
+    # Check Authorization header as fallback
+    elif credentials:
+        token = credentials.credentials
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication token required")
+    
+    user_id = get_user_from_token(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    return user_id
+
 class MemoryItem(BaseModel):
     text: str
     tag: str
@@ -74,8 +176,15 @@ class SearchRequest(BaseModel):
     limit: int = 5
     tag_filter: Optional[str] = None
 
+def get_user_collection(user_id: str):
+    """Get or create user-specific collection"""
+    if user_id not in user_collections:
+        collection_name = f"memories_{user_id}"
+        user_collections[user_id] = chroma_client.get_or_create_collection(name=collection_name)
+    return user_collections[user_id]
+
 @app.post("/memories")
-async def store_memory(memory: MemoryItem):
+async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_user)):
     """Store a new memory item"""
     
     # Validate tag

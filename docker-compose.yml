@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  memory-system:
+    build: .
+    ports:
+      - "8000:8000"  # MCP Server (SSE endpoint)
+      - "8003:8003"  # Memory Server (API)
+    environment:
+      - PORT=8000
+      - MEMORY_SERVER_PORT=8003
+      - MEMORY_API_BASE=http://localhost:8003
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./auth_tokens.db:/app/auth_tokens.db
+    command: >
+      sh -c "
+        python memory_server.py &
+        sleep 5 &&
+        mcp-proxy --host 0.0.0.0 --port 8000 python memory_mcp_server.py
+      "
