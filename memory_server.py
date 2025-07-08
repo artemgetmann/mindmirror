@@ -70,7 +70,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Memory System v0", lifespan=lifespan)
 
-# Initialize embedding model and vector store
+# Initialize embedding model and vector store (pre-downloaded during build)
+print("🔄 Loading pre-downloaded embedding model...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="memories")
