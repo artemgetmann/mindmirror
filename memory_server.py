@@ -938,6 +938,6 @@ async def prune_memories():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("MEMORY_SERVER_PORT", "8003"))
+    port = int(os.getenv("MEMORY_SERVER_PORT", "8001"))
     print(f"🚀 Memory Server starting on port {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
