@@ -22,9 +22,38 @@ fi
 
 echo "✅ Memory server running successfully"
 
-# Skip token extraction for now - just start MCP server with dummy token
-echo "🚀 Starting MCP Server on port $RENDER_PORT..."
-export AUTH_TOKEN="test_token_bypass"
+# Extract token from memory server database
+echo "🔍 Extracting authentication token from database..."
+export AUTH_TOKEN=$(python -c "
+import psycopg2
+try:
+    conn = psycopg2.connect(
+        host='aws-0-us-east-1.pooler.supabase.com',
+        database='postgres',
+        user='postgres.kpwadlfqqjgnpuiynmbe',
+        password='zekQob-byfgep-fyrqy3',
+        port=6543,
+        sslmode='require'
+    )
+    cursor = conn.cursor()
+    cursor.execute('SELECT token FROM auth_tokens WHERE is_active = true ORDER BY created_at DESC LIMIT 1')
+    result = cursor.fetchone()
+    if result:
+        print(result[0])
+    else:
+        print('no_token_found')
+    conn.close()
+except Exception as e:
+    print(f'error: {e}')
+")
+
+if [ "$AUTH_TOKEN" = "no_token_found" ] || [ "$AUTH_TOKEN" = "error:"* ]; then
+    echo "❌ Failed to extract token: $AUTH_TOKEN"
+    exit 1
+fi
+
+echo "✅ Token extracted successfully"
+echo "🔑 AUTH_TOKEN: $AUTH_TOKEN"
 
 # Start MCP server with proxy on Render's assigned port
 echo "🚀 Starting MCP Server on port $RENDER_PORT..."
