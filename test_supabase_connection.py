@@ -8,11 +8,12 @@ import secrets
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'kpwadlfqqjgnpuiynmbe.supabase.co',
+    'host': 'aws-0-us-east-1.pooler.supabase.com',
     'database': 'postgres',
-    'user': 'postgres',
+    'user': 'postgres.kpwadlfqqjgnpuiynmbe',
     'password': 'zekQob-byfgep-fyrqy3',
-    'port': 5432
+    'port': 6543,
+    'sslmode': 'require'
 }
 
 def test_connection():
