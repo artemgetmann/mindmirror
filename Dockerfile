@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+# Set pip to use faster mirror and disable cache to reduce build time
+ENV PIP_INDEX_URL=https://pypi.org/simple/
+ENV PIP_NO_CACHE_DIR=1
+
 # Install system dependencies and update SSL certificates
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -14,8 +18,8 @@ RUN pip install uv && uv tool install mcp-proxy
 # Set up environment
 ENV PATH="/root/.local/bin:$PATH"
 ENV PORT=8000
-ENV MEMORY_SERVER_PORT=8003
-EXPOSE 8000 8003
+ENV MEMORY_SERVER_PORT=8001
+EXPOSE 8000
 
 # Create app directory
 WORKDIR /app

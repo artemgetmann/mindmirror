@@ -25,7 +25,7 @@ from mcp.types import (
 import mcp.types as types
 
 # Configuration
-MEMORY_API_BASE = "http://localhost:8003"
+MEMORY_API_BASE = "http://localhost:8001"
 AUTH_TOKEN = os.getenv("AUTH_TOKEN", "default_token_here")
 
 # Initialize the MCP server
