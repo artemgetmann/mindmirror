@@ -174,6 +174,38 @@
   - Benefits of refactoring to FastMCP vs keeping current implementation?
 - **Priority**: Low (current testing workflow is sufficient)
 
+## FUTURE ENHANCEMENT: Token Endpoint
+
+**Feature**: Add `/token` endpoint to memory server for easy token retrieval
+
+### Implementation
+```python
+@app.get("/token")
+async def get_current_token():
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT token FROM auth_tokens WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1")
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return {"token": result[0]}
+    else:
+        return {"error": "No active token found"}
+```
+
+### Benefits
+- **Easy token access**: `curl https://mcp-memory-uw0w.onrender.com/token`
+- **No need to check deployment logs** - always accessible
+- **Claude Desktop configuration** - get token anytime for setup
+- **Debugging and development** - useful for troubleshooting
+- **User-friendly** - no need to parse logs or check console output
+
+### Priority
+- **Low** - Current approach (token in deployment logs) works for now
+- **Enhancement** - Would improve developer experience and user onboarding
+- **Consider** - Add when user onboarding becomes more frequent
+
 ## Implementation Notes
 
 - Consider whether to implement these features in our current ChromaDB system OR fork WhenMoon's architecture
