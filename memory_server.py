@@ -51,7 +51,10 @@ def init_auth_db():
         """, (default_token, "default_user", "Default User"))
         
         print(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
-        print(f"🔗 Use this URL: http://localhost:8003/memories?token={default_token}")
+        print(f"🔗 Use this URL: http://localhost:{os.getenv('MEMORY_SERVER_PORT', '8001')}/memories?token={default_token}")
+        # Also write to file for easier extraction
+        with open("/tmp/auth_token.txt", "w") as f:
+            f.write(default_token)
     
     conn.commit()
     conn.close()
