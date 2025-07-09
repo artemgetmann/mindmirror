@@ -22,11 +22,11 @@ from contextlib import asynccontextmanager
 
 # Global variables
 DB_CONFIG = {
-    'host': 'db.REDACTED_SUPABASE_PROJECT_ID.supabase.co',
+    'host': 'REDACTED_DB_HOST',
     'database': 'postgres',
-    'user': 'postgres',
+    'user': 'REDACTED_DB_USER',
     'password': 'REDACTED_DB_PASSWORD',
-    'port': 5432,
+    'port': 6543,
     'sslmode': 'require'
 }
 security = HTTPBearer(auto_error=False)

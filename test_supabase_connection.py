@@ -8,11 +8,12 @@ import secrets
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'REDACTED_SUPABASE_PROJECT_ID.supabase.co',
+    'host': 'REDACTED_DB_HOST',
     'database': 'postgres',
-    'user': 'postgres',
+    'user': 'REDACTED_DB_USER',
     'password': 'REDACTED_DB_PASSWORD',
-    'port': 5432
+    'port': 6543,
+    'sslmode': 'require'
 }
 
 def test_connection():
