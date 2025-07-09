@@ -8,7 +8,7 @@ import secrets
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'db.kpwadlfqqjgnpuiynmbe.supabase.co',
+    'host': 'kpwadlfqqjgnpuiynmbe.supabase.co',
     'database': 'postgres',
     'user': 'postgres',
     'password': 'zekQob-byfgep-fyrqy3',

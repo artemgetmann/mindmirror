@@ -26,7 +26,8 @@ DB_CONFIG = {
     'database': 'postgres',
     'user': 'postgres',
     'password': 'zekQob-byfgep-fyrqy3',
-    'port': 5432
+    'port': 5432,
+    'sslmode': 'require'
 }
 security = HTTPBearer(auto_error=False)
 
