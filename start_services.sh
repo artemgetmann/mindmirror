@@ -5,33 +5,36 @@ RENDER_PORT=${PORT:-8000}
 # Memory server runs internally on 8001
 MEMORY_PORT=${MEMORY_SERVER_PORT:-8001}
 
-# Start memory server and extract token using named pipe
-echo "🚀 Starting Memory Server on port $MEMORY_PORT and extracting token..."
-
-# Create named pipe for token communication
-mkfifo /tmp/token_pipe
-
-# Start memory server in background, tee output to pipe
-python memory_server.py 2>&1 | tee /tmp/token_pipe &
+# Start memory server in background
+echo "🚀 Starting Memory Server on port $MEMORY_PORT..."
+python memory_server.py &
 MEMORY_PID=$!
 
-# Extract token with timeout (non-blocking)
-timeout 15 grep -m 1 "DEFAULT TOKEN CREATED:" /tmp/token_pipe | awk '{print $4}' > /tmp/extracted_token &
-GREP_PID=$!
+# Wait for memory server to initialize and create database
+echo "⏳ Waiting for memory server to initialize..."
+sleep 10
 
-# Wait for token extraction or timeout
-wait $GREP_PID
-AUTH_TOKEN=$(cat /tmp/extracted_token 2>/dev/null)
-
-# Cleanup pipes
-rm -f /tmp/token_pipe /tmp/extracted_token
+# Query token directly from database (most reliable method)
+echo "🔍 Querying token from database..."
+AUTH_TOKEN=$(python -c "
+import sqlite3
+try:
+    conn = sqlite3.connect('auth_tokens.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT token FROM auth_tokens WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1')
+    result = cursor.fetchone()
+    conn.close()
+    print(result[0] if result else '')
+except Exception as e:
+    print('')
+")
 
 if [ -n "$AUTH_TOKEN" ]; then
     export AUTH_TOKEN
     echo "🔑 Token captured: $AUTH_TOKEN"
     echo "🔗 Claude Desktop URL: https://mcp-memory-uw0w.onrender.com/sse?token=$AUTH_TOKEN"
 else
-    echo "❌ Failed to capture token"
+    echo "❌ Failed to capture token from database"
     exit 1
 fi
 
