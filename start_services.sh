@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Use Render's assigned port or fallback to 8000 (MCP proxy - external)
-RENDER_PORT=${PORT:-8000}
+# Use hardcoded port 8000 for MCP (following MCP cloud tools pattern)
+RENDER_PORT=8000
 # Memory server runs internally on 8001
 MEMORY_PORT=${MEMORY_SERVER_PORT:-8001}
 
