@@ -15,39 +15,51 @@ import hashlib
 from datetime import datetime, timedelta
 import numpy as np
 from numpy.linalg import norm
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import secrets
 from contextlib import asynccontextmanager
 
 # Global variables
-db_path = "auth_tokens.db"
+DB_CONFIG = {
+    'host': 'db.REDACTED_SUPABASE_PROJECT_ID.supabase.co',
+    'database': 'postgres',
+    'user': 'postgres',
+    'password': 'REDACTED_DB_PASSWORD',
+    'port': 5432
+}
 security = HTTPBearer(auto_error=False)
 
 # Database initialization
 def init_auth_db():
     """Initialize authentication database"""
-    conn = sqlite3.connect(db_path)
+    conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
     
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS auth_tokens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             token TEXT UNIQUE NOT NULL,
             user_id TEXT NOT NULL,
             user_name TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_active BOOLEAN DEFAULT 1
+            is_active BOOLEAN DEFAULT true
         )
     """)
     
+    # Create indexes for better performance
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_id ON auth_tokens(user_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_active ON auth_tokens(is_active)")
+    
     # Create default token if none exists
-    cursor.execute("SELECT COUNT(*) FROM auth_tokens WHERE is_active = 1")
+    cursor.execute("SELECT COUNT(*) FROM auth_tokens WHERE is_active = true")
     if cursor.fetchone()[0] == 0:
         default_token = secrets.token_urlsafe(32)
         cursor.execute("""
             INSERT INTO auth_tokens (token, user_id, user_name) 
-            VALUES (?, ?, ?)
+            VALUES (%s, %s, %s)
         """, (default_token, "default_user", "Default User"))
         
         print(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
@@ -57,6 +69,7 @@ def init_auth_db():
             f.write(default_token)
     
     conn.commit()
+    cursor.close()
     conn.close()
 
 # Initialize auth database
@@ -118,12 +131,12 @@ SIMILARITY_THRESHOLD = 0.65  # Threshold for conflict detection
 # Authentication functions
 def get_user_from_token(token: str) -> Optional[str]:
     """Get user_id from token"""
-    conn = sqlite3.connect(db_path)
+    conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
     
     cursor.execute("""
         SELECT user_id FROM auth_tokens 
-        WHERE token = ? AND is_active = 1
+        WHERE token = %s AND is_active = true
     """, (token,))
     
     result = cursor.fetchone()
@@ -133,10 +146,11 @@ def get_user_from_token(token: str) -> Optional[str]:
         cursor.execute("""
             UPDATE auth_tokens 
             SET last_used = CURRENT_TIMESTAMP 
-            WHERE token = ?
+            WHERE token = %s
         """, (token,))
         conn.commit()
     
+    cursor.close()
     conn.close()
     return result[0] if result else None
 
