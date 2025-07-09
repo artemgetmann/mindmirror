@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.2
 FROM python:3.12-slim
 
 # Set pip to use faster mirror and disable cache to reduce build time
@@ -24,14 +25,17 @@ EXPOSE 8000
 # Create app directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy requirements first (changes less frequently)
 COPY requirements.txt .
-RUN pip install -r requirements.txt
 
-# Pre-download the model during build to avoid runtime SSL issues
+# Install dependencies in separate layer (heavy, cached)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt
+
+# Pre-download the model during build (heavy, cached)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
-# Copy application files
+# Copy application files last (changes most frequently)
 COPY memory_server.py .
 COPY memory_mcp_server.py .
 COPY start_services.sh .
