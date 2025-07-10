@@ -19,6 +19,19 @@ import psycopg2
 import psycopg2.extras
 import secrets
 from contextlib import asynccontextmanager
+import logging
+
+# Set up logging
+os.makedirs('/app/logs', exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/app/logs/memory_server.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Global variables
 DB_CONFIG = {
@@ -63,8 +76,8 @@ def init_auth_db():
             VALUES (%s, %s, %s)
         """, (default_token, "default_user", "Default User"))
         
-        print(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
-        print(f"🔗 Use this URL: http://localhost:{os.getenv('MEMORY_SERVER_PORT', '8001')}/memories?token={default_token}")
+        logger.info(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
+        logger.info(f"🔗 Use this URL: http://localhost:{os.getenv('MEMORY_SERVER_PORT', '8001')}/memories?token={default_token}")
         # Also write to file for local development
         with open("/tmp/auth_token.txt", "w") as f:
             f.write(default_token)
@@ -80,15 +93,15 @@ init_auth_db()
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    print("🚀 Memory Server starting up...")
+    logger.info("🚀 Memory Server starting up...")
     yield
     # Shutdown
-    print("🛑 Memory Server shutting down...")
+    logger.info("🛑 Memory Server shutting down...")
 
 app = FastAPI(title="Memory System v0", lifespan=lifespan)
 
 # Initialize embedding model and vector store (pre-downloaded during build)
-print("🔄 Loading pre-downloaded embedding model...")
+logger.info("🔄 Loading pre-downloaded embedding model...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="memories")
@@ -113,9 +126,9 @@ try:
                 memory_hash = hashlib.md5(f"{text}:{tag}".encode()).hexdigest()
                 memory_hashes.add(memory_hash)
                 
-    print(f"Loaded {len(memory_hashes)} memory hashes for deduplication")
+    logger.info(f"Loaded {len(memory_hashes)} memory hashes for deduplication")
 except Exception as e:
-    print(f"Error loading memory hashes: {e}")
+    logger.error(f"Error loading memory hashes: {e}")
 
 # Fixed tag set
 VALID_TAGS = [
@@ -132,28 +145,37 @@ SIMILARITY_THRESHOLD = 0.65  # Threshold for conflict detection
 # Authentication functions
 def get_user_from_token(token: str) -> Optional[str]:
     """Get user_id from token"""
-    conn = psycopg2.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    logger.info(f"Validating token: {token[:10]}...")
     
-    cursor.execute("""
-        SELECT user_id FROM auth_tokens 
-        WHERE token = %s AND is_active = true
-    """, (token,))
-    
-    result = cursor.fetchone()
-    
-    if result:
-        # Update last_used timestamp
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
         cursor.execute("""
-            UPDATE auth_tokens 
-            SET last_used = CURRENT_TIMESTAMP 
-            WHERE token = %s
+            SELECT user_id FROM auth_tokens 
+            WHERE token = %s AND is_active = true
         """, (token,))
-        conn.commit()
-    
-    cursor.close()
-    conn.close()
-    return result[0] if result else None
+        
+        result = cursor.fetchone()
+        
+        if result:
+            # Update last_used timestamp
+            cursor.execute("""
+                UPDATE auth_tokens 
+                SET last_used = CURRENT_TIMESTAMP 
+                WHERE token = %s
+            """, (token,))
+            conn.commit()
+            logger.info(f"Token validated successfully for user: {result[0]}")
+        else:
+            logger.warning(f"Token validation failed for token: {token[:10]}...")
+        
+        cursor.close()
+        conn.close()
+        return result[0] if result else None
+    except Exception as e:
+        logger.error(f"Database error during token validation: {e}")
+        return None
 
 def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Get current user from token (URL param or Authorization header)"""
@@ -162,18 +184,23 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
     # Check URL parameter first (Zapier-style)
     if "token" in request.query_params:
         token = request.query_params["token"]
+        logger.info(f"Token provided via URL parameter: {token[:10]}...")
     
     # Check Authorization header as fallback
     elif credentials:
         token = credentials.credentials
+        logger.info(f"Token provided via Authorization header: {token[:10]}...")
     
     if not token:
+        logger.warning("No authentication token provided")
         raise HTTPException(status_code=401, detail="Authentication token required")
     
     user_id = get_user_from_token(token)
     if not user_id:
+        logger.warning(f"Authentication failed for token: {token[:10]}...")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     
+    logger.info(f"Request authenticated for user: {user_id}")
     return user_id
 
 class MemoryItem(BaseModel):
@@ -206,8 +233,11 @@ def get_user_collection(user_id: str):
 async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_user)):
     """Store a new memory item"""
     
+    logger.info(f"Storing memory for user {user_id}: '{memory.text[:50]}...' (tag: {memory.tag})")
+    
     # Validate tag
     if memory.tag not in VALID_TAGS:
+        logger.error(f"Invalid tag '{memory.tag}' provided by user {user_id}")
         raise HTTPException(
             status_code=400, 
             detail=f"Invalid tag. Must be one of: {VALID_TAGS}"
@@ -223,6 +253,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     if memory_hash in memory_hashes:
         # Memory already exists, return without storing
+        logger.info(f"Duplicate memory detected for user {user_id}: hash {memory_hash[:10]}...")
         return {
             "status": "skipped",
             "reason": "duplicate",
@@ -252,8 +283,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
                 if similarity > DUPLICATE_THRESHOLD:
                     duplicate_id = duplicate_results['ids'][0][i]
                     duplicate_text = duplicate_results['documents'][0][i]
-                    print(f"SEMANTIC DUPLICATE DETECTED: '{memory.text}' too similar to existing memory '{duplicate_text}' (similarity: {similarity:.4f})")
-                    print(f"Skipping storage to prevent duplicate proliferation")
+                    logger.info(f"Semantic duplicate detected for user {user_id}: '{memory.text}' too similar to '{duplicate_text}' (similarity: {similarity:.4f})")
                     return {"status": "duplicate", "message": f"Memory too similar to existing memory {duplicate_id}", "similarity": similarity}
     
     # Create unique ID
@@ -262,7 +292,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     # Check for conflicts with existing memories (same tag, high similarity)
     conflicts = []
     SIMILARITY_THRESHOLD = 0.65  # Lowered threshold for potential conflicts - was 0.8 initially
-    print(f"Checking for conflicts with similarity threshold {SIMILARITY_THRESHOLD}...")
+    logger.info(f"Checking for conflicts for user {user_id} with similarity threshold {SIMILARITY_THRESHOLD}...")
     
     # Search for memories with same tag
     if collection.count() > 0:  # Skip conflict check for first memory
@@ -280,10 +310,10 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
                 similarity = max(0, 1 - (distance / 2))
                 conflict_id = similar_results['ids'][0][i]
                 conflict_text = similar_results['documents'][0][i]
-                print(f"Similarity with '{conflict_text}': {similarity:.4f}")
+                logger.info(f"Similarity check for user {user_id} with '{conflict_text}': {similarity:.4f}")
                 
                 if similarity >= SIMILARITY_THRESHOLD:
-                    print(f"CONFLICT DETECTED: {conflict_id} (similarity: {similarity:.4f})")
+                    logger.info(f"Conflict detected for user {user_id}: {conflict_id} (similarity: {similarity:.4f})")
                     conflicts.append(conflict_id)
     
     # Set last_accessed timestamp
@@ -333,6 +363,8 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
         ids=[memory_id]
     )
     
+    logger.info(f"Memory stored successfully for user {user_id}: ID {memory_id}, {len(conflicts)} conflicts detected")
+    
     return {
         "id": memory_id,
         "text": memory.text,
@@ -342,11 +374,10 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     }
 
 @app.post("/memories/search")
-async def search_memories(request: SearchRequest):
+async def search_memories(request: SearchRequest, user_id: str = Depends(get_current_user)):
     """Search memories by query text"""
     
-    # Log incoming search request
-    print(f"SEARCH REQUEST: query='{request.query}', limit={request.limit}, tag_filter={request.tag_filter}")
+    logger.info(f"Search request from user {user_id}: query='{request.query}', limit={request.limit}, tag_filter={request.tag_filter}")
     
     # Generate query embedding
     query_embedding = model.encode(request.query).tolist()
@@ -370,9 +401,10 @@ async def search_memories(request: SearchRequest):
     
     # Log raw search results  
     total_results = len(results['documents'][0]) if results['documents'] and results['documents'][0] else 0
-    print(f"RAW SEARCH RESULTS: found {total_results} memories")
+    logger.info(f"Search results for user {user_id}: found {total_results} memories")
     if total_results > 0:
-        print(f"TOP 3 SIMILARITIES: {[max(0, 1 - (d/2)) for d in results['distances'][0][:3]]}")
+        similarities = [max(0, 1 - (d/2)) for d in results['distances'][0][:3]]
+        logger.info(f"Top 3 similarities: {similarities}")
     
     # Format response
     memories = []
@@ -569,9 +601,9 @@ async def search_memories(request: SearchRequest):
         # Replace individual conflict_sets with unified conflict_groups
         if conflict_groups:
             response["conflict_groups"] = conflict_groups
-            print(f"UNIFIED CONFLICT GROUPS: {len(conflict_groups)} groups created from {len(conflict_sets)} individual sets")
+            logger.info(f"Unified conflict groups for user {user_id}: {len(conflict_groups)} groups created from {len(conflict_sets)} individual sets")
             for i, group in enumerate(conflict_groups):
-                print(f"- Group {i+1}: {len(group)} memories ({', '.join([m['text'][:30] + '...' for m in group])})")
+                logger.info(f"- Group {i+1}: {len(group)} memories ({', '.join([m['text'][:30] + '...' for m in group])})")
         else:
             # Keep original conflict_sets if no meaningful groups found
             response["conflict_sets"] = conflict_sets
@@ -579,12 +611,12 @@ async def search_memories(request: SearchRequest):
         # No conflicts detected, keep original structure
         response["conflict_sets"] = conflict_sets
     
-    # Debug: print conflict detection information
-    print(f"\nDEBUG: ChromaDB returned {total_results} memories, built {len(memories)} responses")
+    # Debug: log conflict detection information
+    logger.info(f"Debug for user {user_id}: ChromaDB returned {total_results} memories, built {len(memories)} responses")
     
     # Log memory content details
     if memories:
-        print("MEMORY DETAILS:")
+        logger.info(f"Memory details for user {user_id}:")
         for memory in memories:
             memory_dict = memory if isinstance(memory, dict) else dict(memory)
             text_snippet = memory_dict['text'][:50] + "..." if len(memory_dict['text']) > 50 else memory_dict['text']
@@ -608,11 +640,11 @@ async def search_memories(request: SearchRequest):
                 except:
                     accessed_date = "unknown"
             
-            print(f"- {memory_dict['id']}: \"{text_snippet}\" ({memory_dict['tag']}, sim: {similarity:.3f}, ts: {created_date}, accessed: {accessed_date})")
+            logger.info(f"- {memory_dict['id']}: \"{text_snippet}\" ({memory_dict['tag']}, sim: {similarity:.3f}, ts: {created_date}, accessed: {accessed_date})")
     else:
-        print("MEMORY DETAILS: No memories returned")
+        logger.info(f"No memories returned for user {user_id}")
     
-    print(f"DEBUG: Identified {len(conflict_sets)} conflict sets")
+    logger.info(f"Debug for user {user_id}: Identified {len(conflict_sets)} conflict sets")
     
     # Add conflict sets if any exist
     if conflict_sets:
@@ -625,12 +657,12 @@ async def search_memories(request: SearchRequest):
                 text_snippet = main_memory['text'][:50] + "..." if len(main_memory['text']) > 50 else main_memory['text']
                 conflict_summaries.append(f"{memory_id}: '{text_snippet}' ({conflict_count} conflicts)")
         
-        print(f"CONFLICT SETS: {len(conflict_sets)} sets detected")
+        logger.info(f"Conflict sets for user {user_id}: {len(conflict_sets)} sets detected")
         for summary in conflict_summaries:
-            print(f"- {summary}")
+            logger.info(f"- {summary}")
     else:
         # Manually check for conflicts among the returned results
-        print("DEBUG: No conflict sets detected, performing manual conflict check")
+        logger.info(f"Debug for user {user_id}: No conflict sets detected, performing manual conflict check")
         manual_conflict_sets = {}
         
         # Check each memory for conflicts
@@ -643,7 +675,7 @@ async def search_memories(request: SearchRequest):
                 
                 if metadata.get('has_conflicts', False) and 'conflict_ids' in metadata:
                     conflict_ids = json.loads(metadata['conflict_ids'])
-                    print(f"DEBUG: Memory {memory_id} has conflicts with: {conflict_ids}")
+                    logger.info(f"Debug for user {user_id}: Memory {memory_id} has conflicts with: {conflict_ids}")
                     
                     # Create conflict set
                     if memory_id not in manual_conflict_sets:
@@ -667,26 +699,29 @@ async def search_memories(request: SearchRequest):
         
         # Add manual conflict sets to response (only if no conflict groups were created)
         if manual_conflict_sets and "conflict_groups" not in response:
-            print(f"DEBUG: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
+            logger.info(f"Debug for user {user_id}: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
             response["conflict_sets"] = manual_conflict_sets
     
     # Log final response summary
     if "conflict_groups" in response:
         conflict_count = len(response["conflict_groups"])
-        print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict groups")
+        logger.info(f"Search response for user {user_id}: returning {len(memories)} memories with {conflict_count} conflict groups")
     else:
         conflict_count = len(response.get("conflict_sets", {}))
-        print(f"SEARCH RESPONSE: returning {len(memories)} memories with {conflict_count} conflict sets")
+        logger.info(f"Search response for user {user_id}: returning {len(memories)} memories with {conflict_count} conflict sets")
     
     return response
 
 @app.get("/memories/{memory_id}")
-async def get_memory(memory_id: str):
+async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
     """Get a specific memory by ID"""
+    
+    logger.info(f"Getting memory {memory_id} for user {user_id}")
     
     results = collection.get(ids=[memory_id])
     
     if not results['documents']:
+        logger.warning(f"Memory {memory_id} not found for user {user_id}")
         raise HTTPException(status_code=404, detail="Memory not found")
     
     metadata = results['metadatas'][0]
@@ -732,12 +767,15 @@ async def get_memory(memory_id: str):
     return response_data
 
 @app.get("/memories")
-async def list_memories(tag: Optional[str] = None, limit: int = 10):
+async def list_memories(tag: Optional[str] = None, limit: int = 10, user_id: str = Depends(get_current_user)):
     """List all memories, optionally filtered by tag"""
+    
+    logger.info(f"Listing memories for user {user_id}: tag={tag}, limit={limit}")
     
     where_clause = None
     if tag:
         if tag not in VALID_TAGS:
+            logger.error(f"Invalid tag '{tag}' provided by user {user_id}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid tag. Must be one of: {VALID_TAGS}"
@@ -758,6 +796,8 @@ async def list_memories(tag: Optional[str] = None, limit: int = 10):
                 last_accessed=metadata.get('last_accessed', metadata['timestamp'])
             )
             memories.append(memory)
+    
+    logger.info(f"Returning {len(memories)} memories for user {user_id}")
     
     return {
         "memories": memories,
@@ -790,14 +830,17 @@ async def health():
     return {"status": "healthy"}
 
 @app.delete("/memories/{memory_id}")
-async def delete_memory(memory_id: str):
+async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)):
     """Delete a specific memory by ID"""
+    
+    logger.info(f"Deleting memory {memory_id} for user {user_id}")
     
     try:
         # First check if memory exists
         results = collection.get(ids=[memory_id])
         
         if not results['documents']:
+            logger.warning(f"Memory {memory_id} not found for deletion by user {user_id}")
             raise HTTPException(status_code=404, detail="Memory not found")
         
         # Get memory details for logging
@@ -843,13 +886,13 @@ async def delete_memory(memory_id: str):
                                 # Update the conflicting memory
                                 collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
                 except Exception as e:
-                    print(f"Warning: Error updating conflict for memory {conflict_id}: {e}")
+                    logger.warning(f"Warning for user {user_id}: Error updating conflict for memory {conflict_id}: {e}")
         
         # Delete the memory from ChromaDB
         collection.delete(ids=[memory_id])
         
         # Log the deletion
-        print(f"Memory deleted: {memory_id} - '{memory_text}' (tag: {memory_tag})")
+        logger.info(f"Memory deleted for user {user_id}: {memory_id} - '{memory_text}' (tag: {memory_tag})")
         
         return {
             "status": "deleted",
@@ -863,15 +906,17 @@ async def delete_memory(memory_id: str):
         # Re-raise HTTP exceptions (like 404)
         raise
     except Exception as e:
-        print(f"Error deleting memory {memory_id}: {e}")
+        logger.error(f"Error deleting memory {memory_id} for user {user_id}: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to delete memory: {str(e)}"
         )
 
 @app.get("/memories/prune")
-async def prune_memories():
+async def prune_memories(user_id: str = Depends(get_current_user)):
     """Identify memories for pruning based on age, access time, and importance"""
+    
+    logger.info(f"Pruning memories for user {user_id}")
     
     now = datetime.now(datetime.timezone.utc)
     archive_cutoff = now - timedelta(days=ARCHIVE_AGE_DAYS)
@@ -943,6 +988,8 @@ async def prune_memories():
                 kept.append(memory)
     
     # Return pruning results
+    logger.info(f"Pruning complete for user {user_id}: {len(to_prune)} memories pruned, {len(kept)} kept")
+    
     return {
         "cutoff_info": cutoff_info,
         "total_memories": len(memories),
@@ -954,5 +1001,5 @@ async def prune_memories():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("MEMORY_SERVER_PORT", "8001"))
-    print(f"🚀 Memory Server starting on port {port}...")
+    logger.info(f"🚀 Memory Server starting on port {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
