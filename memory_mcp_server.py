@@ -198,12 +198,33 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
     try:
         # Auto-initialize global session if not exists
         if session_id not in session_tokens:
-            # Since MCP proxy validates the token in the URL, we'll use a default valid token
-            # This will be overridden when we detect the actual token from the connection
-            default_token = "bBL3NV73gxNNPR_Ta1nSB3wRLKc1jdj-_9z04BBEOx4"  # Use known working token
-            session_tokens[session_id] = default_token
+            # Extract token from environment variables (passed by mcp-proxy)
+            extracted_token = None
+            
+            # Check various environment variable names that mcp-proxy might use
+            token_env_vars = ['TOKEN', 'AUTH_TOKEN', 'USER_TOKEN', 'BEARER_TOKEN', 'MCP_TOKEN']
+            for env_var in token_env_vars:
+                token_value = os.environ.get(env_var)
+                if token_value:
+                    extracted_token = token_value
+                    logger.info(f"Found token in environment variable {env_var}: {token_value[:10]}...")
+                    break
+            
+            # Also check command line arguments for token
+            if not extracted_token:
+                for arg in sys.argv:
+                    if arg.startswith('--token='):
+                        extracted_token = arg.split('=', 1)[1]
+                        logger.info(f"Found token in command line argument: {extracted_token[:10]}...")
+                        break
+            
+            if not extracted_token:
+                return [types.TextContent(type="text", text="Error: No authentication token found. Please check MCP proxy configuration.")]
+            
+            # Initialize session with extracted token
+            session_tokens[session_id] = extracted_token
             last_activity[session_id] = datetime.now()
-            logger.info(f"Auto-initialized global session with default token: {default_token[:10]}...")
+            logger.info(f"Auto-initialized global session with extracted token: {extracted_token[:10]}...")
         
         # Use the session token
         if session_id not in session_tokens:
