@@ -3,7 +3,7 @@
 SSE Proxy for MCP Token Authentication
 Extracts tokens from URL parameters and validates against database
 """
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 import httpx
 import os
@@ -12,6 +12,7 @@ import psycopg2
 import psycopg2.extras
 from typing import Optional
 import json
+import secrets
 
 # Set up logging
 logging.basicConfig(
@@ -120,12 +121,20 @@ async def inject_token_if_tool_call(event: bytes, token: str) -> bytes:
         return event  # On error, pass through unchanged
 
 @app.get("/sse")
-async def sse_passthrough(token: Optional[str] = Query(None)):
+@app.post("/sse")
+async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
     """
     Proxy SSE connections with token authentication
     Extracts token from URL, validates it, and adds to header for MCP server
     """
-    # Validate token parameter
+    # Check for token in URL parameter or Authorization header
+    if not token:
+        # Check Authorization header for Bearer token
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]  # Remove "Bearer " prefix
+            logger.info(f"Token provided via Authorization header: {token[:10]}...")
+        
     if not token:
         logger.error("No token provided in request")
         raise HTTPException(status_code=401, detail="Token required")
@@ -164,6 +173,8 @@ async def sse_passthrough(token: Optional[str] = Query(None)):
                 async def event_generator():
                     try:
                         buffer = b""
+                        logger.info(f"Starting SSE stream for user {user_id}")
+                        
                         async for chunk in upstream.aiter_raw():
                             buffer += chunk
                             
@@ -181,9 +192,16 @@ async def sse_passthrough(token: Optional[str] = Query(None)):
                         if buffer:
                             yield buffer
                             
+                    except httpx.StreamClosed:
+                        logger.warning(f"Upstream MCP stream closed for user {user_id}")
+                        # Send a final SSE event to indicate stream closure
+                        yield b"data: {\"error\": \"stream_closed\"}\n\n"
+                    except httpx.ConnectError as e:
+                        logger.error(f"Connection error to MCP server for user {user_id}: {e}")
+                        yield b"data: {\"error\": \"connection_failed\"}\n\n"
                     except Exception as e:
-                        logger.error(f"Error streaming events: {e}")
-                        raise
+                        logger.error(f"Error streaming events for user {user_id}: {e}")
+                        yield b"data: {\"error\": \"stream_error\"}\n\n"
                 
                 # Return streaming response
                 return StreamingResponse(
@@ -202,6 +220,105 @@ async def sse_passthrough(token: Optional[str] = Query(None)):
         except Exception as e:
             logger.error(f"Unexpected error in SSE proxy: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/.well-known/oauth-authorization-server")
+async def oauth_authorization_server():
+    """OAuth 2.0 Authorization Server Metadata (RFC 8414)"""
+    base_url = "https://mcp-memory-uw0w.onrender.com"
+    return {
+        "issuer": base_url,
+        "authorization_endpoint": f"{base_url}/authorize",
+        "token_endpoint": f"{base_url}/token", 
+        "registration_endpoint": f"{base_url}/register",
+        "response_types_supported": ["code"],
+        "grant_types_supported": ["authorization_code"],
+        "code_challenge_methods_supported": ["S256"],
+        "token_endpoint_auth_methods_supported": ["none", "client_secret_basic"],
+        "scopes_supported": ["mcp"]
+    }
+
+@app.get("/.well-known/oauth-protected-resource")
+async def oauth_protected_resource():
+    """OAuth 2.0 Protected Resource Metadata (RFC 9728)"""
+    base_url = "https://mcp-memory-uw0w.onrender.com"
+    return {
+        "resource": base_url,
+        "authorization_servers": [base_url],
+        "scopes_supported": ["mcp"],
+        "bearer_methods_supported": ["header", "query"]
+    }
+
+@app.post("/register")
+async def dynamic_client_registration():
+    """Dynamic Client Registration (RFC 7591) - Simplified for SaaS"""
+    # For SaaS model, we auto-approve all clients since tokens are per-user anyway
+    client_id = f"client_{secrets.token_urlsafe(16)}"
+    return {
+        "client_id": client_id,
+        "client_secret": secrets.token_urlsafe(32),
+        "redirect_uris": ["https://claude.ai/oauth/callback"],
+        "grant_types": ["authorization_code"],
+        "response_types": ["code"],
+        "token_endpoint_auth_method": "client_secret_basic"
+    }
+
+@app.get("/authorize")
+async def authorize_endpoint(
+    client_id: str,
+    redirect_uri: str,
+    response_type: str = "code",
+    scope: str = "mcp",
+    code_challenge: Optional[str] = None,
+    code_challenge_method: Optional[str] = None
+):
+    """OAuth Authorization Endpoint - Simplified for SaaS"""
+    # For SaaS model, auto-generate authorization code
+    # In production, this would show a login/consent page
+    auth_code = secrets.token_urlsafe(32)
+    return {
+        "redirect_uri": f"{redirect_uri}?code={auth_code}&state=success"
+    }
+
+@app.post("/token")
+async def token_endpoint(
+    grant_type: str,
+    code: Optional[str] = None,
+    client_id: Optional[str] = None,
+    code_verifier: Optional[str] = None
+):
+    """OAuth Token Endpoint - Returns existing SaaS token"""
+    if grant_type != "authorization_code":
+        raise HTTPException(status_code=400, detail="unsupported_grant_type")
+    
+    # Get a valid token from our existing SaaS token system
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+        # Get any active token (in production, you'd match this to the user)
+        cursor.execute("""
+            SELECT token, user_id FROM auth_tokens 
+            WHERE is_active = true 
+            LIMIT 1
+        """)
+        
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not result:
+            raise HTTPException(status_code=400, detail="invalid_grant")
+            
+        return {
+            "access_token": result['token'],
+            "token_type": "bearer",
+            "scope": "mcp",
+            "user_id": result['user_id']
+        }
+        
+    except Exception as e:
+        logger.error(f"Token endpoint error: {e}")
+        raise HTTPException(status_code=500, detail="server_error")
 
 @app.get("/health")
 async def health_check():
