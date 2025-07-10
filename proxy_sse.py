@@ -3,7 +3,7 @@
 SSE Proxy for MCP Token Authentication
 Extracts tokens from URL parameters and validates against database
 """
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Form
 from fastapi.responses import StreamingResponse, RedirectResponse
 import httpx
 import os
@@ -290,12 +290,13 @@ async def authorize_endpoint(
 
 @app.post("/token")
 async def token_endpoint(
-    grant_type: str,
-    code: Optional[str] = None,
-    client_id: Optional[str] = None,
-    code_verifier: Optional[str] = None
+    grant_type: str = Form(...),
+    code: Optional[str] = Form(None),
+    client_id: Optional[str] = Form(None),
+    code_verifier: Optional[str] = Form(None),
+    redirect_uri: Optional[str] = Form(None)
 ):
-    """OAuth Token Endpoint - Returns existing SaaS token"""
+    """OAuth Token Endpoint - Returns existing SaaS token (handles form data)"""
     if grant_type != "authorization_code":
         raise HTTPException(status_code=400, detail="unsupported_grant_type")
     
