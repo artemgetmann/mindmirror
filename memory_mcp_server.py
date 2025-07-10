@@ -186,6 +186,9 @@ async def handle_list_tools() -> List[Tool]:
 async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = None) -> List[types.TextContent]:
     """Execute memory tools"""
     
+    # Declare global variable at function start
+    global last_authenticated_token
+    
     # Extract session ID from context
     session_id = None
     
@@ -237,7 +240,6 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
             last_activity[session_id] = datetime.now()
             
             # Set as last authenticated token for fallback
-            global last_authenticated_token
             last_authenticated_token = token
             
             logger.info(f"Session {session_id} authenticated with token: {token[:10]}...")
