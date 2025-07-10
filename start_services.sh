@@ -5,9 +5,12 @@ RENDER_PORT=8000
 # Memory server runs internally on 8001
 MEMORY_PORT=${MEMORY_SERVER_PORT:-8001}
 
-# Start memory server in background
+# Create logs directory if it doesn't exist
+mkdir -p /app/logs
+
+# Start memory server in background with logging
 echo "🚀 Starting Memory Server on port $MEMORY_PORT..."
-python memory_server.py &
+python memory_server.py >> /app/logs/memory_server.log 2>&1 &
 MEMORY_PID=$!
 
 # Wait for memory server to initialize
@@ -21,39 +24,6 @@ if ! kill -0 $MEMORY_PID 2>/dev/null; then
 fi
 
 echo "✅ Memory server running successfully"
-
-# Extract token from memory server database
-echo "🔍 Extracting authentication token from database..."
-export AUTH_TOKEN=$(python -c "
-import psycopg2
-try:
-    conn = psycopg2.connect(
-        host='aws-0-us-east-1.pooler.supabase.com',
-        database='postgres',
-        user='postgres.kpwadlfqqjgnpuiynmbe',
-        password='zekQob-byfgep-fyrqy3',
-        port=6543,
-        sslmode='require'
-    )
-    cursor = conn.cursor()
-    cursor.execute('SELECT token FROM auth_tokens WHERE is_active = true ORDER BY created_at DESC LIMIT 1')
-    result = cursor.fetchone()
-    if result:
-        print(result[0])
-    else:
-        print('no_token_found')
-    conn.close()
-except Exception as e:
-    print(f'error: {e}')
-")
-
-if [ "$AUTH_TOKEN" = "no_token_found" ] || [ "$AUTH_TOKEN" = "error:"* ]; then
-    echo "❌ Failed to extract token: $AUTH_TOKEN"
-    exit 1
-fi
-
-echo "✅ Token extracted successfully"
-echo "🔑 AUTH_TOKEN: $AUTH_TOKEN"
 
 # Start MCP server with proxy on Render's assigned port
 echo "🚀 Starting MCP Server on port $RENDER_PORT..."

@@ -23,23 +23,40 @@ from mcp.types import (
     LoggingLevel
 )
 import mcp.types as types
+import logging
+from datetime import datetime
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/app/logs/mcp_server.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Configuration
 MEMORY_API_BASE = "http://localhost:8001"
-AUTH_TOKEN = os.getenv("AUTH_TOKEN", "default_token_here")
 
 # Initialize the MCP server
 server = Server("memory-server")
 
-# HTTP client for API calls
-http_client = None
+# Session token storage
+session_tokens = {}  # session_id -> token mapping
+last_activity = {}   # session_id -> timestamp for cleanup
 
-async def setup_http_client():
-    """Initialize HTTP client with authentication"""
-    global http_client
-    # Add authentication token to all requests
-    headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
-    http_client = httpx.AsyncClient(base_url=MEMORY_API_BASE, headers=headers)
+def get_http_client(token: str) -> httpx.AsyncClient:
+    """Create HTTP client with specific token"""
+    headers = {"Authorization": f"Bearer {token}"}
+    return httpx.AsyncClient(base_url=MEMORY_API_BASE, headers=headers)
+
+def get_session_id() -> Optional[str]:
+    """Extract session ID from current context"""
+    # This will be populated by MCP framework
+    # For now, we'll access it when needed in tool handlers
+    return None
 
 @server.list_resources()
 async def handle_list_resources() -> List[Resource]:
@@ -63,11 +80,10 @@ async def handle_list_resources() -> List[Resource]:
 async def handle_read_resource(uri: str) -> str:
     """Read memory resources"""
     if uri == "memory://memories":
-        try:
-            response = await http_client.get("/memories")
-            return json.dumps(response.json(), indent=2)
-        except Exception as e:
-            return f"Error reading memories: {str(e)}"
+        return json.dumps({
+            "info": "Please authenticate first, then use the list_memories tool",
+            "note": "Resources require authentication per session"
+        }, indent=2)
     
     elif uri == "memory://search":
         return json.dumps({
@@ -82,6 +98,20 @@ async def handle_read_resource(uri: str) -> str:
 async def handle_list_tools() -> List[Tool]:
     """List available memory tools"""
     return [
+        Tool(
+            name="authenticate",
+            description="Authenticate with your personal token to access memories",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "description": "Your authentication token"
+                    }
+                },
+                "required": ["token"]
+            }
+        ),
         Tool(
             name="store_memory",
             description="Store a new memory with automatic conflict detection",
@@ -151,110 +181,150 @@ async def handle_list_tools() -> List[Tool]:
     ]
 
 @server.call_tool()
-async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
+async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = None) -> List[types.TextContent]:
     """Execute memory tools"""
     
+    # Extract session ID from context
+    session_id = None
+    if hasattr(context, 'session_id'):
+        session_id = context.session_id
+    elif hasattr(context, 'meta') and hasattr(context.meta, 'session_id'):
+        session_id = context.meta.session_id
+    
+    logger.info(f"Tool called: {name}, session_id: {session_id}")
+    
     try:
-        if name == "store_memory":
-            text = arguments.get("text")
-            tag = arguments.get("tag")
+        if name == "authenticate":
+            token = arguments.get("token")
+            if not token:
+                return [types.TextContent(type="text", text="Error: Token is required")]
             
-            # Call memory API to store
-            response = await http_client.post("/memories", json={
-                "text": text,
-                "tag": tag
-            })
+            if not session_id:
+                return [types.TextContent(type="text", text="Error: Session ID not found")]
             
-            result = response.json()
+            # Store token for this session
+            session_tokens[session_id] = token
+            last_activity[session_id] = datetime.now()
             
-            # Format response including any conflicts detected
-            output = f"Memory stored successfully!\n\n"
-            output += f"Text: {text}\n"
-            output += f"Tag: {tag}\n"
-            output += f"ID: {result.get('id', 'unknown')}\n"
+            logger.info(f"Session {session_id} authenticated with token: {token[:10]}...")
             
-            if result.get('conflicts_detected'):
-                output += f"\n⚠️ CONFLICTS DETECTED:\n"
-                for conflict in result.get('conflicts', []):
-                    output += f"- {conflict.get('text', 'Unknown conflict')}\n"
-            
-            return [types.TextContent(type="text", text=output)]
+            return [types.TextContent(type="text", text="Authentication successful! You can now use memory tools.")]
         
-        elif name == "search_memory":
-            query = arguments.get("query")
-            limit = arguments.get("limit", 10)
-            
-            response = await http_client.post("/memories/search", json={
-                "query": query,
-                "limit": limit
-            })
-            
-            result = response.json()
-            memories = result.get("results", [])  # Fixed: memory server returns "results" not "memories" 
-            conflict_groups = result.get("conflict_groups", [])
-            
-            output = f"Search Results for: '{query}'\n"
-            output += f"Found {len(memories)} memories\n\n"
-            
-            # Show memories
-            for i, memory in enumerate(memories, 1):
-                output += f"{i}. [{memory.get('tag', 'unknown')}] {memory.get('text', '')}\n"
-                output += f"   ID: {memory.get('id', 'unknown')} | Similarity: {memory.get('similarity', 0):.3f}\n\n"
-            
-            # Show conflicts if any
-            if conflict_groups:
-                output += "⚠️ CONFLICTS DETECTED:\n\n"
-                for i, group in enumerate(conflict_groups, 1):
-                    output += f"Conflict Group {i}:\n"
-                    for memory in group:
-                        timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'  # Just date part
-                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, {timestamp})\n"
-                    output += "\n"
-            
-            return [types.TextContent(type="text", text=output)]
+        # For all other tools, check authentication
+        if not session_id or session_id not in session_tokens:
+            return [types.TextContent(type="text", text="Error: Please authenticate first using the 'authenticate' tool with your token")]
         
-        elif name == "delete_memory":
-            memory_id = arguments.get("memory_id")
+        # Get token for this session
+        token = session_tokens[session_id]
+        last_activity[session_id] = datetime.now()
+        
+        logger.info(f"Using token {token[:10]}... for session {session_id}")
+        
+        # Create HTTP client with session token
+        async with get_http_client(token) as http_client:
+            if name == "store_memory":
+                text = arguments.get("text")
+                tag = arguments.get("tag")
+                
+                # Call memory API to store
+                response = await http_client.post("/memories", json={
+                    "text": text,
+                    "tag": tag
+                })
+                
+                result = response.json()
+                
+                # Format response including any conflicts detected
+                output = f"Memory stored successfully!\n\n"
+                output += f"Text: {text}\n"
+                output += f"Tag: {tag}\n"
+                output += f"ID: {result.get('id', 'unknown')}\n"
+                
+                if result.get('conflicts_detected'):
+                    output += f"\n⚠️ CONFLICTS DETECTED:\n"
+                    for conflict in result.get('conflicts', []):
+                        output += f"- {conflict.get('text', 'Unknown conflict')}\n"
+                
+                return [types.TextContent(type="text", text=output)]
             
-            response = await http_client.delete(f"/memories/{memory_id}")
+            elif name == "search_memory":
+                query = arguments.get("query")
+                limit = arguments.get("limit", 10)
+                
+                response = await http_client.post("/memories/search", json={
+                    "query": query,
+                    "limit": limit
+                })
+                
+                result = response.json()
+                memories = result.get("results", [])  # Fixed: memory server returns "results" not "memories" 
+                conflict_groups = result.get("conflict_groups", [])
+                
+                output = f"Search Results for: '{query}'\n"
+                output += f"Found {len(memories)} memories\n\n"
+                
+                # Show memories
+                for i, memory in enumerate(memories, 1):
+                    output += f"{i}. [{memory.get('tag', 'unknown')}] {memory.get('text', '')}\n"
+                    output += f"   ID: {memory.get('id', 'unknown')} | Similarity: {memory.get('similarity', 0):.3f}\n\n"
+                
+                # Show conflicts if any
+                if conflict_groups:
+                    output += "⚠️ CONFLICTS DETECTED:\n\n"
+                    for i, group in enumerate(conflict_groups, 1):
+                        output += f"Conflict Group {i}:\n"
+                        for memory in group:
+                            timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'  # Just date part
+                            output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, {timestamp})\n"
+                        output += "\n"
             
-            if response.status_code == 200:
-                return [types.TextContent(type="text", text=f"Memory {memory_id} deleted successfully")]
+                return [types.TextContent(type="text", text=output)]
+            
+            elif name == "delete_memory":
+                memory_id = arguments.get("memory_id")
+                
+                response = await http_client.delete(f"/memories/{memory_id}")
+                
+                if response.status_code == 200:
+                    return [types.TextContent(type="text", text=f"Memory {memory_id} deleted successfully")]
+                else:
+                    return [types.TextContent(type="text", text=f"Failed to delete memory {memory_id}: {response.text}")]
+            
+            elif name == "list_memories":
+                tag = arguments.get("tag")
+                
+                params = {}
+                if tag:
+                    params["tag"] = tag
+                
+                response = await http_client.get("/memories", params=params)
+                result = response.json()
+                memories = result.get("memories", [])
+                
+                output = f"All Memories"
+                if tag:
+                    output += f" (filtered by tag: {tag})"
+                output += f"\nTotal: {len(memories)}\n\n"
+                
+                for i, memory in enumerate(memories, 1):
+                    output += f"{i}. [{memory.get('tag', 'unknown')}] {memory.get('text', '')}\n"
+                    output += f"   ID: {memory.get('id', 'unknown')} | Created: {memory.get('timestamp', 'unknown')}\n\n"
+                
+                return [types.TextContent(type="text", text=output)]
+            
             else:
-                return [types.TextContent(type="text", text=f"Failed to delete memory {memory_id}: {response.text}")]
-        
-        elif name == "list_memories":
-            tag = arguments.get("tag")
-            
-            params = {}
-            if tag:
-                params["tag"] = tag
-            
-            response = await http_client.get("/memories", params=params)
-            result = response.json()
-            memories = result.get("memories", [])
-            
-            output = f"All Memories"
-            if tag:
-                output += f" (filtered by tag: {tag})"
-            output += f"\nTotal: {len(memories)}\n\n"
-            
-            for i, memory in enumerate(memories, 1):
-                output += f"{i}. [{memory.get('tag', 'unknown')}] {memory.get('text', '')}\n"
-                output += f"   ID: {memory.get('id', 'unknown')} | Created: {memory.get('timestamp', 'unknown')}\n\n"
-            
-            return [types.TextContent(type="text", text=output)]
-        
-        else:
-            return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
+                return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     
     except Exception as e:
         return [types.TextContent(type="text", text=f"Error executing {name}: {str(e)}")]
 
 async def main():
     """Main entry point"""
-    # Setup HTTP client
-    await setup_http_client()
+    # Create logs directory if it doesn't exist
+    import os
+    os.makedirs('/app/logs', exist_ok=True)
+    
+    logger.info("Memory MCP Server starting...")
     
     # Run the server using the transport
     from mcp.server.stdio import stdio_server
