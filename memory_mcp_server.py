@@ -46,6 +46,8 @@ server = Server("memory-server")
 # Session token storage
 session_tokens = {}  # session_id -> token mapping
 last_activity = {}   # session_id -> timestamp for cleanup
+token_to_session = {}  # token -> session_id mapping for reverse lookup
+last_authenticated_token = None  # fallback for when no session context
 
 def get_http_client(token: str) -> httpx.AsyncClient:
     """Create HTTP client with specific token"""
@@ -197,11 +199,26 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
     elif hasattr(context, 'meta') and hasattr(context.meta, 'session_id'):
         session_id = context.meta.session_id
     
-    # Fallback: generate a session ID if none found
+    # Fallback: since MCP doesn't provide session context, use token-based sessions
     if not session_id:
-        import uuid
-        session_id = str(uuid.uuid4())
-        logger.info(f"Generated fallback session ID: {session_id}")
+        # For authentication calls, we'll create a session based on the token
+        # For other calls, we'll try to use the last authenticated token
+        if name == "authenticate":
+            token = arguments.get("token", "")
+            if token:
+                import hashlib
+                session_id = hashlib.md5(token.encode()).hexdigest()[:16]
+                logger.info(f"Generated token-based session ID: {session_id}")
+            else:
+                session_id = "no_token_session"
+        else:
+            # Try to find an existing session or use the last authenticated token
+            if last_authenticated_token and last_authenticated_token in token_to_session:
+                session_id = token_to_session[last_authenticated_token]
+                logger.info(f"Using last authenticated session: {session_id}")
+            else:
+                session_id = "no_session"
+                logger.info(f"No authenticated session found")
     
     logger.info(f"Tool called: {name}, session_id: {session_id}")
     
@@ -211,19 +228,24 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
             if not token:
                 return [types.TextContent(type="text", text="Error: Token is required")]
             
-            if not session_id:
-                return [types.TextContent(type="text", text="Error: Session ID not found")]
+            if session_id == "no_token_session":
+                return [types.TextContent(type="text", text="Error: Session ID could not be generated")]
             
-            # Store token for this session
+            # Store token mappings
             session_tokens[session_id] = token
+            token_to_session[token] = session_id
             last_activity[session_id] = datetime.now()
+            
+            # Set as last authenticated token for fallback
+            global last_authenticated_token
+            last_authenticated_token = token
             
             logger.info(f"Session {session_id} authenticated with token: {token[:10]}...")
             
             return [types.TextContent(type="text", text="Authentication successful! You can now use memory tools.")]
         
         # For all other tools, check authentication
-        if not session_id or session_id not in session_tokens:
+        if session_id == "no_session" or not session_id or session_id not in session_tokens:
             return [types.TextContent(type="text", text="Error: Please authenticate first using the 'authenticate' tool with your token")]
         
         # Get token for this session
