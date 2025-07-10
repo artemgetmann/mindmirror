@@ -157,6 +157,27 @@ export OPENAI_API_KEY=REDACTED_OPENAI_KEY
 export OPENAI_API_BASE=http://localhost:1234/v1
 ```
 
+### Database Testing with PostgreSQL CLI
+
+For database-related testing and verification, always use `psql` directly rather than custom Python scripts:
+
+```bash
+# Connect to Supabase PostgreSQL database
+psql "postgresql://REDACTED_DB_USER:REDACTED_DB_PASSWORD@REDACTED_DB_HOST:6543/postgres?sslmode=require"
+
+# Common database queries for testing
+# Check active tokens
+SELECT token, user_id, user_name, created_at, last_used FROM auth_tokens WHERE is_active = true;
+
+# Check user count
+SELECT COUNT(DISTINCT user_id) as user_count FROM auth_tokens WHERE is_active = true;
+
+# View recent token activity
+SELECT user_id, last_used FROM auth_tokens WHERE is_active = true ORDER BY last_used DESC;
+```
+
+**Important**: When testing database changes or validating multi-user isolation, always verify with direct SQL queries using `psql` rather than writing temporary Python scripts. This ensures we're testing the actual database state, not Python abstractions.
+
 ## MCP Server Deployment Evolution
 1. **Development**: Use `python server.py` in Dockerfile
 2. **Production**: Publish to PyPI as `mcp-server-{name}`
