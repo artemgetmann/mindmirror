@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     ca-certificates \
     curl \
+    net-tools \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
