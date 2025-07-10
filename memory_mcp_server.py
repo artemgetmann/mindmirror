@@ -342,18 +342,18 @@ async def main():
     
     logger.info("Memory MCP Server starting...")
     
-    # Log available authentication environment variables
-    logger.info("Memory MCP Server ready for authentication")
+    # Log startup for debugging MCP handshake
+    logger.info("Memory MCP Server starting - MCP handshake will begin")
     
-    # Log auth environment variables for debugging
+    # During startup/handshake, don't fail if no tokens available
+    # Tokens will be injected per-request via Pattern A
     auth_vars = ['USER_TOKEN', 'API_ACCESS_TOKEN', 'AUTH_TOKEN']
     for var in auth_vars:
         value = os.environ.get(var)
         if value:
             logger.info(f"Found auth env var: {var} = {value[:10]}...")
-        else:
-            logger.info(f"Auth env var not found: {var}")
-            
+    
+    logger.info("MCP Server ready for handshake - tokens will be injected per tool call")
     logger.info(f"Command line args: {sys.argv}")
     
     # Run the server using the transport
