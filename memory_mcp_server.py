@@ -198,33 +198,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
     try:
         # Auto-initialize global session if not exists
         if session_id not in session_tokens:
-            # Extract token from environment variables (passed by mcp-proxy)
-            extracted_token = None
-            
-            # Check various environment variable names that mcp-proxy might use
-            token_env_vars = ['TOKEN', 'AUTH_TOKEN', 'USER_TOKEN', 'BEARER_TOKEN', 'MCP_TOKEN']
-            for env_var in token_env_vars:
-                token_value = os.environ.get(env_var)
-                if token_value:
-                    extracted_token = token_value
-                    logger.info(f"Found token in environment variable {env_var}: {token_value[:10]}...")
-                    break
-            
-            # Also check command line arguments for token
-            if not extracted_token:
-                for arg in sys.argv:
-                    if arg.startswith('--token='):
-                        extracted_token = arg.split('=', 1)[1]
-                        logger.info(f"Found token in command line argument: {extracted_token[:10]}...")
-                        break
+            # Extract token from environment variables (passed by token wrapper)
+            extracted_token = os.environ.get('USER_TOKEN') or os.environ.get('API_ACCESS_TOKEN')
             
             if not extracted_token:
+                logger.error("No token found in environment variables USER_TOKEN or API_ACCESS_TOKEN")
                 return [types.TextContent(type="text", text="Error: No authentication token found. Please check MCP proxy configuration.")]
             
             # Initialize session with extracted token
             session_tokens[session_id] = extracted_token
             last_activity[session_id] = datetime.now()
-            logger.info(f"Auto-initialized global session with extracted token: {extracted_token[:10]}...")
+            logger.info(f"Auto-initialized global session with token: {extracted_token[:10]}...")
         
         # Use the session token
         if session_id not in session_tokens:
@@ -342,16 +326,18 @@ async def main():
     
     logger.info("Memory MCP Server starting...")
     
-    # Check what environment variables are available from the proxy
-    global last_authenticated_token
-    logger.info("Server ready for auto-authentication via MCP proxy")
+    # Log available authentication environment variables
+    logger.info("Memory MCP Server ready for authentication")
     
-    # Log all environment variables that might contain token info
-    for key, value in os.environ.items():
-        if 'token' in key.lower() or 'auth' in key.lower() or 'bearer' in key.lower():
-            logger.info(f"Found potential auth env var: {key} = {value[:10]}..." if len(value) > 10 else f"{key} = {value}")
-    
-    # Check command line arguments too
+    # Log auth environment variables for debugging
+    auth_vars = ['USER_TOKEN', 'API_ACCESS_TOKEN', 'AUTH_TOKEN']
+    for var in auth_vars:
+        value = os.environ.get(var)
+        if value:
+            logger.info(f"Found auth env var: {var} = {value[:10]}...")
+        else:
+            logger.info(f"Auth env var not found: {var}")
+            
     logger.info(f"Command line args: {sys.argv}")
     
     # Run the server using the transport
