@@ -38,6 +38,7 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 # Copy application files last (changes most frequently)
 COPY memory_server.py .
 COPY memory_mcp_server.py .
+COPY proxy_sse.py .
 COPY start_services.sh .
 
 # Make start script executable

@@ -114,6 +114,10 @@ async def handle_list_tools() -> List[Tool]:
                         "type": "string",
                         "enum": ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"],
                         "description": "Category tag for the memory"
+                    },
+                    "user_token": {
+                        "type": "string",
+                        "description": "Authentication token (injected by proxy, not user-provided)"
                     }
                 },
                 "required": ["text", "tag"]
@@ -133,6 +137,10 @@ async def handle_list_tools() -> List[Tool]:
                         "type": "integer",
                         "description": "Maximum number of results to return (default: 10)",
                         "default": 10
+                    },
+                    "user_token": {
+                        "type": "string",
+                        "description": "Authentication token (injected by proxy, not user-provided)"
                     }
                 },
                 "required": ["query"]
@@ -147,6 +155,10 @@ async def handle_list_tools() -> List[Tool]:
                     "memory_id": {
                         "type": "string",
                         "description": "The ID of the memory to delete"
+                    },
+                    "user_token": {
+                        "type": "string",
+                        "description": "Authentication token (injected by proxy, not user-provided)"
                     }
                 },
                 "required": ["memory_id"]
@@ -162,6 +174,10 @@ async def handle_list_tools() -> List[Tool]:
                         "type": "string",
                         "enum": ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"],
                         "description": "Optional tag filter"
+                    },
+                    "user_token": {
+                        "type": "string",
+                        "description": "Authentication token (injected by proxy, not user-provided)"
                     }
                 }
             }
@@ -196,29 +212,29 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
     logger.info(f"Tool called: {name}, session_id: {session_id}")
     
     try:
-        # Auto-initialize global session if not exists
-        if session_id not in session_tokens:
-            # Extract token from environment variables (passed by token wrapper)
-            extracted_token = os.environ.get('USER_TOKEN') or os.environ.get('API_ACCESS_TOKEN')
-            
-            if not extracted_token:
-                logger.error("No token found in environment variables USER_TOKEN or API_ACCESS_TOKEN")
-                return [types.TextContent(type="text", text="Error: No authentication token found. Please check MCP proxy configuration.")]
-            
-            # Initialize session with extracted token
-            session_tokens[session_id] = extracted_token
-            last_activity[session_id] = datetime.now()
-            logger.info(f"Auto-initialized global session with token: {extracted_token[:10]}...")
+        # Extract user_token from arguments if present (injected by proxy)
+        user_token = arguments.pop('user_token', None) if arguments else None
         
-        # Use the session token
-        if session_id not in session_tokens:
-            return [types.TextContent(type="text", text="Error: Session not authenticated. Please check your MCP server configuration.")]
+        if user_token:
+            logger.info(f"Extracted user token from arguments: {user_token[:10]}...")
+            # Store for this session
+            session_tokens[session_id] = user_token
+            last_activity[session_id] = datetime.now()
         
         # Get token for this session
-        token = session_tokens[session_id]
-        last_activity[session_id] = datetime.now()
+        if session_id not in session_tokens:
+            # Fallback to environment variable for testing
+            env_token = os.environ.get('USER_TOKEN') or os.environ.get('API_ACCESS_TOKEN')
+            if env_token:
+                logger.info(f"Using token from environment: {env_token[:10]}...")
+                session_tokens[session_id] = env_token
+                last_activity[session_id] = datetime.now()
+            else:
+                logger.error("No token found in arguments or environment")
+                return [types.TextContent(type="text", text="Error: No authentication token found. Please ensure you're connecting through the authenticated proxy.")]
         
-        logger.info(f"Using token {token[:10]}... for session {session_id}")
+        token = session_tokens[session_id]
+        logger.info(f"Using token {token[:10]}... for tool: {name}")
         
         # Create HTTP client with session token
         async with get_http_client(token) as http_client:
