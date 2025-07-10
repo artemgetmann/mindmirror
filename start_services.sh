@@ -45,10 +45,10 @@ mcp-proxy --help | head -5 || echo "Failed to get mcp-proxy help"
 
 # Start mcp-proxy with detailed logging
 echo "🚀 Starting mcp-proxy on port $MCP_PORT..."
-echo "Command: mcp-proxy --sse-host 0.0.0.0 --sse-port $MCP_PORT -- python memory_mcp_server.py"
+echo "Command: mcp-proxy --host 0.0.0.0 --port $MCP_PORT -- python memory_mcp_server.py"
 
 # Don't redirect to background immediately - capture startup output
-mcp-proxy --sse-host 0.0.0.0 --sse-port $MCP_PORT -- python memory_mcp_server.py > /app/logs/mcp_proxy.log 2>&1 &
+mcp-proxy --host 0.0.0.0 --port $MCP_PORT -- python memory_mcp_server.py > /app/logs/mcp_proxy.log 2>&1 &
 MCP_PID=$!
 
 echo "📊 MCP proxy started with PID: $MCP_PID"
