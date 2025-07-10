@@ -27,7 +27,7 @@ echo "✅ Memory server running successfully"
 
 # Start MCP proxy with memory_mcp_server on internal port
 echo "🚀 Starting MCP Server on port $MCP_PORT..."
-export INTERNAL_MCP_URL="http://localhost:$MCP_PORT/sse"
+export INTERNAL_MCP_URL="http://localhost:$MCP_PORT"
 export MCP_TRACE=1
 
 # First, verify mcp-proxy is installed and working

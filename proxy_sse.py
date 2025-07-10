@@ -4,7 +4,7 @@ SSE Proxy for MCP Token Authentication
 Extracts tokens from URL parameters and validates against database
 """
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, RedirectResponse
 import httpx
 import os
 import logging
@@ -264,20 +264,29 @@ async def dynamic_client_registration():
 
 @app.get("/authorize")
 async def authorize_endpoint(
+    request: Request,
     client_id: str,
     redirect_uri: str,
     response_type: str = "code",
     scope: str = "mcp",
     code_challenge: Optional[str] = None,
-    code_challenge_method: Optional[str] = None
+    code_challenge_method: Optional[str] = None,
+    state: Optional[str] = None
 ):
-    """OAuth Authorization Endpoint - Simplified for SaaS"""
-    # For SaaS model, auto-generate authorization code
-    # In production, this would show a login/consent page
+    """OAuth Authorization Endpoint - Auto-redirect for SaaS"""
+    # For SaaS model, auto-approve and redirect with authorization code
+    # In production, this would show a login/consent page first
     auth_code = secrets.token_urlsafe(32)
-    return {
-        "redirect_uri": f"{redirect_uri}?code={auth_code}&state=success"
-    }
+    
+    # Build redirect URL with code and preserve state parameter
+    redirect_params = f"code={auth_code}"
+    if state:
+        redirect_params += f"&state={state}"
+    
+    final_redirect_uri = f"{redirect_uri}?{redirect_params}"
+    
+    logger.info(f"Auto-redirecting OAuth authorization to: {final_redirect_uri}")
+    return RedirectResponse(url=final_redirect_uri, status_code=302)
 
 @app.post("/token")
 async def token_endpoint(
