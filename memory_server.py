@@ -264,13 +264,16 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     # Add to hash set
     memory_hashes.add(memory_hash)
     
+    # Get user-specific collection
+    user_collection = get_user_collection(user_id)
+    
     # Generate embedding
     embedding = model.encode(memory.text).tolist()
     
     # Check for semantic duplicates (similarity > 0.95) before storing
     DUPLICATE_THRESHOLD = 0.95
-    if collection.count() > 0:  # Skip check for first memory
-        duplicate_results = collection.query(
+    if user_collection.count() > 0:  # Skip check for first memory
+        duplicate_results = user_collection.query(
             query_embeddings=[embedding],
             n_results=3,  # Check top 3 similar memories
             where={"tag": memory.tag}
@@ -295,9 +298,9 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     logger.info(f"Checking for conflicts for user {user_id} with similarity threshold {SIMILARITY_THRESHOLD}...")
     
     # Search for memories with same tag
-    if collection.count() > 0:  # Skip conflict check for first memory
+    if user_collection.count() > 0:  # Skip conflict check for first memory
         # Use embedding to search for similar memories with same tag
-        similar_results = collection.query(
+        similar_results = user_collection.query(
             query_embeddings=[embedding],
             n_results=5,  # Check top 5 similar memories
             where={"tag": memory.tag}
@@ -336,7 +339,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
         # Update the conflicting memories to point back to this one
         for conflict_id in conflicts:
             # Get existing metadata for the conflict
-            conflict_result = collection.get(ids=[conflict_id])
+            conflict_result = user_collection.get(ids=[conflict_id])
             if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
                 conflict_metadata = conflict_result['metadatas'][0]
                 
@@ -353,10 +356,10 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
                     conflict_metadata["conflict_ids"] = json.dumps([memory_id])
                 
                 # Update the conflict's metadata
-                collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+                user_collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
     
     # Store in Chroma
-    collection.add(
+    user_collection.add(
         embeddings=[embedding],
         documents=[memory.text],
         metadatas=[metadata],
@@ -392,8 +395,11 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
             )
         where_clause = {"tag": request.tag_filter}
     
+    # Get user-specific collection
+    user_collection = get_user_collection(user_id)
+    
     # Search in Chroma
-    results = collection.query(
+    results = user_collection.query(
         query_embeddings=[query_embedding],
         n_results=request.limit,
         where=where_clause
@@ -419,7 +425,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
             # Update last_accessed timestamp
             current_time = datetime.utcnow().isoformat() + "Z"
             metadata["last_accessed"] = current_time
-            collection.update(ids=[memory_id], metadatas=[metadata])
+            user_collection.update(ids=[memory_id], metadatas=[metadata])
             
             memory = MemoryResponse(
                 id=memory_id,
@@ -446,7 +452,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
                 # Fetch and add conflicting memories if not already in results
                 for conflict_id in conflict_ids:
                     if conflict_id not in [m['id'] if isinstance(m, dict) else m.id for m in memories]:
-                        conflict_result = collection.get(ids=[conflict_id])
+                        conflict_result = user_collection.get(ids=[conflict_id])
                         if conflict_result['documents'] and conflict_result['documents'][0]:
                             conflict_metadata = conflict_result['metadatas'][0]
                             
@@ -668,7 +674,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
         # Check each memory for conflicts
         for memory in memories:
             memory_id = memory['id'] if isinstance(memory, dict) else memory.id
-            metadata_result = collection.get(ids=[memory_id])
+            metadata_result = user_collection.get(ids=[memory_id])
             
             if metadata_result['metadatas'] and len(metadata_result['metadatas']) > 0:
                 metadata = metadata_result['metadatas'][0]
@@ -683,7 +689,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
                     
                     # Add conflicting memories
                     for conflict_id in conflict_ids:
-                        conflict_result = collection.get(ids=[conflict_id])
+                        conflict_result = user_collection.get(ids=[conflict_id])
                         if conflict_result['documents'] and conflict_result['documents'][0]:
                             conflict_metadata = conflict_result['metadatas'][0]
                             
@@ -718,7 +724,10 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
     
     logger.info(f"Getting memory {memory_id} for user {user_id}")
     
-    results = collection.get(ids=[memory_id])
+    # Get user-specific collection
+    user_collection = get_user_collection(user_id)
+    
+    results = user_collection.get(ids=[memory_id])
     
     if not results['documents']:
         logger.warning(f"Memory {memory_id} not found for user {user_id}")
@@ -729,7 +738,7 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
     # Update last_accessed timestamp
     current_time = datetime.utcnow().isoformat() + "Z"
     metadata["last_accessed"] = current_time
-    collection.update(ids=[memory_id], metadatas=[metadata])
+    user_collection.update(ids=[memory_id], metadatas=[metadata])
     
     memory = MemoryResponse(
         id=memory_id,
@@ -748,7 +757,7 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
         
         # Fetch all conflicting memories
         for conflict_id in conflict_ids:
-            conflict_result = collection.get(ids=[conflict_id])
+            conflict_result = user_collection.get(ids=[conflict_id])
             if conflict_result['documents'] and conflict_result['documents'][0]:
                 conflict_metadata = conflict_result['metadatas'][0]
                 
@@ -782,7 +791,10 @@ async def list_memories(tag: Optional[str] = None, limit: int = 10, user_id: str
             )
         where_clause = {"tag": tag}
     
-    results = collection.get(where=where_clause, limit=limit)
+    # Get user-specific collection
+    user_collection = get_user_collection(user_id)
+    
+    results = user_collection.get(where=where_clause, limit=limit)
     
     memories = []
     if results['documents']:
@@ -836,8 +848,11 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
     logger.info(f"Deleting memory {memory_id} for user {user_id}")
     
     try:
+        # Get user-specific collection
+        user_collection = get_user_collection(user_id)
+        
         # First check if memory exists
-        results = collection.get(ids=[memory_id])
+        results = user_collection.get(ids=[memory_id])
         
         if not results['documents']:
             logger.warning(f"Memory {memory_id} not found for deletion by user {user_id}")
@@ -865,7 +880,7 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
             for conflict_id in conflict_ids:
                 try:
                     # Get the conflicting memory
-                    conflict_result = collection.get(ids=[conflict_id])
+                    conflict_result = user_collection.get(ids=[conflict_id])
                     if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
                         conflict_metadata = conflict_result['metadatas'][0]
                         
@@ -884,12 +899,12 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
                                     del conflict_metadata['conflict_ids']
                                 
                                 # Update the conflicting memory
-                                collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+                                user_collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
                 except Exception as e:
                     logger.warning(f"Warning for user {user_id}: Error updating conflict for memory {conflict_id}: {e}")
         
         # Delete the memory from ChromaDB
-        collection.delete(ids=[memory_id])
+        user_collection.delete(ids=[memory_id])
         
         # Log the deletion
         logger.info(f"Memory deleted for user {user_id}: {memory_id} - '{memory_text}' (tag: {memory_tag})")
@@ -931,8 +946,11 @@ async def prune_memories(user_id: str = Depends(get_current_user)):
         "core_tags": CORE_TAGS
     }
     
+    # Get user-specific collection
+    user_collection = get_user_collection(user_id)
+    
     # Get all memories
-    results = collection.get()
+    results = user_collection.get()
     memories = []
     
     # Split into categories
@@ -980,7 +998,7 @@ async def prune_memories(user_id: str = Depends(get_current_user)):
                 metadata["archive_reason"] = "age_and_access"
                 
                 # Update metadata in collection
-                collection.update(
+                user_collection.update(
                     ids=[memory_id],
                     metadatas=[metadata]
                 )
