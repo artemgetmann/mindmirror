@@ -25,6 +25,7 @@ fi
 
 echo "✅ Memory server running successfully"
 
-# Start MCP server with proxy on Render's assigned port
-echo "🚀 Starting MCP Server on port $RENDER_PORT..."
-mcp-proxy --host 0.0.0.0 --port $RENDER_PORT python memory_mcp_server.py
+# Start MCP server with token wrapper on Render's assigned port
+echo "🚀 Starting MCP Server with token wrapper on port $RENDER_PORT..."
+export PORT=$RENDER_PORT
+python token_wrapper.py
