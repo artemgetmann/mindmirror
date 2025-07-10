@@ -186,10 +186,22 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
     
     # Extract session ID from context
     session_id = None
+    
+    # Debug: log what context looks like
+    logger.info(f"Context type: {type(context)}, Context: {context}")
+    if context:
+        logger.info(f"Context attributes: {dir(context)}")
+    
     if hasattr(context, 'session_id'):
         session_id = context.session_id
     elif hasattr(context, 'meta') and hasattr(context.meta, 'session_id'):
         session_id = context.meta.session_id
+    
+    # Fallback: generate a session ID if none found
+    if not session_id:
+        import uuid
+        session_id = str(uuid.uuid4())
+        logger.info(f"Generated fallback session ID: {session_id}")
     
     logger.info(f"Tool called: {name}, session_id: {session_id}")
     
