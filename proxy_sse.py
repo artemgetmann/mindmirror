@@ -203,7 +203,7 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                                 logger.info("Sending MCP initialize response for Claude Web")
                                 # Send only initialize response - let Claude Web request tools via messages endpoint
                                 init_response = b"""event: message
-data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"mcp-memory","version":"1.0.0"}}}
+data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"memory-system","version":"1.0.0"}}}
 
 """
                                 yield init_response
