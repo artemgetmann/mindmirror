@@ -27,11 +27,15 @@ import logging
 from datetime import datetime
 
 # Set up logging
+import os
+log_dir = '/app/logs' if os.path.exists('/app') else './logs'
+os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/app/logs/mcp_server.log'),
+        logging.FileHandler(f'{log_dir}/mcp_server.log'),
         logging.StreamHandler()
     ]
 )
@@ -248,7 +252,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
                     "tag": tag
                 })
                 
-                result = response.json()
+                # Check response status and handle errors
+                if response.status_code != 200:
+                    logger.error(f"Memory server error: {response.status_code} - {response.text}")
+                    return [types.TextContent(type="text", text=f"Store failed: Memory server returned {response.status_code} error")]
+                
+                try:
+                    result = response.json()
+                except Exception as e:
+                    logger.error(f"Failed to parse memory server response: {e}")
+                    logger.error(f"Response content: {response.text}")
+                    return [types.TextContent(type="text", text=f"Store failed: Invalid response from memory server - {str(e)}")]
                 
                 # Format response including any conflicts detected
                 output = f"Memory stored successfully!\n\n"
@@ -272,7 +286,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
                     "limit": limit
                 })
                 
-                result = response.json()
+                # Check response status and handle errors
+                if response.status_code != 200:
+                    logger.error(f"Memory server error: {response.status_code} - {response.text}")
+                    return [types.TextContent(type="text", text=f"Search failed: Memory server returned {response.status_code} error")]
+                
+                try:
+                    result = response.json()
+                except Exception as e:
+                    logger.error(f"Failed to parse memory server response: {e}")
+                    logger.error(f"Response content: {response.text}")
+                    return [types.TextContent(type="text", text=f"Search failed: Invalid response from memory server - {str(e)}")]
                 memories = result.get("results", [])  # Fixed: memory server returns "results" not "memories" 
                 conflict_groups = result.get("conflict_groups", [])
                 
@@ -336,9 +360,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any], context: Any = 
 
 async def main():
     """Main entry point"""
-    # Create logs directory if it doesn't exist
-    import os
-    os.makedirs('/app/logs', exist_ok=True)
+    # Create logs directory if it doesn't exist (already done in logging setup above)
     
     logger.info("Memory MCP Server starting...")
     
