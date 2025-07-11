@@ -359,7 +359,10 @@ async def main():
     # Run the server using the transport
     from mcp.server.stdio import stdio_server
     
+    logger.info("Starting stdio_server for MCP protocol communication...")
+    
     async with stdio_server() as (read_stream, write_stream):
+        logger.info("stdio_server streams established, starting server.run()...")
         await server.run(read_stream, write_stream, InitializationOptions(
             server_name="memory-server",
             server_version="1.0.0",

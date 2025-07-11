@@ -162,11 +162,13 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
     logger.info(f"Validated SSE connection for user {user_id} with token {token[:10]}...")
     
     # Proxy to the mcp-proxy instance running on port 9000
+    # Note: INTERNAL_MCP_URL now points to base mcp-proxy URL without /sse suffix
+    mcp_url = f"{INTERNAL_MCP_URL}/sse"  # Add /sse endpoint for SSE connection
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         try:
-            logger.info(f"Proxying validated request to {INTERNAL_MCP_URL}")
+            logger.info(f"Proxying validated request to {mcp_url}")
             
-            async with client.stream("GET", INTERNAL_MCP_URL, headers=headers) as upstream:
+            async with client.stream("GET", mcp_url, headers=headers) as upstream:
                 logger.info(f"Upstream connection established, status: {upstream.status_code}")
                 
                 # Generator to stream events with token injection
