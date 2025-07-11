@@ -205,6 +205,9 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                                 handshake_response = b"""event: message
 data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"mcp-memory","version":"1.0.0"}}}
 
+event: message  
+data: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"search_memory","description":"Search stored memories and retrieve relevant information","inputSchema":{"type":"object","properties":{"query":{"type":"string","description":"Search query to find relevant memories"}},"required":["query"]}},{"name":"store_memory","description":"Store new information in memory","inputSchema":{"type":"object","properties":{"text":{"type":"string","description":"The information to store"},"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Category tag for the memory"}},"required":["text","tag"]}}]}}
+
 """
                                 yield handshake_response
                                 first_chunk_sent = True
