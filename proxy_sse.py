@@ -207,9 +207,17 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                                     match = re.search(r'session_id=([a-f0-9]+)', chunk_str)
                                     if match:
                                         session_id = match.group(1)
+                                        # Check if session already exists with different user
+                                        if session_id in session_store:
+                                            existing_user = session_store[session_id].get('user_id')
+                                            if existing_user != user_id:
+                                                logger.warning(f"Session fixation attempt detected: {session_id} already mapped to {existing_user}, attempted by {user_id}")
+                                                continue  # Skip storing this mapping
+                                        
                                         session_store[session_id] = {
                                             'user_id': user_id,
-                                            'token': token
+                                            'token': token,
+                                            'source_ip': request.client.host if request.client else None
                                         }
                                         logger.info(f"Stored session mapping: {session_id} -> {user_id}")
                             except Exception as e:
@@ -347,11 +355,11 @@ async def oauth_authorization_server():
     base_url = "https://mcp-memory-uw0w.onrender.com"
     return {
         "issuer": base_url,
-        "authorization_endpoint": f"{base_url}/authorize",
-        "token_endpoint": f"{base_url}/token", 
+        "authorization_endpoint": f"{base_url}/oauth/authorize",
+        "token_endpoint": f"{base_url}/oauth/token", 
         "registration_endpoint": f"{base_url}/register",
         "response_types_supported": ["code"],
-        "grant_types_supported": ["authorization_code"],
+        "grant_types_supported": ["authorization_code", "urn:ietf:params:oauth:grant-type:token-exchange"],
         "code_challenge_methods_supported": ["S256"],
         "token_endpoint_auth_methods_supported": ["none", "client_secret_basic"],
         "scopes_supported": ["mcp"]
@@ -382,7 +390,7 @@ async def dynamic_client_registration():
         "token_endpoint_auth_method": "client_secret_basic"
     }
 
-@app.get("/authorize")
+@app.get("/oauth/authorize")
 async def authorize_endpoint(
     request: Request,
     client_id: str,
@@ -408,19 +416,40 @@ async def authorize_endpoint(
     logger.info(f"Auto-redirecting OAuth authorization to: {final_redirect_uri}")
     return RedirectResponse(url=final_redirect_uri, status_code=302)
 
-@app.post("/token")
+@app.post("/oauth/token")
 async def token_endpoint(
     grant_type: str = Form(...),
     code: Optional[str] = Form(None),
     client_id: Optional[str] = Form(None),
     code_verifier: Optional[str] = Form(None),
-    redirect_uri: Optional[str] = Form(None)
+    redirect_uri: Optional[str] = Form(None),
+    subject_token: Optional[str] = Form(None),
+    subject_token_type: Optional[str] = Form(None)
 ):
-    """OAuth Token Endpoint - Returns existing SaaS token (handles form data)"""
-    if grant_type != "authorization_code":
+    """OAuth Token Endpoint - Handles both authorization_code and token-exchange grants"""
+    if grant_type not in ["authorization_code", "urn:ietf:params:oauth:grant-type:token-exchange"]:
         raise HTTPException(status_code=400, detail="unsupported_grant_type")
     
-    # Get a valid token from our existing SaaS token system
+    # Handle token exchange grant type
+    if grant_type == "urn:ietf:params:oauth:grant-type:token-exchange":
+        # Validate the subject token
+        if not subject_token:
+            raise HTTPException(status_code=400, detail="invalid_request: subject_token required")
+        
+        # Validate the token and return it if valid
+        user_id = validate_token(subject_token)
+        if user_id:
+            logger.info(f"Token exchange successful for user {user_id}")
+            return {
+                "access_token": subject_token,
+                "token_type": "bearer",
+                "scope": "mcp",
+                "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
+            }
+        else:
+            raise HTTPException(status_code=400, detail="invalid_grant: invalid subject_token")
+    
+    # Handle authorization_code grant type (existing logic)
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
