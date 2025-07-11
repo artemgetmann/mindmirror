@@ -302,12 +302,15 @@ This opens a **web interface** where you can:
 - Call MCP tools directly (search_memory, store_memory, etc.)
 - See formatted responses
 - Test conflict detection without Claude Desktop
+- start the mcp inspector with logging to this file [logs/mcp_inspector.log](logs/mcp_inspector.log)
 
 #### Testing Workflow
 1. **Backend**: Test `memory_server.py` with curl commands
 2. **MCP Layer**: Test `memory_mcp_server.py` with MCP Inspector  
 3. **Integration**: Test full flow in Claude Desktop
 4. **Restart**: Close/reopen Claude Desktop if MCP code changed
+
+**CRITICAL**: Always test locally with MCP Inspector before deploying or debugging production issues. Testing in production (Render logs) is too slow and makes debugging painful. The MCP Inspector provides immediate feedback and real-time debugging capabilities that are essential for rapid development.
 
 #### Alternative: Direct MCP Scripts
 ```bash
@@ -385,6 +388,41 @@ ONLY use the memory-system tools as described above.
 ```
 
 **Note:** Adjust this prompt if conflict detection or proactive memory searching needs tuning.
+
+## SaaS vs Single-Tenant MCP Architecture
+
+### Why Fetch MCP Works vs Our SaaS Requirements
+
+**Critical Architectural Difference**:
+- **Fetch**: Single-tenant, can use direct mcp-proxy with fixed token
+- **Our SaaS**: Multi-tenant, needs custom front-end (proxy_sse.py) for token switching
+
+**Why proxy_sse.py is REQUIRED for SaaS**:
+- `mcp-proxy` injects auth only once via `--env` at process start
+- No per-request header forwarding - each proxy instance serves only ONE token
+- For multi-tenant SaaS: Either many proxy instances OR custom front-end multiplexer
+
+**Multi-Tenant Options**:
+- **Pattern A**: One proxy per user (resource heavy for 100+ users)
+- **Pattern B**: Custom front-end with proxy pool (our current approach)
+- **Pattern C**: Fork mcp-proxy for per-request headers (maintenance overhead)
+
+**Root Cause of Current Issues**: proxy_sse.py has bugs in MCP protocol forwarding (message corruption), NOT that it shouldn't exist. Removing proxy_sse.py would break multi-tenant capability.
+
+**The Real Bug**: Message corruption in SSE forwarding - typically:
+1. Double-wrapping SSE events: `data: data: {...}` instead of `data: {...}`
+2. Chunk boundary issues during forwarding
+3. Header stripping (Content-Type, Cache-Control)
+
+**Solution**: Fix raw-stream relaying in proxy_sse.py using lossless forwarding:
+```python
+async def _relay():
+    async with upstream.stream("GET", f"http://127.0.0.1:{port}/sse") as r:
+        async for part in r.aiter_raw():
+            yield part  # NO wrapping, no extra 'data:' prefix
+```
+
+**Remember**: Don't use fetch as single-tenant example for multi-tenant SaaS architecture decisions.
 
 ## System Status
 

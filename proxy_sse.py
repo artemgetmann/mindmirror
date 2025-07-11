@@ -4,7 +4,7 @@ SSE Proxy for MCP Token Authentication
 Extracts tokens from URL parameters and validates against database
 """
 from fastapi import FastAPI, HTTPException, Query, Request, Form
-from fastapi.responses import StreamingResponse, RedirectResponse
+from fastapi.responses import StreamingResponse, RedirectResponse, Response
 import httpx
 import os
 import logging
@@ -13,13 +13,22 @@ import psycopg2.extras
 from typing import Optional
 import json
 import secrets
+import asyncio
+import re
+
+# Session storage for mapping session_id to user credentials
+session_store = {}
 
 # Set up logging
+import os
+log_dir = '/app/logs' if os.path.exists('/app') else './logs'
+os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/app/logs/proxy_sse.log'),
+        logging.FileHandler(f'{log_dir}/proxy_sse.log'),
         logging.StreamHandler()
     ]
 )
@@ -36,8 +45,8 @@ DB_CONFIG = {
 }
 
 # Internal MCP server URL (runs on port 9000 inside container)
-INTERNAL_MCP_URL = os.environ.get("INTERNAL_MCP_URL", "http://localhost:9000/sse")
-TIMEOUT = httpx.Timeout(300.0, read=None)  # 5 min timeout for SSE streams
+INTERNAL_MCP_URL = os.environ.get("INTERNAL_MCP_URL", "http://localhost:9000")
+TIMEOUT = httpx.Timeout(None)  # No timeout for long-lived SSE streams
 
 app = FastAPI()
 
@@ -164,64 +173,173 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
     # Proxy to the mcp-proxy instance running on port 9000
     # Note: INTERNAL_MCP_URL now points to base mcp-proxy URL without /sse suffix
     mcp_url = f"{INTERNAL_MCP_URL}/sse"  # Add /sse endpoint for SSE connection
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        try:
-            logger.info(f"Proxying validated request to {mcp_url}")
-            
-            async with client.stream("GET", mcp_url, headers=headers) as upstream:
-                logger.info(f"Upstream connection established, status: {upstream.status_code}")
+    
+    try:
+        logger.info(f"Proxying validated request to {mcp_url}")
+        
+        # Use stream for real-time data, but structure to avoid context manager issues
+        async def event_generator():
+            try:
+                chunk_count = 0
+                logger.info(f"Starting SSE stream for user {user_id}")
                 
-                # Generator to stream events with token injection
-                async def event_generator():
-                    try:
-                        buffer = b""
-                        logger.info(f"Starting SSE stream for user {user_id}")
+                # Create both client AND stream connection inside the generator
+                async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=False) as client:
+                    async with client.stream("GET", mcp_url, headers=headers) as upstream:
+                        logger.info(f"Upstream connection established, status: {upstream.status_code}")
+                        
+                        if upstream.status_code != 200:
+                            logger.error(f"Upstream returned {upstream.status_code}")
+                            yield b"data: {\"error\": \"upstream_error\"}\n\n"
+                            return
                         
                         async for chunk in upstream.aiter_raw():
-                            buffer += chunk
+                            chunk_count += 1
+                            # Production-safe debug logging (first 3 chunks only)
+                            if chunk_count <= 3 and logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f"Raw chunk {chunk_count}: {chunk[:200]}")
                             
-                            # Process complete SSE events
-                            while b"\n\n" in buffer:
-                                event_end = buffer.find(b"\n\n") + 2
-                                event = buffer[:event_end]
-                                buffer = buffer[event_end:]
-                                
-                                # Parse and modify SSE event if it contains a tool call
-                                modified_event = await inject_token_if_tool_call(event, token)
-                                yield modified_event
+                            # Extract session_id from SSE endpoint events and store mapping
+                            try:
+                                chunk_str = chunk.decode('utf-8')
+                                if 'event: endpoint' in chunk_str and 'session_id=' in chunk_str:
+                                    # Extract session_id from: data: /messages/?session_id=abc123
+                                    match = re.search(r'session_id=([a-f0-9]+)', chunk_str)
+                                    if match:
+                                        session_id = match.group(1)
+                                        session_store[session_id] = {
+                                            'user_id': user_id,
+                                            'token': token
+                                        }
+                                        logger.info(f"Stored session mapping: {session_id} -> {user_id}")
+                            except Exception as e:
+                                logger.debug(f"Error extracting session_id: {e}")
+                            
+                            yield chunk  # NO modification - preserve exact MCP formatting
+                            
+                            # Keep event loop responsive
+                            if chunk_count % 10 == 0:
+                                await asyncio.sleep(0)
                         
-                        # Yield any remaining data
-                        if buffer:
-                            yield buffer
-                            
-                    except httpx.StreamClosed:
-                        logger.warning(f"Upstream MCP stream closed for user {user_id}")
-                        # Send a final SSE event to indicate stream closure
-                        yield b"data: {\"error\": \"stream_closed\"}\n\n"
-                    except httpx.ConnectError as e:
-                        logger.error(f"Connection error to MCP server for user {user_id}: {e}")
-                        yield b"data: {\"error\": \"connection_failed\"}\n\n"
-                    except Exception as e:
-                        logger.error(f"Error streaming events for user {user_id}: {e}")
-                        yield b"data: {\"error\": \"stream_error\"}\n\n"
+            except httpx.StreamClosed:
+                logger.warning(f"Upstream MCP stream closed for user {user_id}")
+                # Send a final SSE event to indicate stream closure
+                yield b"data: {\"error\": \"stream_closed\"}\n\n"
+            except httpx.ConnectError as e:
+                logger.error(f"Connection error to MCP server for user {user_id}: {e}")
+                yield b"data: {\"error\": \"connection_failed\"}\n\n"
+            except Exception as e:
+                logger.error(f"Error streaming events for user {user_id}: {e}")
+                yield b"data: {\"error\": \"stream_error\"}\n\n"
+                    
+        # Return streaming response
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive", 
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "*",
+                "X-Accel-Buffering": "no"  # Disable Nginx buffering
+            }
+        )
                 
-                # Return streaming response
-                return StreamingResponse(
-                    event_generator(),
-                    media_type="text/event-stream",
-                    headers={
-                        "Cache-Control": "no-cache",
-                        "Connection": "keep-alive",
-                        "X-Accel-Buffering": "no"  # Disable Nginx buffering
-                    }
-                )
+    except httpx.ConnectError as e:
+        logger.error(f"Failed to connect to upstream MCP server: {e}")
+        raise HTTPException(status_code=503, detail="MCP server unavailable")
+    except Exception as e:
+        logger.error(f"Unexpected error in SSE proxy: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.api_route("/messages/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def messages_passthrough(request: Request, path: str, token: Optional[str] = Query(None)):
+    """
+    Proxy HTTP requests to /messages/ endpoints with session-based or token authentication
+    """
+    user_id = None
+    
+    # Check for token in URL parameter or Authorization header
+    if not token:
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+    
+    # If no token, try session-based authentication
+    if not token:
+        # Extract session_id from query parameters
+        session_id = request.query_params.get("session_id")
+        if session_id and session_id in session_store:
+            session_data = session_store[session_id]
+            token = session_data['token']
+            user_id = session_data['user_id']
+            logger.info(f"Using session-based auth: {session_id} -> {user_id}")
+        else:
+            raise HTTPException(status_code=401, detail="Token or valid session required")
+    
+    # Validate token if we don't have user_id from session
+    if not user_id:
+        user_id = validate_token(token)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    # Set up headers for upstream request
+    headers = dict(request.headers)
+    headers["X-User-Token"] = token
+    headers["X-User-Id"] = user_id
+    
+    # Remove host header to avoid conflicts
+    headers.pop("host", None)
+    
+    # Proxy to mcp-proxy messages endpoint  
+    mcp_url = f"{INTERNAL_MCP_URL}/messages/{path}"
+    
+    # Get request body and inject token into JSON-RPC requests
+    body = await request.body()
+    
+    # For MCP tool calls, inject user_token into the request arguments
+    if request.method == "POST" and body:
+        try:
+            json_data = json.loads(body.decode('utf-8'))
+            # Check if this is a JSON-RPC request with method "tools/call"
+            if (json_data.get('method') == 'tools/call' and 
+                'params' in json_data and 
+                'arguments' in json_data['params']):
                 
-        except httpx.ConnectError as e:
-            logger.error(f"Failed to connect to upstream MCP server: {e}")
-            raise HTTPException(status_code=503, detail="MCP server unavailable")
-        except Exception as e:
-            logger.error(f"Unexpected error in SSE proxy: {e}")
-            raise HTTPException(status_code=500, detail="Internal server error")
+                # Inject user_token into arguments
+                json_data['params']['arguments']['user_token'] = token
+                logger.info(f"Injected user_token into {json_data['params'].get('name', 'unknown')} tool call")
+                body = json.dumps(json_data).encode('utf-8')
+                
+                # Update Content-Length header to match new body size
+                headers["content-length"] = str(len(body))
+                
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.debug(f"Not a JSON-RPC tool call or parsing error: {e}")
+    
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            response = await client.request(
+                method=request.method,
+                url=mcp_url,
+                headers=headers,
+                content=body,
+                params=request.query_params
+            )
+            
+            # Return the response with same status code and headers
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers)
+            )
+            
+    except httpx.ConnectError as e:
+        logger.error(f"Failed to connect to upstream MCP server: {e}")
+        raise HTTPException(status_code=503, detail="MCP server unavailable")
+    except Exception as e:
+        logger.error(f"Unexpected error in messages proxy: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/.well-known/oauth-authorization-server")
 async def oauth_authorization_server():
