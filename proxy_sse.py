@@ -198,29 +198,15 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                         async for chunk in upstream.aiter_raw():
                             chunk_count += 1
                             
-                            # For Claude Web: Send immediate MCP handshake response on first chunk
+                            # For Claude Web: Send only MCP initialize response on first chunk
                             if not first_chunk_sent and b'event: endpoint' in chunk:
-                                logger.info("Sending immediate MCP handshake for Claude Web")
-                                # Send initialize response first
+                                logger.info("Sending MCP initialize response for Claude Web")
+                                # Send only initialize response - let Claude Web request tools via messages endpoint
                                 init_response = b"""event: message
 data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"mcp-memory","version":"1.0.0"}}}
 
 """
                                 yield init_response
-                                
-                                # Send tools/list response automatically
-                                tools_response = b"""event: message
-data: {"jsonrpc":"2.0","method":"tools/list","params":{}}
-
-"""
-                                yield tools_response
-                                
-                                # Send tools/list result
-                                tools_result = b"""event: message
-data: {"jsonrpc":"2.0","id":"tools-list-1","result":{"tools":[{"name":"store_memory","description":"Store a new memory with automatic conflict detection","inputSchema":{"type":"object","properties":{"text":{"type":"string","description":"The memory text to store"},"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Category tag for the memory"}},"required":["text","tag"]}},{"name":"search_memory","description":"Search through stored memories using semantic similarity","inputSchema":{"type":"object","properties":{"query":{"type":"string","description":"Search query for finding relevant memories"},"limit":{"type":"integer","description":"Maximum number of results to return (default: 10)","default":10}},"required":["query"]}},{"name":"delete_memory","description":"Delete a specific memory by ID","inputSchema":{"type":"object","properties":{"memory_id":{"type":"string","description":"The ID of the memory to delete"}},"required":["memory_id"]}},{"name":"list_memories","description":"List all stored memories, optionally filtered by tag","inputSchema":{"type":"object","properties":{"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Optional tag filter"}}}}]}}
-
-"""
-                                yield tools_result
                                 first_chunk_sent = True
                             
                             # Production-safe debug logging (first 3 chunks only)
@@ -333,14 +319,77 @@ async def messages_passthrough(request: Request, path: str, token: Optional[str]
     # Get request body and inject token into JSON-RPC requests
     body = await request.body()
     
-    # For MCP tool calls, inject user_token into the request arguments
+    # Handle MCP requests
     if request.method == "POST" and body:
         try:
             json_data = json.loads(body.decode('utf-8'))
-            # Check if this is a JSON-RPC request with method "tools/call"
-            if (json_data.get('method') == 'tools/call' and 
-                'params' in json_data and 
-                'arguments' in json_data['params']):
+            
+            # Handle tools/list requests directly
+            if json_data.get('method') == 'tools/list':
+                logger.info("Responding to tools/list request")
+                tools_response = {
+                    "jsonrpc": "2.0",
+                    "id": json_data.get('id'),
+                    "result": {
+                        "tools": [
+                            {
+                                "name": "store_memory",
+                                "description": "Store a new memory with automatic conflict detection",
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {"type": "string", "description": "The memory text to store"},
+                                        "tag": {"type": "string", "enum": ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"], "description": "Category tag for the memory"}
+                                    },
+                                    "required": ["text", "tag"]
+                                }
+                            },
+                            {
+                                "name": "search_memory", 
+                                "description": "Search through stored memories using semantic similarity",
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "query": {"type": "string", "description": "Search query for finding relevant memories"},
+                                        "limit": {"type": "integer", "description": "Maximum number of results to return (default: 10)", "default": 10}
+                                    },
+                                    "required": ["query"]
+                                }
+                            },
+                            {
+                                "name": "delete_memory",
+                                "description": "Delete a specific memory by ID", 
+                                "inputSchema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "memory_id": {"type": "string", "description": "The ID of the memory to delete"}
+                                    },
+                                    "required": ["memory_id"]
+                                }
+                            },
+                            {
+                                "name": "list_memories",
+                                "description": "List all stored memories, optionally filtered by tag",
+                                "inputSchema": {
+                                    "type": "object", 
+                                    "properties": {
+                                        "tag": {"type": "string", "enum": ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"], "description": "Optional tag filter"}
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+                return Response(
+                    content=json.dumps(tools_response),
+                    status_code=200,
+                    headers={"content-type": "application/json"}
+                )
+            
+            # For tool calls, inject user_token into the request arguments
+            elif (json_data.get('method') == 'tools/call' and 
+                  'params' in json_data and 
+                  'arguments' in json_data['params']):
                 
                 # Inject user_token into arguments
                 json_data['params']['arguments']['user_token'] = token
@@ -351,7 +400,7 @@ async def messages_passthrough(request: Request, path: str, token: Optional[str]
                 headers["content-length"] = str(len(body))
                 
         except (json.JSONDecodeError, KeyError) as e:
-            logger.debug(f"Not a JSON-RPC tool call or parsing error: {e}")
+            logger.debug(f"Not a JSON-RPC request or parsing error: {e}")
     
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
