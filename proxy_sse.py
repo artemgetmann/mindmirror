@@ -12,7 +12,6 @@ import psycopg2
 import psycopg2.extras
 from typing import Optional
 import json
-import secrets
 import asyncio
 import re
 
@@ -378,135 +377,7 @@ async def messages_passthrough(request: Request, path: str, token: Optional[str]
         logger.error(f"Unexpected error in messages proxy: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.get("/.well-known/oauth-authorization-server")
-async def oauth_authorization_server():
-    """OAuth 2.0 Authorization Server Metadata (RFC 8414)"""
-    base_url = "https://mcp-memory-uw0w.onrender.com"
-    return {
-        "issuer": base_url,
-        "authorization_endpoint": f"{base_url}/oauth/authorize",
-        "token_endpoint": f"{base_url}/oauth/token", 
-        "registration_endpoint": f"{base_url}/register",
-        "response_types_supported": ["code"],
-        "grant_types_supported": ["authorization_code", "urn:ietf:params:oauth:grant-type:token-exchange"],
-        "code_challenge_methods_supported": ["S256"],
-        "token_endpoint_auth_methods_supported": ["none", "client_secret_basic"],
-        "scopes_supported": ["mcp"]
-    }
-
-@app.get("/.well-known/oauth-protected-resource")
-async def oauth_protected_resource():
-    """OAuth 2.0 Protected Resource Metadata (RFC 9728)"""
-    base_url = "https://mcp-memory-uw0w.onrender.com"
-    return {
-        "resource": base_url,
-        "authorization_servers": [base_url],
-        "scopes_supported": ["mcp"],
-        "bearer_methods_supported": ["header", "query"]
-    }
-
-@app.post("/register")
-async def dynamic_client_registration():
-    """Dynamic Client Registration (RFC 7591) - Simplified for SaaS"""
-    # For SaaS model, we auto-approve all clients since tokens are per-user anyway
-    client_id = f"client_{secrets.token_urlsafe(16)}"
-    return {
-        "client_id": client_id,
-        "client_secret": secrets.token_urlsafe(32),
-        "redirect_uris": ["https://claude.ai/oauth/callback"],
-        "grant_types": ["authorization_code"],
-        "response_types": ["code"],
-        "token_endpoint_auth_method": "client_secret_basic"
-    }
-
-@app.get("/oauth/authorize")
-async def authorize_endpoint(
-    request: Request,
-    client_id: str,
-    redirect_uri: str,
-    response_type: str = "code",
-    scope: str = "mcp",
-    code_challenge: Optional[str] = None,
-    code_challenge_method: Optional[str] = None,
-    state: Optional[str] = None
-):
-    """OAuth Authorization Endpoint - Auto-redirect for SaaS"""
-    # For SaaS model, auto-approve and redirect with authorization code
-    # In production, this would show a login/consent page first
-    auth_code = secrets.token_urlsafe(32)
-    
-    # Build redirect URL with code and preserve state parameter
-    redirect_params = f"code={auth_code}"
-    if state:
-        redirect_params += f"&state={state}"
-    
-    final_redirect_uri = f"{redirect_uri}?{redirect_params}"
-    
-    logger.info(f"Auto-redirecting OAuth authorization to: {final_redirect_uri}")
-    return RedirectResponse(url=final_redirect_uri, status_code=302)
-
-@app.post("/oauth/token")
-async def token_endpoint(
-    grant_type: str = Form(...),
-    code: Optional[str] = Form(None),
-    client_id: Optional[str] = Form(None),
-    code_verifier: Optional[str] = Form(None),
-    redirect_uri: Optional[str] = Form(None),
-    subject_token: Optional[str] = Form(None),
-    subject_token_type: Optional[str] = Form(None)
-):
-    """OAuth Token Endpoint - Handles both authorization_code and token-exchange grants"""
-    if grant_type not in ["authorization_code", "urn:ietf:params:oauth:grant-type:token-exchange"]:
-        raise HTTPException(status_code=400, detail="unsupported_grant_type")
-    
-    # Handle token exchange grant type
-    if grant_type == "urn:ietf:params:oauth:grant-type:token-exchange":
-        # Validate the subject token
-        if not subject_token:
-            raise HTTPException(status_code=400, detail="invalid_request: subject_token required")
-        
-        # Validate the token and return it if valid
-        user_id = validate_token(subject_token)
-        if user_id:
-            logger.info(f"Token exchange successful for user {user_id}")
-            return {
-                "access_token": subject_token,
-                "token_type": "bearer",
-                "scope": "mcp",
-                "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
-            }
-        else:
-            raise HTTPException(status_code=400, detail="invalid_grant: invalid subject_token")
-    
-    # Handle authorization_code grant type (existing logic)
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        
-        # Get any active token (in production, you'd match this to the user)
-        cursor.execute("""
-            SELECT token, user_id FROM auth_tokens 
-            WHERE is_active = true 
-            LIMIT 1
-        """)
-        
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="invalid_grant")
-            
-        return {
-            "access_token": result['token'],
-            "token_type": "bearer",
-            "scope": "mcp",
-            "user_id": result['user_id']
-        }
-        
-    except Exception as e:
-        logger.error(f"Token endpoint error: {e}")
-        raise HTTPException(status_code=500, detail="server_error")
+# OAuth endpoints removed - using simple bearer token authentication only
 
 @app.get("/health")
 async def health_check():
