@@ -193,8 +193,22 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                             yield b"data: {\"error\": \"upstream_error\"}\n\n"
                             return
                         
+                        # Send immediate MCP handshake for Claude Web compatibility
+                        first_chunk_sent = False
+                        
                         async for chunk in upstream.aiter_raw():
                             chunk_count += 1
+                            
+                            # For Claude Web: Send immediate handshake response on first chunk
+                            if not first_chunk_sent and b'event: endpoint' in chunk:
+                                logger.info("Sending immediate MCP handshake for Claude Web")
+                                handshake_response = b"""event: message
+data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"mcp-memory","version":"1.0.0"}}}
+
+"""
+                                yield handshake_response
+                                first_chunk_sent = True
+                            
                             # Production-safe debug logging (first 3 chunks only)
                             if chunk_count <= 3 and logger.isEnabledFor(logging.DEBUG):
                                 logger.debug(f"Raw chunk {chunk_count}: {chunk[:200]}")
