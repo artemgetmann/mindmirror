@@ -199,17 +199,29 @@ async def sse_passthrough(request: Request, token: Optional[str] = Query(None)):
                         async for chunk in upstream.aiter_raw():
                             chunk_count += 1
                             
-                            # For Claude Web: Send immediate handshake response on first chunk
+                            # For Claude Web: Send immediate MCP handshake response on first chunk
                             if not first_chunk_sent and b'event: endpoint' in chunk:
                                 logger.info("Sending immediate MCP handshake for Claude Web")
-                                handshake_response = b"""event: message
+                                # Send initialize response first
+                                init_response = b"""event: message
 data: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false},"prompts":{"listChanged":false},"logging":{},"completion":{"completionTypes":[]}},"serverInfo":{"name":"mcp-memory","version":"1.0.0"}}}
 
-event: message  
-data: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"store_memory","description":"Store a new memory with automatic conflict detection","inputSchema":{"type":"object","properties":{"text":{"type":"string","description":"The memory text to store"},"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Category tag for the memory"}},"required":["text","tag"]}},{"name":"search_memory","description":"Search through stored memories using semantic similarity","inputSchema":{"type":"object","properties":{"query":{"type":"string","description":"Search query for finding relevant memories"},"limit":{"type":"integer","description":"Maximum number of results to return (default: 10)","default":10}},"required":["query"]}},{"name":"delete_memory","description":"Delete a specific memory by ID","inputSchema":{"type":"object","properties":{"memory_id":{"type":"string","description":"The ID of the memory to delete"}},"required":["memory_id"]}},{"name":"list_memories","description":"List all stored memories, optionally filtered by tag","inputSchema":{"type":"object","properties":{"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Optional tag filter"}}}}]}}
+"""
+                                yield init_response
+                                
+                                # Send tools/list response automatically
+                                tools_response = b"""event: message
+data: {"jsonrpc":"2.0","method":"tools/list","params":{}}
 
 """
-                                yield handshake_response
+                                yield tools_response
+                                
+                                # Send tools/list result
+                                tools_result = b"""event: message
+data: {"jsonrpc":"2.0","id":"tools-list-1","result":{"tools":[{"name":"store_memory","description":"Store a new memory with automatic conflict detection","inputSchema":{"type":"object","properties":{"text":{"type":"string","description":"The memory text to store"},"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Category tag for the memory"}},"required":["text","tag"]}},{"name":"search_memory","description":"Search through stored memories using semantic similarity","inputSchema":{"type":"object","properties":{"query":{"type":"string","description":"Search query for finding relevant memories"},"limit":{"type":"integer","description":"Maximum number of results to return (default: 10)","default":10}},"required":["query"]}},{"name":"delete_memory","description":"Delete a specific memory by ID","inputSchema":{"type":"object","properties":{"memory_id":{"type":"string","description":"The ID of the memory to delete"}},"required":["memory_id"]}},{"name":"list_memories","description":"List all stored memories, optionally filtered by tag","inputSchema":{"type":"object","properties":{"tag":{"type":"string","enum":["goal","routine","preference","constraint","habit","project","tool","identity","value"],"description":"Optional tag filter"}}}}]}}
+
+"""
+                                yield tools_result
                                 first_chunk_sent = True
                             
                             # Production-safe debug logging (first 3 chunks only)
