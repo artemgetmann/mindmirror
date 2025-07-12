@@ -360,13 +360,11 @@ async def handle_sse(request: Request):
         request.scope, request.receive, request._send
     ) as (in_stream, out_stream):
         # Initialize MCP server with user context
-        initialization_options = InitializationOptions(
-            server_name="memory-system",
-            server_version="1.0.0",
-            capabilities=mcp._mcp_server.get_capabilities()
-        )
+        # Use the correct MCP SDK pattern from documentation
         await mcp._mcp_server.run(
-            in_stream, out_stream, initialization_options
+            in_stream, 
+            out_stream, 
+            mcp._mcp_server.create_initialization_options()
         )
 
 # Create main FastAPI app
