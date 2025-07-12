@@ -14,11 +14,7 @@ RUN apt-get update && apt-get install -y \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python tools
-RUN pip install uv && uv tool install mcp-proxy
-
 # Set up environment
-ENV PATH="/root/.local/bin:$PATH"
 ENV PORT=8000
 ENV MEMORY_SERVER_PORT=8001
 EXPOSE 8000
@@ -38,12 +34,11 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 
 # Copy application files last (changes most frequently)
 COPY memory_server.py .
-COPY memory_mcp_server.py .
-COPY proxy_sse.py .
-COPY start_services.sh .
+COPY memory_mcp_direct.py .
+COPY start_direct.sh .
 
 # Make start script executable
-RUN chmod +x start_services.sh
+RUN chmod +x start_direct.sh
 
-# Start both services
-CMD ["./start_services.sh"]
+# Start both services with the new direct approach
+CMD ["./start_direct.sh"]
