@@ -8,24 +8,42 @@ MCP Memory Integration system that connects local LLMs (via LM Studio) with a se
 
 ## Architecture
 
-**3-Layer Architecture:**
+**Current Architecture (Direct MCP + URL Token Auth):**
+```
+Claude Desktop → memory_mcp_direct.py (port 8000) → memory_server.py (port 8001) → ChromaDB + PostgreSQL
+```
+
+**Legacy Architecture (LM Studio Integration):**
 ```
 User Input → LLM (port 1234) → Memory Controller → MCP Wrapper (port 8002) → Memory Server (port 8003) → ChromaDB
 ```
 
 **Core Components:**
+- `memory_mcp_direct.py` - Direct FastAPI + MCP SDK server with URL token authentication (current)
 - `memory_server.py` - FastAPI server with ChromaDB vector storage and SentenceTransformers embeddings
-- `memory_controller.py` - Bridges LLM function calls to memory system 
-- `mcp_wrapper.py` - Model Context Protocol compatibility layer
+- `memory_controller.py` - Bridges LLM function calls to memory system (legacy - archived)
+- `mcp_wrapper.py` - Model Context Protocol compatibility layer (legacy - archived)
 
 ## Commands
 
 ### Start the System
+
+**Current Production Setup:**
+```bash
+# Start services in order (for development):
+python memory_server.py      # Port 8001 (backend API)
+python memory_mcp_direct.py  # Port 8000 (MCP frontend with URL token auth)
+
+# Production deployment (Render):
+./start_direct.sh            # Starts both services automatically
+```
+
+**Legacy Setup (LM Studio Integration):**
 ```bash
 # Start services in order:
-python memory_server.py    # Port 8003 (or 8000 for basic tests)
-python mcp_wrapper.py      # Port 8002 (if using MCP integration)
-python memory_controller.py # Controller for LM Studio integration
+python memory_server.py      # Port 8003 (or 8000 for basic tests)
+python mcp_wrapper.py        # Port 8002 (if using MCP integration)
+python memory_controller.py  # Controller for LM Studio integration
 
 # Or for basic testing:
 python memory_server.py
@@ -294,21 +312,35 @@ npx @modelcontextprotocol/inspector
 
 #### Test MCP Server Directly
 ```bash
-# Test your MCP server in a web UI
+# Test your MCP server in a web UI (old approach - for stdio MCP servers)
 npx @modelcontextprotocol/inspector python memory_mcp_server.py
+
+# Test Direct MCP Server with URL token auth (current approach)
+source venv/bin/activate && npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=T6o5fD4WoOkiLh-2kObXvAgDAOjJbLU_AuQI9WpBg0Y" > logs/mcp_inspector.log 2>&1 &
 ```
 
 This opens a **web interface** where you can:
 - Call MCP tools directly (search_memory, store_memory, etc.)
 - See formatted responses
 - Test conflict detection without Claude Desktop
-- start the mcp inspector with logging to this file [logs/mcp_inspector.log](logs/mcp_inspector.log)
+- Test URL token authentication with Direct MCP implementation
+- Background logging to [logs/mcp_inspector.log](logs/mcp_inspector.log) for debugging
 
 #### Testing Workflow
 1. **Backend**: Test `memory_server.py` with curl commands
-2. **MCP Layer**: Test `memory_mcp_server.py` with MCP Inspector  
+2. **MCP Layer**: Test `memory_mcp_direct.py` with MCP Inspector  
 3. **Integration**: Test full flow in Claude Desktop
 4. **Restart**: Close/reopen Claude Desktop if MCP code changed
+
+**Local Development Debugging:**
+```bash
+# Start both servers for local testing
+python memory_server.py &       # Port 8001 (backend)
+python memory_mcp_direct.py &    # Port 8000 (MCP frontend)
+
+# Test with MCP Inspector and background logging
+source venv/bin/activate && npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=YOUR_TOKEN" > logs/mcp_inspector.log 2>&1 &
+```
 
 **CRITICAL**: Always test locally with MCP Inspector before deploying or debugging production issues. Testing in production (Render logs) is too slow and makes debugging painful. The MCP Inspector provides immediate feedback and real-time debugging capabilities that are essential for rapid development.
 
