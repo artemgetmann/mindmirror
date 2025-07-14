@@ -1,18 +1,35 @@
-# Memory System v0
+# MCP Memory System
 
-Minimal viable memory system with vector search and fixed tags.
+Multi-tenant memory system with vector search, conflict detection, and Model Context Protocol (MCP) integration for Claude Desktop.
+
+## 🚀 Production Ready
+
+**Live URL**: `https://mcp-memory-uw0w.onrender.com/sse?token=YOUR_TOKEN`
+
+Use this URL directly in Claude Desktop MCP settings - no manual token pasting required!
 
 ## Quick Start
 
+### Development
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Start server
+# Start memory server (port 8001)
 python memory_server.py
 
-# Test in another terminal
-python test_client.py
+# Start MCP server (port 8000)  
+python memory_mcp_direct.py
+
+# Test locally
+python test_complete_solution.py
+```
+
+### Production (Render)
+```bash
+# Automatic deployment via start_direct.sh
+# Memory Server: port 8001 (internal)
+# MCP Server: port 8000 (external)
 ```
 
 ## API Endpoints
