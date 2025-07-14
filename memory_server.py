@@ -22,12 +22,13 @@ from contextlib import asynccontextmanager
 import logging
 
 # Set up logging
-os.makedirs('/app/logs', exist_ok=True)
+log_dir = '/app/logs' if os.path.exists('/app') else './logs'
+os.makedirs(log_dir, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/app/logs/memory_server.log'),
+        logging.FileHandler(f'{log_dir}/memory_server.log'),
         logging.StreamHandler()
     ]
 )
