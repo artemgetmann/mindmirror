@@ -228,3 +228,101 @@ if memory.tag not in VALID_TAGS:
 - **Recovery**: Archived memories searchable but with lower priority
 - **Monitoring**: Archive statistics and undo capability
 
+---
+
+## 🧠 HIGH PRIORITY: Strategic Decision – Memory Extraction
+
+**Question**: Should users be able to extract their memories? This is a critical call with implications for trust, lock-in, architecture, and future interoperability.
+
+---
+
+### ⚖️ The Dilemma
+
+**FOR Extraction**:
+- ✅ **User empowerment** — Builds trust through data ownership and transparency
+- ✅ **Competitive parity** — ChatGPT allows "Tell me everything you know about me"
+- ✅ **MCP-agnostic future** — Users can use memory outside MCP-native tools (e.g., ChatGPT web, Tesla, or future local AI systems)
+- ✅ **AI continuity across models** — One memory across Claude, GPT, Gemini, etc.
+- ✅ **Portability as a feature** — Makes MindMirror a source of truth, not just a service
+
+**AGAINST Extraction**:
+- ❌ **Reduces stickiness** — Users can migrate away easily
+- ❌ **Leaks architecture** — Naive exports could reveal ChromaDB layout or internal tagging logic
+- ❌ **Loss of moat** — Makes it easier to reverse-engineer or replicate approach
+- ❌ **Ecosystem control** — Lock-in via API token keeps users in the MCP-based universe
+
+---
+
+### 🎯 Strategic Framing
+
+**Short-term MVP** (✅ shipping today):
+- No full export needed
+- AI model can already respond with: "Here's what I remember about you" via `list_memory`, `search_memory`, or `get_memory`
+
+**Mid-term Premium Plan** (⚙️ optional):
+- Offer **Basic Memory Export** as JSON, using a sanitized schema:
+  - No internal DB structure revealed
+  - Just top-level objects: tag, key, value, timestamp
+  - Example:
+    ```json
+    {
+      "tag": "goal",
+      "key": "2025_vision", 
+      "value": "Build AGI infrastructure",
+      "updated": "2025-07-15T13:42Z"
+    }
+    ```
+
+**Future Dev/Enterprise Plan** (🔓 optional):
+- Offer **Full Export** or SDK sync (e.g., `GET /export/full`)
+- Or add **MCP Mirror Mode**: stream memory to developer's DB via webhook or plugin
+- All behind auth walls or usage tiers
+
+---
+
+### 🤖 Key Research Questions
+
+1. **MCP ecosystem maturity**
+   - Will non-MCP systems adopt external memory interfaces soon?
+   - Is MindMirror memory a bridge or a destination?
+
+2. **ChatGPT behavior**
+   - How transparent is OpenAI about memory data?
+   - Can we beat them on usability + trust?
+
+3. **Export Format Design**
+   - Can we decouple export from DB implementation?
+   - Is a "memory object schema" standardizable?
+
+4. **Security implications**
+   - Can exports be digitally signed or encrypted if needed?
+
+---
+
+### 🧩 Final Recommendation
+
+**✅ YES, allow memory extraction** — but with phased control:
+
+| Phase | Export Format | Audience | Risks | Benefit |
+|-------|---------------|----------|-------|---------|
+| MVP | None | All users | None | Simplicity, fast shipping |
+| Premium | Sanitized JSON | Pro/power users | Low | Trust, portability, goodwill |
+| Developer | Full JSON/API | Devs/enterprises | Medium | Dev flexibility |
+
+---
+
+### 🧠 Why This Works
+
+- **You build trust** without revealing internals
+- **You avoid overengineering** the MVP
+- **You future-proof** MindMirror as a memory layer, not a walled garden
+- **You retain the option** to tier access, throttle export, or monetize sync
+
+---
+
+**Implementation options**:
+- An export schema spec
+- Code for `GET /export/basic`
+- A memory signing or encryption flow
+- Text for privacy/legal UX copy ("you own your data")
+
