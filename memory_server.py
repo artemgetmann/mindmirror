@@ -123,6 +123,7 @@ app = FastAPI(title="Memory System v0", lifespan=lifespan)
 origins = [
     "http://localhost:5173",  # Vite dev server
     "http://localhost:5174",  # Alternative dev port
+    "http://localhost:8081",  # Frontend dev server
     "https://usemindmirror.com",  # Production domain
     "https://www.usemindmirror.com",  # Production with www
     "https://memory.usemindmirror.com",  # Memory subdomain
