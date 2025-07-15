@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { TokenModal } from "@/components/TokenModal";
 import { ArrowRight, Zap } from "lucide-react";
 
 export const HeroSection = () => {
@@ -25,13 +26,17 @@ export const HeroSection = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-16">
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6 h-auto bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90 transition-all duration-200 hover:shadow-lg hover:shadow-accent-neon/25"
-          >
-            Inject Token
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <TokenModal
+            trigger={
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-6 h-auto bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90 transition-all duration-200 hover:shadow-lg hover:shadow-accent-neon/25"
+              >
+                Inject Token
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            }
+          />
           <Button 
             variant="outline" 
             size="lg" 
@@ -45,7 +50,7 @@ export const HeroSection = () => {
         <div className="bg-card border-2 border-dashed border-muted rounded-lg p-6 max-w-3xl">
           <div className="text-sm text-muted-foreground mb-3 font-mono">🔗 Add to Claude:</div>
           <code className="block bg-muted p-4 rounded text-sm font-mono text-left overflow-x-auto">
-            https://memory.mindmirror.com/sse?token=••••••••••••••••••••••••••••••••••••••••••••••••
+            https://memory.usemindmirror.com/sse?token=••••••••••••••••••••••••••••••••••••••••••••••••
           </code>
           <div className="text-xs text-muted-foreground mt-2 font-mono">
             Get your personal token above ↑
