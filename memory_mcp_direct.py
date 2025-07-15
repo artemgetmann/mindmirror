@@ -168,6 +168,20 @@ async def remember(text: str, category: str) -> str:
             
             result = response.json()
             
+            # Check for memory limit error
+            if result.get('error'):
+                logger.info(f"Memory limit reached for user {user_id}: {result}")
+                error_msg = f"❌ {result.get('error')}\n\n"
+                
+                if result.get('premium_link'):
+                    error_msg += f"Sign up for premium at: {result.get('premium_link')}\n\n"
+                
+                if result.get('memories_used') and result.get('memory_limit'):
+                    error_msg += f"You've used {result.get('memories_used')}/{result.get('memory_limit')} memories.\n\n"
+                
+                error_msg += f"This would have been: {text}"
+                return error_msg
+            
             # Format response including any conflicts detected
             output = f"I'll remember that!\n\n"
             output += f"Information: {text}\n"
