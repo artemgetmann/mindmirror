@@ -2,7 +2,7 @@
  * API service for MCP Memory system
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mcp-memory-uw0w.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://memory.usemindmirror.com';
 
 export interface TokenGenerationRequest {
   user_name?: string;
