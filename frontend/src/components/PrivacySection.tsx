@@ -1,0 +1,68 @@
+import { Shield, Eye, Download, Server } from "lucide-react";
+
+const privacyFeatures = [
+  {
+    icon: Shield,
+    title: "End-to-End Security",
+    description: "Your memories are encrypted and stored on secure infrastructure with industry-standard protection"
+  },
+  {
+    icon: Eye,
+    title: "Zero Human Access", 
+    description: "Your memories are only accessed through your AI model—never reviewed, read, or used by us"
+  },
+  {
+    icon: Download,
+    title: "Full Export Control",
+    description: "Your memory is your own. Premium users can export all memories anytime in full"
+  },
+  {
+    icon: Server,
+    title: "Transparent Infrastructure",
+    description: "Built on secure, auditable systems with clear data handling practices"
+  }
+];
+
+export const PrivacySection = () => {
+  return (
+    <section id="privacy" className="container px-4 py-24">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Privacy-First by Design
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Your memories are yours. We built MindMirror with the same privacy standards 
+            we'd demand for our own AI workflows.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          {privacyFeatures.map((feature, index) => (
+            <div 
+              key={index} 
+              className="bg-card border rounded-lg p-6"
+            >
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <feature.icon className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+              <p className="text-muted-foreground">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Privacy Statement */}
+        <div className="bg-secondary/50 border rounded-lg p-8 text-center">
+          <h3 className="text-lg font-semibold mb-3">Our Privacy Commitment</h3>
+          <p className="text-muted-foreground max-w-3xl mx-auto">
+            <strong>MindMirror stores memory on secure infrastructure.</strong> Your memories are only accessed 
+            through your AI model—never reviewed, read, or used by us. In the premium version, you'll be able 
+            to export your memories anytime in full. Until then, simply ask your AI what it remembers about 
+            you and it will list your stored preferences.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
