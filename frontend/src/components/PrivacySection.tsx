@@ -4,7 +4,7 @@ const privacyFeatures = [
   {
     icon: Shield,
     title: "End-to-End Security",
-    description: "Your memories are encrypted and stored on secure infrastructure with industry-standard protection"
+    description: "Your memories are stored securely on encrypted infrastructure with strict access controls"
   },
   {
     icon: Eye,
@@ -56,10 +56,9 @@ export const PrivacySection = () => {
         <div className="bg-secondary/50 border rounded-lg p-8 text-center">
           <h3 className="text-lg font-semibold mb-3">Our Privacy Commitment</h3>
           <p className="text-muted-foreground max-w-3xl mx-auto">
-            <strong>MindMirror stores memory on secure infrastructure.</strong> Your memories are only accessed 
-            through your AI model—never reviewed, read, or used by us. In the premium version, you'll be able 
-            to export your memories anytime in full. Until then, simply ask your AI what it remembers about 
-            you and it will list your stored preferences.
+            <strong>MindMirror stores your memories on secure infrastructure.</strong>They’re only accessed by your AI model — never reviewed, read, or used by us.
+
+In the premium version, you’ll be able to export all your memories anytime. Until then, just ask your AI what it remembers about you — and it will tell you everything it’s stored.
           </p>
         </div>
       </div>

@@ -4,7 +4,7 @@ const features = [
   {
     icon: Brain,
     title: "Intelligent Memory",
-    description: "Your AI remembers preferences, habits, and context across all conversations"
+    description: "Not chat logs. Just the stuff that drives better, more personal suggestions"
   },
   {
     icon: Zap,
@@ -14,7 +14,7 @@ const features = [
   {
     icon: Lock,
     title: "Privacy-First",
-    description: "Your memories are encrypted and only accessible through your AI model"
+    description: "Secure by design. Only your AI uses your memories — never reviewed or read by us"
   }
 ];
 

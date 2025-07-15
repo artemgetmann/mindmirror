@@ -10,120 +10,113 @@ const About = () => {
       <main className="container py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold mb-4">About MindMirror</h1>
-            <p className="text-xl text-muted-foreground font-mono">
-              Why persistent memory matters for AI development
+            <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Persistent memory for AI</h1>
+            <p className="text-sm text-muted-foreground font-mono">
+              AI shouldn't forget. This one doesn't.
             </p>
           </div>
 
           <div className="space-y-8">
-            <Card className="border-2 border-dashed border-muted">
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
-                <CardTitle className="font-mono">The Problem</CardTitle>
-                <CardDescription>Every conversation starts from zero</CardDescription>
+                <CardTitle className="font-mono text-lg">━━━ Founder Problem ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Current AI models have no persistent memory across sessions. Every time you start 
-                  a new conversation with Claude, Cursor, or any AI tool, you're starting from scratch. 
-                  The AI doesn't remember your preferences, your codebase patterns, your workflow, 
-                  or the context from previous interactions.
+                  Every AI chat felt like Groundhog Day. Same tools. Same goals. Same repetition. I got tired of reminding my assistants who I was.
                 </p>
                 <p className="text-muted-foreground">
-                  For developers and power users who rely on AI as a daily tool, this is frustrating 
-                  and inefficient. You end up repeating the same context, explaining the same 
-                  preferences, and re-establishing the same working relationships over and over.
+                  The memory fragmentation across different AI models made it even worse. ChatGPT has its own memory. Claude either doesn't have memory or forces you to manually inject it. Different tools remember different things. Switching between models felt like starting from scratch every time.
+                </p>
+                <p className="text-muted-foreground">
+                  I wanted one shared memory layer across all my AI systems—Claude, Cursor, Windsurf, or any custom-built model—without the constant overhead of rebuilding context.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-dashed border-muted">
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
-                <CardTitle className="font-mono">The Vision</CardTitle>
-                <CardDescription>AI that truly knows you</CardDescription>
+                <CardTitle className="font-mono text-lg">━━━ What It Is ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  MindMirror bridges this gap by providing persistent, user-specific memory for AI models. 
-                  Instead of starting fresh every time, your AI assistant remembers your coding style, 
-                  your project preferences, your communication patterns, and the context of your work.
+                  MindMirror is a persistent memory server for AI models. It integrates seamlessly with Claude, Cursor, Windsurf, and your custom AI tools.
                 </p>
                 <p className="text-muted-foreground">
-                  This isn't about training custom models or complex setups. It's about simple, 
-                  token-based memory that any AI tool can access through a single URL. 
-                  Paste once, remember forever.
+                  MindMirror stores structured, searchable memories—not raw chat logs. It's plug-and-play: inject one token, and your AI assistant instantly gains persistent recall, across any conversation and any compatible model.
+                </p>
+                <p className="text-muted-foreground">
+                  No more manual setup, no more repetitive context injections. Just one URL, one memory, everywhere.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-dashed border-muted">
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
-                <CardTitle className="font-mono">Built by Artem</CardTitle>
-                <CardDescription>A developer frustrated with forgetful AI</CardDescription>
+                <CardTitle className="font-mono text-lg">━━━ Built by Artem ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  MindMirror was born out of personal frustration. As a developer who uses AI tools 
-                  daily for coding, writing, and problem-solving, I got tired of repeating myself 
-                  in every new conversation.
+                  MindMirror wasn't built by a startup team or a corporate initiative. It started out of pure frustration.
                 </p>
                 <p className="text-muted-foreground">
-                  I wanted an AI that remembered my coding conventions, my project structures, 
-                  my communication style, and the ongoing context of my work. Since no one else 
-                  was building this simple solution, I built it myself.
+                  I didn't want to rebuild memory every time I switched AI tools. So I built one persistent memory system that works seamlessly across them all.
                 </p>
                 <p className="text-muted-foreground">
-                  MindMirror is designed by a developer, for developers. It's minimalist, 
-                  technical, and focused on solving one problem really well: giving AI the 
-                  memory it should have had from the beginning.
+                  MindMirror is designed specifically for developers and power users who need sharper, memory-driven AI workflows—not fancy marketing demos.
                 </p>
                 
                 <div className="flex space-x-4 pt-4">
-                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
+                  <a href="https://github.com/artemgetmann" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
                     <Github className="h-4 w-4" />
                     <span className="font-mono text-sm">GitHub</span>
                   </a>
-                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
+                  <a href="https://x.com/artemgetman_" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
                     <Twitter className="h-4 w-4" />
                     <span className="font-mono text-sm">Twitter</span>
                   </a>
-                  <a href="#" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
+                  <a href="https://www.reddit.com/user/artemgetman/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
                     <Globe className="h-4 w-4" />
-                    <span className="font-mono text-sm">Website</span>
+                    <span className="font-mono text-sm">Reddit</span>
                   </a>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-dashed border-muted">
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
-                <CardTitle className="font-mono">Technical Details</CardTitle>
-                <CardDescription>How MindMirror works under the hood</CardDescription>
+                <CardTitle className="font-mono text-lg">━━━ Mission & Call to Action ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2 font-mono">Token-Based Authentication</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Each user gets a unique token that serves as both authentication and memory namespace. 
-                    No accounts, no passwords, just a simple token.
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold mb-2 font-mono">RESTful API</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Simple GET/POST endpoints that any AI tool can integrate with. 
-                    Store memories, retrieve context, search by keywords.
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold mb-2 font-mono">Privacy by Design</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Your memories are encrypted, isolated by token, and never accessed by humans. 
-                    Premium users will have full export capabilities.
-                  </p>
-                </div>
+                <p className="text-muted-foreground">
+                  If you care about building better, sharper AI tools—or pushing toward true AGI—MindMirror is built for you.
+                </p>
+                <p className="text-muted-foreground">
+                  Persistent, structured memory is step zero for real intelligence. MindMirror saves you time, reduces friction, and helps you build smarter tools faster.
+                </p>
+                <p className="text-muted-foreground">
+                  Join the waitlist if you want early access, or just use it today.
+                </p>
+                <p className="text-muted-foreground">
+                  I hope it brings real value to your workflow—and helps push my AGI research forward.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mt-8">
+              <CardHeader>
+                <CardTitle className="font-mono text-lg">━━━ Under the Hood ━━━</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  MindMirror uses a token-based memory namespace, isolated by user, usable with Claude, Cursor, Windsurf, or any AI tool that supports MCP protocol or external context injection.
+                </p>
+                <p className="text-muted-foreground">
+                  No login, no accounts — just persistent memory through a single URL.
+                </p>
+                <p className="text-muted-foreground">
+                  Want integration help? <a href="/integration" className="text-accent-neon hover:underline font-mono">See integration guide</a>.
+                </p>
               </CardContent>
             </Card>
           </div>

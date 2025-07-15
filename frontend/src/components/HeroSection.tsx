@@ -8,7 +8,7 @@ export const HeroSection = () => {
         {/* CLI-style subtitle */}
         <div className="mb-6">
           <p className="text-sm font-mono text-muted-foreground">
-            mindmirror(1) — persistent Claude memory for obsessive developers
+            mindmirror(1) — persistent AI memory for obsessive developers
           </p>
         </div>
 
@@ -16,11 +16,11 @@ export const HeroSection = () => {
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
           Persistent memory for{" "}
           <span className="text-primary">Claude, Windsurf, Cursor</span>{" "}
-          or your own AI models.
+          or your own AI models
         </h1>
         
         <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl">
-          Paste once. Remember forever.
+        Just paste one URL and your AI will remember everything across chats. No more repeating your preferences, goals, or project setup — your AI just remembers
         </p>
 
         {/* CTA Buttons */}
@@ -42,21 +42,14 @@ export const HeroSection = () => {
         </div>
 
         {/* Integration Preview */}
-        <div className="bg-card border-2 border-dashed border-muted rounded-lg p-6 max-w-2xl">
-          <div className="text-sm text-muted-foreground mb-3 font-mono">📦 Claude Snippet</div>
+        <div className="bg-card border-2 border-dashed border-muted rounded-lg p-6 max-w-3xl">
+          <div className="text-sm text-muted-foreground mb-3 font-mono">🔗 Add to Claude:</div>
           <code className="block bg-muted p-4 rounded text-sm font-mono text-left overflow-x-auto">
-            {`{
-  "mcpServers": {
-    "mindmirror": {
-      "command": "npx",
-      "args": ["@mindmirror/mcp-server"],
-      "env": {
-        "MINDMIRROR_TOKEN": "your_token_here"
-      }
-    }
-  }
-}`}
+            https://memory.mindmirror.com/sse?token=••••••••••••••••••••••••••••••••••••••••••••••••
           </code>
+          <div className="text-xs text-muted-foreground mt-2 font-mono">
+            Get your personal token above ↑
+          </div>
         </div>
       </div>
     </section>
