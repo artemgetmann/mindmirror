@@ -375,6 +375,43 @@ async def health():
     """Health check endpoint"""
     return {"status": "healthy", "server": "memory-mcp-direct"}
 
+# API Proxy Routes - Forward to internal memory server
+@app.post("/api/generate-token")
+async def proxy_generate_token(request: Request):
+    """Proxy token generation to internal memory server"""
+    import httpx
+    body = await request.body()
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{MEMORY_API_BASE}/api/generate-token",
+            content=body,
+            headers={"content-type": "application/json"}
+        )
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
+
+@app.post("/api/join-waitlist")
+async def proxy_join_waitlist(request: Request):
+    """Proxy waitlist signup to internal memory server"""
+    import httpx
+    body = await request.body()
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{MEMORY_API_BASE}/api/join-waitlist",
+            content=body,
+            headers={"content-type": "application/json"}
+        )
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
+
 # Create Starlette app with SSE and message handling
 sse_app = Starlette(
     routes=[

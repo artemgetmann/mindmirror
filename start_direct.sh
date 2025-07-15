@@ -4,7 +4,7 @@
 # Replaces the complex proxy chain with a simple 2-service setup
 
 # Port configuration
-RENDER_PORT=${PORT:-8000}  # Main port assigned by Render (Direct MCP Server)
+RENDER_PORT=${PORT:-8000}  # Main port assigned by Render (MCP+API proxy)
 MEMORY_PORT=${MEMORY_SERVER_PORT:-8001}  # Memory server internal port
 
 # Create logs directory if it doesn't exist
@@ -12,8 +12,8 @@ mkdir -p /app/logs
 
 echo "🚀 Starting Direct MCP Memory System"
 echo "📋 Configuration:"
+echo "   MCP+API Proxy: Port $RENDER_PORT (external)"
 echo "   Memory Server: Port $MEMORY_PORT (internal)"
-echo "   Direct MCP Server: Port $RENDER_PORT (external)"
 
 # Start memory server in background
 echo "🚀 Starting Memory Server on port $MEMORY_PORT..."
@@ -50,10 +50,11 @@ done
 
 echo "✅ Memory server running successfully"
 
-# Start Direct MCP Server on the main port (foreground)
-echo "🚀 Starting Direct MCP Server on port $RENDER_PORT..."
-echo "🔗 URL: https://your-app.onrender.com/sse?token=USER_TOKEN"
-echo "📋 This provides URL token authentication without chat pasting!"
+# Start MCP+API proxy on the main port (foreground)
+echo "🚀 Starting MCP+API Proxy on port $RENDER_PORT..."
+echo "🔗 Frontend API: https://memory.usemindmirror.com/api/generate-token"
+echo "🔗 MCP URL: https://memory.usemindmirror.com/sse?token=USER_TOKEN"
+echo "📋 This provides both frontend API and MCP endpoints!"
 
 # Run in foreground so container doesn't exit
 python memory_mcp_direct.py
