@@ -4,6 +4,7 @@ Cloud-based vector memory with FastAPI + SentenceTransformers + Chroma
 """
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from datetime import datetime
@@ -58,7 +59,8 @@ def init_auth_db():
             user_name TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_active BOOLEAN DEFAULT true
+            is_active BOOLEAN DEFAULT true,
+            is_admin BOOLEAN DEFAULT false
         )
     """)
     
@@ -66,6 +68,23 @@ def init_auth_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_id ON auth_tokens(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_active ON auth_tokens(is_active)")
+    
+    # Add is_admin column if it doesn't exist (for existing databases)
+    cursor.execute("""
+        ALTER TABLE auth_tokens 
+        ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false
+    """)
+    
+    # Create waitlist table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS waitlist_emails (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            token_used TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (token_used) REFERENCES auth_tokens(token)
+        )
+    """)
     
     # Create default token if none exists
     cursor.execute("SELECT COUNT(*) FROM auth_tokens WHERE is_active = true")
@@ -99,6 +118,23 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 Memory Server shutting down...")
 
 app = FastAPI(title="Memory System v0", lifespan=lifespan)
+
+# Configure CORS
+origins = [
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:5174",  # Alternative dev port
+    "https://usemindmirror.com",  # Production domain
+    "https://www.usemindmirror.com",  # Production with www
+    "https://memory.usemindmirror.com",  # Memory subdomain
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize embedding model (pre-downloaded during build)
 logger.info("🔄 Loading pre-downloaded embedding model...")
@@ -200,6 +236,27 @@ class MemoryItem(BaseModel):
     timestamp: Optional[str] = None
     last_accessed: Optional[str] = None
 
+class TokenGenerationRequest(BaseModel):
+    """Request model for generating a new auth token"""
+    user_name: Optional[str] = None
+
+class TokenGenerationResponse(BaseModel):
+    """Response model for token generation"""
+    token: str
+    user_id: str
+    url: str
+    memory_limit: int = 25
+    memories_used: int = 0
+
+class WaitlistRequest(BaseModel):
+    """Request model for joining premium waitlist"""
+    email: str
+
+class WaitlistResponse(BaseModel):
+    """Response model for waitlist signup"""
+    message: str
+    email: str
+
 class MemoryResponse(BaseModel):
     id: str
     text: str
@@ -252,13 +309,43 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     # Add to hash set
     memory_hashes.add(memory_hash)
     
+    # Check memory limit (except for admin users)
+    MEMORY_LIMIT = 25
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if user is admin
+    cursor.execute("""
+        SELECT is_admin FROM auth_tokens 
+        WHERE user_id = %s AND is_active = true
+        LIMIT 1
+    """, (user_id,))
+    admin_result = cursor.fetchone()
+    is_admin = admin_result[0] if admin_result and admin_result[0] else False
+    
+    if not is_admin:
+        # Check current memory count
+        cursor.execute("""
+            SELECT COUNT(*) FROM memories WHERE user_id = %s
+        """, (user_id,))
+        memory_count = cursor.fetchone()[0]
+        
+        if memory_count >= MEMORY_LIMIT:
+            cursor.close()
+            conn.close()
+            logger.info(f"Memory limit reached for user {user_id}: {memory_count}/{MEMORY_LIMIT}")
+            return {
+                "error": "Memory limit reached. Upgrade to premium to store more.",
+                "premium_link": "https://usemindmirror.com/premium",
+                "memories_used": memory_count,
+                "memory_limit": MEMORY_LIMIT
+            }
+    
     # Generate embedding
     embedding = model.encode(memory.text).tolist()
     
     # Check for semantic duplicates (similarity > 0.95) before storing
     DUPLICATE_THRESHOLD = 0.95
-    conn = get_db_connection()
-    cursor = conn.cursor()
     
     # Check for similar memories with same tag
     cursor.execute("""
@@ -865,6 +952,101 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+@app.post("/api/generate-token", response_model=TokenGenerationResponse)
+async def generate_token(request: TokenGenerationRequest):
+    """Generate a new authentication token for a user"""
+    try:
+        # Generate secure token
+        new_token = secrets.token_urlsafe(32)
+        
+        # Generate unique user ID
+        user_id = f"user_{secrets.token_hex(8)}"
+        user_name = request.user_name or f"User {user_id[-8:]}"
+        
+        # Store token in database
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO auth_tokens (token, user_id, user_name) 
+            VALUES (%s, %s, %s)
+            RETURNING id
+        """, (new_token, user_id, user_name))
+        
+        # Get memory count for this user (should be 0 for new users)
+        cursor.execute("""
+            SELECT COUNT(*) FROM memories WHERE user_id = %s
+        """, (user_id,))
+        memory_count = cursor.fetchone()[0]
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Determine the domain based on environment
+        domain = os.getenv('MEMORY_DOMAIN', 'mcp-memory-uw0w.onrender.com')
+        if domain == 'localhost':
+            domain = f"localhost:{os.getenv('PORT', '8000')}"
+        
+        # Create the MCP URL
+        mcp_url = f"https://{domain}/sse?token={new_token}"
+        
+        logger.info(f"Generated new token for user {user_id}")
+        
+        return TokenGenerationResponse(
+            token=new_token,
+            user_id=user_id,
+            url=mcp_url,
+            memory_limit=25,
+            memories_used=memory_count
+        )
+        
+    except Exception as e:
+        logger.error(f"Error generating token: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate token")
+
+@app.post("/api/join-waitlist", response_model=WaitlistResponse)
+async def join_waitlist(request: WaitlistRequest):
+    """Add email to premium waitlist"""
+    try:
+        # Basic email validation
+        if "@" not in request.email or "." not in request.email:
+            raise HTTPException(status_code=400, detail="Invalid email format")
+        
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        # Try to insert email (will fail if duplicate due to UNIQUE constraint)
+        cursor.execute("""
+            INSERT INTO waitlist_emails (email) 
+            VALUES (%s)
+            ON CONFLICT (email) DO NOTHING
+            RETURNING id
+        """, (request.email.lower(),))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        if result:
+            logger.info(f"New email added to waitlist: {request.email}")
+            message = "Successfully joined the premium waitlist!"
+        else:
+            logger.info(f"Email already on waitlist: {request.email}")
+            message = "Email already on waitlist."
+        
+        return WaitlistResponse(
+            message=message,
+            email=request.email
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error joining waitlist: {e}")
+        raise HTTPException(status_code=500, detail="Failed to join waitlist")
 
 @app.delete("/memories/{memory_id}")
 async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)):
