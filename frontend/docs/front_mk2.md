@@ -12,7 +12,8 @@ Once core adoption is proven, the following will be implemented:
 * **Optional Manual Edits(Optional)**
 	
 	Edit/delete memory, conflict resolution in front end dashboard (MK2)
-		- not too needed cause ai model can do that for us, no need for front end to do the same for now
+		- not too needed cause ai model can do that for us, no need for front end to 
+		do the same for now
 
 ### 🔥 Conflict Resolution (Visual UI)
 
