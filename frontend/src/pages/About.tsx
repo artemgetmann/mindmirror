@@ -105,6 +105,29 @@ const About = () => {
 
             <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mt-8">
               <CardHeader>
+                <CardTitle className="font-mono text-lg">━━━ Smart Conflict Resolution ━━━</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  <strong>Humans evolve. Our preferences change. Our memory system does too.</strong>
+                </p>
+                <p className="text-muted-foreground">
+                  Today you might prefer VS Code. Tomorrow you might prefer Vim. Most AI systems break when preferences conflict—MindMirror embraces this reality.
+                </p>
+                <p className="text-muted-foreground">
+                  Our advanced conflict detection automatically identifies when new information contradicts stored memories. Instead of silently overwriting or ignoring conflicts, MindMirror surfaces them intelligently, letting you choose which preferences to keep.
+                </p>
+                <p className="text-muted-foreground">
+                  <strong>We're not binary creatures.</strong> We constantly evolve our thoughts, habits, and preferences. Your AI memory should evolve with you, not against you.
+                </p>
+                <p className="text-muted-foreground">
+                  This is what makes MindMirror different from simple storage—it understands that human memory is complex, contextual, and constantly changing.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mt-8">
+              <CardHeader>
                 <CardTitle className="font-mono text-lg">━━━ Under the Hood ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
