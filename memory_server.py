@@ -207,6 +207,23 @@ def get_user_from_token(token: str) -> Optional[str]:
 
 def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Get current user from token (URL param or Authorization header)"""
+    # Validate host to ensure memory limits are enforced
+    host = request.headers.get("host", "")
+    allowed_hosts = [
+        "memory.usemindmirror.com",
+        "localhost:8001", 
+        "localhost:8000",
+        "127.0.0.1:8001",
+        "127.0.0.1:8000"
+    ]
+    
+    if host not in allowed_hosts:
+        logger.warning(f"Memory access denied from unauthorized host: {host}")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Memory access restricted. Please use https://memory.usemindmirror.com"
+        )
+    
     token = None
     
     # Check URL parameter first (Zapier-style)
