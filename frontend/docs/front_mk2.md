@@ -9,7 +9,10 @@ Once core adoption is proven, the following will be implemented:
 * **Memory Count:** See how many memories you've stored
 * **Memory Browser (Read-Only)**
 * **Filter by tag:** (preference, goal, habit, routine, etc.)
-* **Optional Manual Edits**
+* **Optional Manual Edits(Optional)**
+	
+	Edit/delete memory, conflict resolution in front end dashboard (MK2)
+		- not too needed cause ai model can do that for us, no need for front end to do the same for now
 
 ### 🔥 Conflict Resolution (Visual UI)
 
@@ -21,7 +24,7 @@ Once core adoption is proven, the following will be implemented:
 
 * See what Claude is remembering most
 * Track how memory is evolving over time
-* Memory export or backup
+* Memory export or backup (critical for user trust)
 
 ### 💳 Premium Tier (Billing)
 
@@ -30,6 +33,7 @@ Once core adoption is proven, the following will be implemented:
 * Unlock advanced dashboard and analytics
 * Priority API access for custom integrations
 
-(Optional) Edit/delete memory, conflict resolution in front end dashboard (MK2)
-   - not too needed cause ai model can do that for us, no need for front end to do the same for now
 
+
+* Privacy Policy as separate page if going public or getting legal
+* Optional testimonials if you’re targeting bigger orgs later

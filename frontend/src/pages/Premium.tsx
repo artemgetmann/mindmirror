@@ -32,7 +32,7 @@ const Premium = () => {
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">100 memory entries</span>
+                    <span className="text-sm">25 memory entries</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-muted-foreground" />
@@ -40,7 +40,7 @@ const Premium = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Community support</span>
+                    <span className="text-sm">Standard conflict detection</span>
                   </div>
                 </div>
                 <div className="text-2xl font-bold">$0</div>
@@ -60,19 +60,15 @@ const Premium = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-accent-neon" />
-                    <span className="text-sm">Advanced context analysis</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Check className="h-4 w-4 text-accent-neon" />
                     <span className="text-sm">Full memory export (JSON/CSV)</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-accent-neon" />
-                    <span className="text-sm">Priority support</span>
+                    <span className="text-sm">Advanced search & filtering</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Check className="h-4 w-4 text-accent-neon" />
-                    <span className="text-sm">Memory search & filtering</span>
+                    <span className="text-sm">Memory analytics dashboard</span>
                   </div>
                 </div>
                 <div className="text-2xl font-bold">Coming Soon</div>
@@ -112,7 +108,7 @@ const Premium = () => {
               Your current memory usage will be displayed here once you generate a token.
             </p>
             <div className="bg-muted p-4 rounded border-2 border-dashed font-mono text-sm">
-              Memory Usage: -- / 100 entries
+              Memory Usage: -- / 25 entries
             </div>
           </div>
         </div>
