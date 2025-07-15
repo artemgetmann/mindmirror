@@ -6,7 +6,6 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-import chromadb
 from datetime import datetime
 from typing import List, Optional
 import json
@@ -101,32 +100,23 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Memory System v0", lifespan=lifespan)
 
-# Initialize embedding model and vector store (pre-downloaded during build)
+# Initialize embedding model (pre-downloaded during build)
 logger.info("🔄 Loading pre-downloaded embedding model...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
-collection = chroma_client.get_or_create_collection(name="memories")
-
-# Multi-user collections cache
-user_collections = {}
 
 # Create memory hash cache for deduplication
 memory_hashes = set()
 
 # Load existing memory hashes on startup
 try:
-    existing_memories = collection.get()
-    if existing_memories and 'metadatas' in existing_memories and existing_memories['metadatas']:
-        for metadata in existing_memories['metadatas']:
-            if 'hash' in metadata:
-                memory_hashes.add(metadata['hash'])
-            else:
-                # For backwards compatibility with memories stored before hash implementation
-                text = existing_memories['documents'][existing_memories['metadatas'].index(metadata)].strip().lower()
-                tag = metadata['tag']
-                memory_hash = hashlib.md5(f"{text}:{tag}".encode()).hexdigest()
-                memory_hashes.add(memory_hash)
-                
+    conn = psycopg2.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    cursor.execute("SELECT metadata->>'hash' as hash FROM memories WHERE metadata->>'hash' IS NOT NULL")
+    hashes = cursor.fetchall()
+    for (hash_val,) in hashes:
+        memory_hashes.add(hash_val)
+    cursor.close()
+    conn.close()
     logger.info(f"Loaded {len(memory_hashes)} memory hashes for deduplication")
 except Exception as e:
     logger.error(f"Error loading memory hashes: {e}")
@@ -223,12 +213,9 @@ class SearchRequest(BaseModel):
     limit: int = 5
     tag_filter: Optional[str] = None
 
-def get_user_collection(user_id: str):
-    """Get or create user-specific collection"""
-    if user_id not in user_collections:
-        collection_name = f"memories_{user_id}"
-        user_collections[user_id] = chroma_client.get_or_create_collection(name=collection_name)
-    return user_collections[user_id]
+def get_db_connection():
+    """Get database connection"""
+    return psycopg2.connect(**DB_CONFIG)
 
 @app.post("/memories")
 async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_user)):
@@ -265,30 +252,30 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     # Add to hash set
     memory_hashes.add(memory_hash)
     
-    # Get user-specific collection
-    user_collection = get_user_collection(user_id)
-    
     # Generate embedding
     embedding = model.encode(memory.text).tolist()
     
     # Check for semantic duplicates (similarity > 0.95) before storing
     DUPLICATE_THRESHOLD = 0.95
-    if user_collection.count() > 0:  # Skip check for first memory
-        duplicate_results = user_collection.query(
-            query_embeddings=[embedding],
-            n_results=3,  # Check top 3 similar memories
-            where={"tag": memory.tag}
-        )
-        
-        if duplicate_results['distances'] and duplicate_results['distances'][0]:
-            for i, distance in enumerate(duplicate_results['distances'][0]):
-                # Convert distance to similarity (0-1 range)
-                similarity = max(0, 1 - (distance / 2))
-                if similarity > DUPLICATE_THRESHOLD:
-                    duplicate_id = duplicate_results['ids'][0][i]
-                    duplicate_text = duplicate_results['documents'][0][i]
-                    logger.info(f"Semantic duplicate detected for user {user_id}: '{memory.text}' too similar to '{duplicate_text}' (similarity: {similarity:.4f})")
-                    return {"status": "duplicate", "message": f"Memory too similar to existing memory {duplicate_id}", "similarity": similarity}
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check for similar memories with same tag
+    cursor.execute("""
+        SELECT id, text, 1 - (embedding <=> %s::vector) as similarity
+        FROM memories 
+        WHERE user_id = %s AND tag = %s
+        ORDER BY embedding <=> %s::vector
+        LIMIT 3
+    """, (embedding, user_id, memory.tag, embedding))
+    
+    similar_memories = cursor.fetchall()
+    for mem_id, mem_text, similarity in similar_memories:
+        if similarity > DUPLICATE_THRESHOLD:
+            cursor.close()
+            conn.close()
+            logger.info(f"Semantic duplicate detected for user {user_id}: '{memory.text}' too similar to '{mem_text}' (similarity: {similarity:.4f})")
+            return {"status": "duplicate", "message": f"Memory too similar to existing memory {mem_id}", "similarity": similarity}
     
     # Create unique ID
     memory_id = f"mem_{int(datetime.utcnow().timestamp() * 1000)}"
@@ -298,27 +285,21 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     SIMILARITY_THRESHOLD = 0.65  # Lowered threshold for potential conflicts - was 0.8 initially
     logger.info(f"Checking for conflicts for user {user_id} with similarity threshold {SIMILARITY_THRESHOLD}...")
     
-    # Search for memories with same tag
-    if user_collection.count() > 0:  # Skip conflict check for first memory
-        # Use embedding to search for similar memories with same tag
-        similar_results = user_collection.query(
-            query_embeddings=[embedding],
-            n_results=5,  # Check top 5 similar memories
-            where={"tag": memory.tag}
-        )
-        
-        # Check if any meets similarity threshold
-        if similar_results['distances'] and similar_results['distances'][0]:
-            for i, distance in enumerate(similar_results['distances'][0]):
-                # Convert distance to similarity (0-1 range)
-                similarity = max(0, 1 - (distance / 2))
-                conflict_id = similar_results['ids'][0][i]
-                conflict_text = similar_results['documents'][0][i]
-                logger.info(f"Similarity check for user {user_id} with '{conflict_text}': {similarity:.4f}")
-                
-                if similarity >= SIMILARITY_THRESHOLD:
-                    logger.info(f"Conflict detected for user {user_id}: {conflict_id} (similarity: {similarity:.4f})")
-                    conflicts.append(conflict_id)
+    # Search for memories with same tag for conflict detection
+    cursor.execute("""
+        SELECT id, text, 1 - (embedding <=> %s::vector) as similarity
+        FROM memories 
+        WHERE user_id = %s AND tag = %s
+        ORDER BY embedding <=> %s::vector
+        LIMIT 5
+    """, (embedding, user_id, memory.tag, embedding))
+    
+    conflict_candidates = cursor.fetchall()
+    for conflict_id, conflict_text, similarity in conflict_candidates:
+        logger.info(f"Similarity check for user {user_id} with '{conflict_text}': {similarity:.4f}")
+        if similarity >= SIMILARITY_THRESHOLD:
+            logger.info(f"Conflict detected for user {user_id}: {conflict_id} (similarity: {similarity:.4f})")
+            conflicts.append(conflict_id)
     
     # Set last_accessed timestamp
     current_time = datetime.utcnow().isoformat() + "Z"
@@ -340,9 +321,10 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
         # Update the conflicting memories to point back to this one
         for conflict_id in conflicts:
             # Get existing metadata for the conflict
-            conflict_result = user_collection.get(ids=[conflict_id])
-            if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
-                conflict_metadata = conflict_result['metadatas'][0]
+            cursor.execute("SELECT metadata FROM memories WHERE id = %s", (conflict_id,))
+            result = cursor.fetchone()
+            if result:
+                conflict_metadata = result[0]
                 
                 # Update conflict info
                 conflict_metadata["has_conflicts"] = True
@@ -357,15 +339,17 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
                     conflict_metadata["conflict_ids"] = json.dumps([memory_id])
                 
                 # Update the conflict's metadata
-                user_collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+                cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(conflict_metadata), conflict_id))
     
-    # Store in Chroma
-    user_collection.add(
-        embeddings=[embedding],
-        documents=[memory.text],
-        metadatas=[metadata],
-        ids=[memory_id]
-    )
+    # Store in PostgreSQL
+    cursor.execute("""
+        INSERT INTO memories (id, user_id, text, tag, embedding, metadata)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (memory_id, user_id, memory.text, memory.tag, embedding, json.dumps(metadata)))
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     logger.info(f"Memory stored successfully for user {user_id}: ID {memory_id}, {len(conflicts)} conflicts detected")
     
@@ -387,57 +371,61 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
     query_embedding = model.encode(request.query).tolist()
     
     # Build where clause for tag filtering
-    where_clause = None
+    tag_filter_sql = ""
+    params = [query_embedding, user_id, query_embedding, request.limit]
     if request.tag_filter:
         if request.tag_filter not in VALID_TAGS:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid tag filter. Must be one of: {VALID_TAGS}"
             )
-        where_clause = {"tag": request.tag_filter}
+        tag_filter_sql = "AND tag = %s"
+        params.insert(2, request.tag_filter)
     
-    # Get user-specific collection
-    user_collection = get_user_collection(user_id)
+    # Search in PostgreSQL
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
-    # Search in Chroma
-    results = user_collection.query(
-        query_embeddings=[query_embedding],
-        n_results=request.limit,
-        where=where_clause
-    )
+    cursor.execute(f"""
+        SELECT id, text, tag, metadata, created_at,
+               1 - (embedding <=> %s::vector) as similarity
+        FROM memories 
+        WHERE user_id = %s {tag_filter_sql}
+        ORDER BY embedding <=> %s::vector
+        LIMIT %s
+    """, params)
+    
+    results = cursor.fetchall()
     
     # Log raw search results  
-    total_results = len(results['documents'][0]) if results['documents'] and results['documents'][0] else 0
+    total_results = len(results)
     logger.info(f"Search results for user {user_id}: found {total_results} memories")
     if total_results > 0:
-        similarities = [max(0, 1 - (d/2)) for d in results['distances'][0][:3]]
+        similarities = [row['similarity'] for row in results[:3]]
         logger.info(f"Top 3 similarities: {similarities}")
     
     # Format response
     memories = []
     conflict_sets = {}
     
-    if results['documents'] and results['documents'][0]:
+    if results:
         # First pass - create all memories
-        for i, doc in enumerate(results['documents'][0]):
-            metadata = results['metadatas'][0][i]
-            memory_id = results['ids'][0][i]
+        for row in results:
+            metadata = row['metadata']
+            memory_id = row['id']
             
             # Update last_accessed timestamp
             current_time = datetime.utcnow().isoformat() + "Z"
             metadata["last_accessed"] = current_time
-            user_collection.update(ids=[memory_id], metadatas=[metadata])
+            cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(metadata), memory_id))
             
             memory = MemoryResponse(
                 id=memory_id,
-                text=doc,
-                tag=metadata['tag'],
+                text=row['text'],
+                tag=row['tag'],
                 timestamp=metadata['timestamp'],
                 last_accessed=current_time,
-                # Fix similarity calculation (cosine_distance → cosine_similarity):
-                # distance is [0-2] where 0 is identical, 2 is opposite
-                # normalize to proper similarity score in [0-1] range where 1 is identical
-                similarity=max(0, 1 - (results['distances'][0][i] / 2))
+                similarity=row['similarity']
             )
             memories.append(memory)
             
@@ -453,14 +441,15 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
                 # Fetch and add conflicting memories if not already in results
                 for conflict_id in conflict_ids:
                     if conflict_id not in [m['id'] if isinstance(m, dict) else m.id for m in memories]:
-                        conflict_result = user_collection.get(ids=[conflict_id])
-                        if conflict_result['documents'] and conflict_result['documents'][0]:
-                            conflict_metadata = conflict_result['metadatas'][0]
+                        cursor.execute("SELECT id, text, tag, metadata FROM memories WHERE id = %s", (conflict_id,))
+                        conflict_result = cursor.fetchone()
+                        if conflict_result:
+                            conflict_metadata = conflict_result['metadata']
                             
                             conflict_memory = MemoryResponse(
                                 id=conflict_id,
-                                text=conflict_result['documents'][0],
-                                tag=conflict_metadata['tag'],
+                                text=conflict_result['text'],
+                                tag=conflict_result['tag'],
                                 timestamp=conflict_metadata['timestamp'],
                                 last_accessed=conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
                             )
@@ -509,6 +498,11 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
             
             # Update conflict set with deduplicated conflicts
             conflict_sets[memory_id] = unique_conflicts
+    
+    # Close database connection
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     # Build initial response
     response = {
@@ -673,12 +667,16 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
         manual_conflict_sets = {}
         
         # Check each memory for conflicts
+        conn2 = get_db_connection()
+        cursor2 = conn2.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        
         for memory in memories:
             memory_id = memory['id'] if isinstance(memory, dict) else memory.id
-            metadata_result = user_collection.get(ids=[memory_id])
+            cursor2.execute("SELECT metadata FROM memories WHERE id = %s", (memory_id,))
+            result = cursor2.fetchone()
             
-            if metadata_result['metadatas'] and len(metadata_result['metadatas']) > 0:
-                metadata = metadata_result['metadatas'][0]
+            if result:
+                metadata = result['metadata']
                 
                 if metadata.get('has_conflicts', False) and 'conflict_ids' in metadata:
                     conflict_ids = json.loads(metadata['conflict_ids'])
@@ -690,19 +688,23 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
                     
                     # Add conflicting memories
                     for conflict_id in conflict_ids:
-                        conflict_result = user_collection.get(ids=[conflict_id])
-                        if conflict_result['documents'] and conflict_result['documents'][0]:
-                            conflict_metadata = conflict_result['metadatas'][0]
+                        cursor2.execute("SELECT id, text, tag, metadata FROM memories WHERE id = %s", (conflict_id,))
+                        conflict_result = cursor2.fetchone()
+                        if conflict_result:
+                            conflict_metadata = conflict_result['metadata']
                             
                             conflict_memory = {
                                 "id": conflict_id,
-                                "text": conflict_result['documents'][0],
-                                "tag": conflict_metadata['tag'],
+                                "text": conflict_result['text'],
+                                "tag": conflict_result['tag'],
                                 "timestamp": conflict_metadata['timestamp'],
                                 "last_accessed": conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
                             }
                             
                             manual_conflict_sets[memory_id].append(conflict_memory)
+        
+        cursor2.close()
+        conn2.close()
         
         # Add manual conflict sets to response (only if no conflict groups were created)
         if manual_conflict_sets and "conflict_groups" not in response:
@@ -725,26 +727,30 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
     
     logger.info(f"Getting memory {memory_id} for user {user_id}")
     
-    # Get user-specific collection
-    user_collection = get_user_collection(user_id)
+    # Get memory from PostgreSQL
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
-    results = user_collection.get(ids=[memory_id])
+    cursor.execute("SELECT id, text, tag, metadata FROM memories WHERE id = %s AND user_id = %s", (memory_id, user_id))
+    result = cursor.fetchone()
     
-    if not results['documents']:
+    if not result:
+        cursor.close()
+        conn.close()
         logger.warning(f"Memory {memory_id} not found for user {user_id}")
         raise HTTPException(status_code=404, detail="Memory not found")
     
-    metadata = results['metadatas'][0]
+    metadata = result['metadata']
     
     # Update last_accessed timestamp
-    current_time = datetime.utcnow().isoformat() + "Z"
+    current_time = datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z')
     metadata["last_accessed"] = current_time
-    user_collection.update(ids=[memory_id], metadatas=[metadata])
+    cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(metadata), memory_id))
     
     memory = MemoryResponse(
         id=memory_id,
-        text=results['documents'][0],
-        tag=metadata['tag'],
+        text=result['text'],
+        tag=result['tag'],
         timestamp=metadata['timestamp'],
         last_accessed=current_time
     )
@@ -758,14 +764,15 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
         
         # Fetch all conflicting memories
         for conflict_id in conflict_ids:
-            conflict_result = user_collection.get(ids=[conflict_id])
-            if conflict_result['documents'] and conflict_result['documents'][0]:
-                conflict_metadata = conflict_result['metadatas'][0]
+            cursor.execute("SELECT id, text, tag, metadata FROM memories WHERE id = %s", (conflict_id,))
+            conflict_result = cursor.fetchone()
+            if conflict_result:
+                conflict_metadata = conflict_result['metadata']
                 
                 conflict_memory = {
                     "id": conflict_id,
-                    "text": conflict_result['documents'][0],
-                    "tag": conflict_metadata['tag'],
+                    "text": conflict_result['text'],
+                    "tag": conflict_result['tag'],
                     "timestamp": conflict_metadata['timestamp'],
                     "last_accessed": conflict_metadata.get('last_accessed', conflict_metadata['timestamp'])
                 }
@@ -773,6 +780,10 @@ async def get_memory(memory_id: str, user_id: str = Depends(get_current_user)):
                 conflict_set.append(conflict_memory)
         
         response_data["conflict_set"] = conflict_set
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     return response_data
 
@@ -782,7 +793,8 @@ async def list_memories(tag: Optional[str] = None, limit: int = 10, user_id: str
     
     logger.info(f"Listing memories for user {user_id}: tag={tag}, limit={limit}")
     
-    where_clause = None
+    tag_filter_sql = ""
+    params = [user_id, limit]
     if tag:
         if tag not in VALID_TAGS:
             logger.error(f"Invalid tag '{tag}' provided by user {user_id}")
@@ -790,25 +802,37 @@ async def list_memories(tag: Optional[str] = None, limit: int = 10, user_id: str
                 status_code=400,
                 detail=f"Invalid tag. Must be one of: {VALID_TAGS}"
             )
-        where_clause = {"tag": tag}
+        tag_filter_sql = "AND tag = %s"
+        params.insert(1, tag)
     
-    # Get user-specific collection
-    user_collection = get_user_collection(user_id)
+    # Get memories from PostgreSQL
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
-    results = user_collection.get(where=where_clause, limit=limit)
+    cursor.execute(f"""
+        SELECT id, text, tag, metadata, created_at
+        FROM memories 
+        WHERE user_id = %s {tag_filter_sql}
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, params)
+    
+    results = cursor.fetchall()
     
     memories = []
-    if results['documents']:
-        for i, doc in enumerate(results['documents']):
-            metadata = results['metadatas'][i]
-            memory = MemoryResponse(
-                id=results['ids'][i],
-                text=doc,
-                tag=metadata['tag'],
-                timestamp=metadata['timestamp'],
-                last_accessed=metadata.get('last_accessed', metadata['timestamp'])
-            )
-            memories.append(memory)
+    for row in results:
+        metadata = row['metadata']
+        memory = MemoryResponse(
+            id=row['id'],
+            text=row['text'],
+            tag=row['tag'],
+            timestamp=metadata['timestamp'],
+            last_accessed=metadata.get('last_accessed', metadata['timestamp'])
+        )
+        memories.append(memory)
+    
+    cursor.close()
+    conn.close()
     
     logger.info(f"Returning {len(memories)} memories for user {user_id}")
     
@@ -849,20 +873,24 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
     logger.info(f"Deleting memory {memory_id} for user {user_id}")
     
     try:
-        # Get user-specific collection
-        user_collection = get_user_collection(user_id)
+        # Get memory from PostgreSQL
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # First check if memory exists
-        results = user_collection.get(ids=[memory_id])
+        cursor.execute("SELECT id, text, tag, metadata FROM memories WHERE id = %s AND user_id = %s", (memory_id, user_id))
+        result = cursor.fetchone()
         
-        if not results['documents']:
+        if not result:
+            cursor.close()
+            conn.close()
             logger.warning(f"Memory {memory_id} not found for deletion by user {user_id}")
             raise HTTPException(status_code=404, detail="Memory not found")
         
         # Get memory details for logging
-        memory_text = results['documents'][0]
-        metadata = results['metadatas'][0]
-        memory_tag = metadata['tag']
+        memory_text = result['text']
+        metadata = result['metadata']
+        memory_tag = result['tag']
         
         # Remove hash from memory_hashes set for deduplication tracking
         if 'hash' in metadata:
@@ -881,9 +909,10 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
             for conflict_id in conflict_ids:
                 try:
                     # Get the conflicting memory
-                    conflict_result = user_collection.get(ids=[conflict_id])
-                    if conflict_result['metadatas'] and conflict_result['metadatas'][0]:
-                        conflict_metadata = conflict_result['metadatas'][0]
+                    cursor.execute("SELECT metadata FROM memories WHERE id = %s", (conflict_id,))
+                    conflict_result = cursor.fetchone()
+                    if conflict_result:
+                        conflict_metadata = conflict_result['metadata']
                         
                         # Remove this memory from its conflict list
                         if 'conflict_ids' in conflict_metadata:
@@ -900,12 +929,16 @@ async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)
                                     del conflict_metadata['conflict_ids']
                                 
                                 # Update the conflicting memory
-                                user_collection.update(ids=[conflict_id], metadatas=[conflict_metadata])
+                                cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(conflict_metadata), conflict_id))
                 except Exception as e:
                     logger.warning(f"Warning for user {user_id}: Error updating conflict for memory {conflict_id}: {e}")
         
-        # Delete the memory from ChromaDB
-        user_collection.delete(ids=[memory_id])
+        # Delete the memory from PostgreSQL
+        cursor.execute("DELETE FROM memories WHERE id = %s", (memory_id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         # Log the deletion
         logger.info(f"Memory deleted for user {user_id}: {memory_id} - '{memory_text}' (tag: {memory_tag})")
@@ -947,64 +980,66 @@ async def prune_memories(user_id: str = Depends(get_current_user)):
         "core_tags": CORE_TAGS
     }
     
-    # Get user-specific collection
-    user_collection = get_user_collection(user_id)
+    # Get memories from PostgreSQL
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
-    # Get all memories
-    results = user_collection.get()
+    cursor.execute("SELECT id, text, tag, metadata, created_at FROM memories WHERE user_id = %s", (user_id,))
+    results = cursor.fetchall()
+    
     memories = []
     
     # Split into categories
     to_prune = []
     kept = []
     
-    if results['documents']:
-        for i, doc in enumerate(results['documents']):
-            memory_id = results['ids'][i]
-            metadata = results['metadatas'][i]
+    for row in results:
+        memory_id = row['id']
+        metadata = row['metadata']
+        
+        memory = {
+            "id": memory_id,
+            "text": row['text'],
+            "tag": row['tag'],
+            "timestamp": metadata['timestamp'],
+            "last_accessed": metadata.get('last_accessed', metadata['timestamp'])
+        }
+        memories.append(memory)
+        
+        # Skip core memories
+        if row['tag'] in CORE_TAGS:
+            kept.append(memory)
+            continue
+        
+        # Check timestamp
+        timestamp = datetime.fromisoformat(metadata["timestamp"].rstrip("Z"))
+        
+        # Check last_accessed (if available)
+        last_accessed = None
+        if "last_accessed" in metadata:
+            last_accessed = datetime.fromisoformat(metadata["last_accessed"].rstrip("Z"))
+        else:
+            # If no last_accessed, use timestamp
+            last_accessed = timestamp
+        
+        # Apply pruning logic
+        if timestamp < archive_cutoff and last_accessed < access_cutoff:
+            # Mark for pruning
+            to_prune.append(memory)
             
-            memory = {
-                "id": memory_id,
-                "text": doc,
-                "tag": metadata['tag'],
-                "timestamp": metadata['timestamp'],
-                "last_accessed": metadata.get('last_accessed', metadata['timestamp'])
-            }
-            memories.append(memory)
+            # Update metadata to indicate archived status
+            metadata["archived"] = True
+            metadata["archive_date"] = datetime.now(datetime.timezone.utc).isoformat().replace('+00:00', 'Z')
+            metadata["archive_reason"] = "age_and_access"
             
-            # Skip core memories
-            if metadata['tag'] in CORE_TAGS:
-                kept.append(memory)
-                continue
-            
-            # Check timestamp
-            timestamp = datetime.fromisoformat(metadata["timestamp"].rstrip("Z"))
-            
-            # Check last_accessed (if available)
-            last_accessed = None
-            if "last_accessed" in metadata:
-                last_accessed = datetime.fromisoformat(metadata["last_accessed"].rstrip("Z"))
-            else:
-                # If no last_accessed, use timestamp
-                last_accessed = timestamp
-            
-            # Apply pruning logic
-            if timestamp < archive_cutoff and last_accessed < access_cutoff:
-                # Mark for pruning
-                to_prune.append(memory)
-                
-                # Update metadata to indicate archived status
-                metadata["archived"] = True
-                metadata["archive_date"] = datetime.now(datetime.timezone.utc).isoformat() + "Z"
-                metadata["archive_reason"] = "age_and_access"
-                
-                # Update metadata in collection
-                user_collection.update(
-                    ids=[memory_id],
-                    metadatas=[metadata]
-                )
-            else:
-                kept.append(memory)
+            # Update metadata in database
+            cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(metadata), memory_id))
+        else:
+            kept.append(memory)
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     # Return pruning results
     logger.info(f"Pruning complete for user {user_id}: {len(to_prune)} memories pruned, {len(kept)} kept")
