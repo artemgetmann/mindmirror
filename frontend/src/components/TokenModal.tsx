@@ -165,7 +165,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="url">Claude Desktop URL</Label>
+                    <Label htmlFor="url">Claude URL</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
                         id="url"
@@ -201,9 +201,9 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                 <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
                   <li>1. Copy the URL above</li>
-                  <li>2. Open Claude Desktop settings</li>
+                  <li>2. Open Claude settings</li>
                   <li>3. Add the URL to your MCP servers</li>
-                  <li>4. Restart Claude Desktop</li>
+                  <li>4. Restart Claude</li>
                 </ol>
               </div>
 
