@@ -11,7 +11,7 @@ Real-time chat interface that demonstrates autonomous AI memory behavior. The AI
 ### What it demonstrates
 
 - ✅ **Autonomous tool usage** - AI decides when to call memory tools
-- ✅ **Natural language interface** - "list memories" → AI calls `list_memories`
+- ✅ **Natural language interface** - "what do you know" → AI calls `what_do_you_know`
 - ✅ **Real-time interaction** - streaming responses with tool calls
 - ✅ **Persistent memory** - stores and retrieves user preferences
 
@@ -23,17 +23,17 @@ $ npm start
 🤖 Interactive Chat with MindMirror Memory
 Type your messages below. Type "exit" to quit.
 
-You: list memories
-🛠️  AI is calling: list_memories  
-AI: You have 4 memories stored...
+You: what do you know about me?
+🛠️  AI is calling: what_do_you_know  
+AI: Here's what I know (4 total): ...
 
-You: store i like vim
-🛠️  AI is calling: store_memory
-AI: I've stored that you like Vim!
+You: remember i like vim
+🛠️  AI is calling: remember
+AI: I'll remember that!
 
 You: what are my preferences?
-🛠️  AI is calling: search_memory
-AI: Based on your stored preferences: working mornings, TypeScript, Vim...
+🛠️  AI is calling: recall
+AI: I remember 3 things about your preferences: working mornings, TypeScript, Vim...
 ```
 
 ### Key insight
@@ -91,7 +91,7 @@ Your AI App → MCP Client → mcp-remote → MindMirror Server
 ### How it works
 
 1. **Connect** to MindMirror via MCP protocol using `mcp-remote`
-2. **List tools** available from MindMirror server (`store_memory`, `search_memory`, etc.)
+2. **List tools** available from MindMirror server (`remember`, `recall`, `what_do_you_know`, `forget`)
 3. **Convert** MCP tools to OpenAI function definitions
 4. **Let AI decide** when to use memory tools based on user input
 5. **Execute** tool calls via MCP client when AI requests them

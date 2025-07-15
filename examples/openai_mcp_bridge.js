@@ -90,7 +90,7 @@ async function chatWithAutonomousMemory(userMessage, conversationHistory = []) {
   const messages = [
     {
       role: "system",
-      content: "You are an AI assistant with persistent memory capabilities. You have access to memory tools: store_memory, search_memory, list_memories, delete_memory. Use these tools autonomously when appropriate. When users ask about their stored information, use list_memories to show them what you know."
+      content: "You are an AI assistant with persistent memory capabilities. You have access to memory tools: remember, recall, what_do_you_know, forget. Use these tools autonomously when appropriate. When users ask about their stored information, use what_do_you_know to show them what you know."
     },
     ...conversationHistory,
     { role: "user", content: userMessage }
@@ -188,7 +188,7 @@ async function runBridgeDemo() {
     const demo4 = await chatWithAutonomousMemory("What programming language should I use for my next project?", conversation);
     conversation = demo4.conversationHistory;
     
-    // KEY TEST: Ask AI to list memories - it should autonomously call list_memories tool
+    // KEY TEST: Ask AI to list memories - it should autonomously call what_do_you_know tool
     const demo5 = await chatWithAutonomousMemory("Can you list all my stored memories?", conversation);
     conversation = demo5.conversationHistory;
     

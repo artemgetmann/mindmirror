@@ -132,81 +132,81 @@ async def check_token(request: Request) -> dict:
 
 # MCP Tool Definitions
 @mcp.tool()
-async def store_memory(text: str, tag: str) -> str:
+async def remember(text: str, category: str) -> str:
     """
-    Store a new memory with conflict detection
+    Store information for future reference
     
     Args:
-        text: The memory text to store
-        tag: Memory category (goal, routine, preference, constraint, habit, project, tool, identity, value)
+        text: The information to remember
+        category: Information type (goal, routine, preference, constraint, habit, project, tool, identity, value)
     """
     try:
         # Get user context (token is automatically available from session)
         if "token" not in current_user_context:
-            return "Error: User not authenticated. Please reconnect with a valid token."
+            return "I need to authenticate first. Please reconnect with a valid token."
         
         token = current_user_context["token"]
         user_id = current_user_context["user_id"]
         
-        logger.info(f"Storing memory for user {user_id}: '{text[:50]}...' (tag: {tag})")
+        logger.info(f"Storing memory for user {user_id}: '{text[:50]}...' (tag: {category})")
         
-        # Validate tag
-        if tag not in VALID_TAGS:
-            return f"Error: Invalid tag '{tag}'. Must be one of: {', '.join(VALID_TAGS)}"
+        # Validate category
+        if category not in VALID_TAGS:
+            return f"I don't recognize the category '{category}'. Please use one of: {', '.join(VALID_TAGS)}"
         
         # Create HTTP client with user's token
         async with create_user_http_client(token) as client:
             response = await client.post("/memories", json={
                 "text": text,
-                "tag": tag
+                "tag": category
             })
             
             if response.status_code != 200:
                 logger.error(f"Memory server error: {response.status_code} - {response.text}")
-                return f"Error storing memory: {response.status_code} - {response.text}"
+                return f"I couldn't remember that: {response.text}"
             
             result = response.json()
             
             # Format response including any conflicts detected
-            output = f"Memory stored successfully!\n\n"
-            output += f"Text: {text}\n"
-            output += f"Tag: {tag}\n"
+            output = f"I'll remember that!\n\n"
+            output += f"Information: {text}\n"
+            output += f"Category: {category}\n"
             output += f"ID: {result.get('id', 'unknown')}\n"
             
             if result.get('conflicts_detected'):
-                output += f"\n⚠️ CONFLICTS DETECTED:\n"
+                output += f"\n⚠️ I noticed this conflicts with something I already know:\n"
                 for conflict in result.get('conflicts', []):
                     output += f"- {conflict.get('text', 'Unknown conflict')}\n"
             
             return output
             
     except Exception as e:
-        logger.error(f"Error in store_memory: {e}")
-        return f"Error storing memory: {str(e)}"
+        logger.error(f"Error in remember: {e}")
+        return f"I couldn't remember that: {str(e)}"
 
 @mcp.tool()
-async def search_memory(query: str, limit: int = 10, tag_filter: str = None) -> str:
+async def recall(query: str, limit: int = 10, category_filter: str = None) -> str:
     """
-    Search memories by query text with conflict detection
+    Find previously stored information
     
     Args:
-        query: Search query text
+        query: What you're looking for
         limit: Maximum number of results to return (default: 10)
-        tag_filter: Optional tag to filter results
+        category_filter: Optional category to filter results
     """
     try:
         # Get user context
         if "token" not in current_user_context:
-            return "Error: User not authenticated. Please reconnect with a valid token."
+            return "I need to authenticate first. Please reconnect with a valid token."
         
         token = current_user_context["token"]
         user_id = current_user_context["user_id"]
         
-        logger.info(f"Search request from user {user_id}: query='{query}', limit={limit}, tag_filter={tag_filter}")
+        logger.info(f"Search request from user {user_id}: query='{query}', limit={limit}, category_filter={category_filter}")
         
-        # Validate tag_filter if provided
-        if tag_filter and tag_filter not in VALID_TAGS:
-            return f"Error: Invalid tag filter '{tag_filter}'. Must be one of: {', '.join(VALID_TAGS)}"
+        # Validate category_filter if provided
+        if category_filter and category_filter not in VALID_TAGS:
+            return f"I don't recognize the category '{category_filter}'. Please use one of: {', '.join(VALID_TAGS)}"
         
         # Create HTTP client with user's token
         async with create_user_http_client(token) as client:
@@ -214,24 +214,24 @@ async def search_memory(query: str, limit: int = 10, tag_filter: str = None) -> 
                 "query": query,
                 "limit": limit
             }
-            if tag_filter:
-                search_data["tag_filter"] = tag_filter
+            if category_filter:
+                search_data["tag_filter"] = category_filter
             
             response = await client.post("/memories/search", json=search_data)
             
             if response.status_code != 200:
                 logger.error(f"Memory server error: {response.status_code} - {response.text}")
-                return f"Search failed: Memory server returned {response.status_code} error"
+                return f"I couldn't search for that: {response.text}"
             
             result = response.json()
             memories = result.get("results", [])
             conflict_groups = result.get("conflict_groups", [])
             
             if not memories:
-                return f"No memories found matching '{query}'"
+                return f"I don't recall anything about '{query}'"
             
             # Format results
-            output = f"Found {len(memories)} memories for '{query}':\n\n"
+            output = f"I remember {len(memories)} things about '{query}':\n\n"
             
             for i, memory in enumerate(memories, 1):
                 timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
@@ -239,7 +239,7 @@ async def search_memory(query: str, limit: int = 10, tag_filter: str = None) -> 
             
             # Add conflict information if present
             if conflict_groups:
-                output += f"\n⚠️ CONFLICTS DETECTED ({len(conflict_groups)} groups):\n"
+                output += f"\n⚠️ I remember some conflicting information ({len(conflict_groups)} groups):\n"
                 for i, group in enumerate(conflict_groups, 1):
                     output += f"Conflict Group {i}:\n"
                     for memory in group:
@@ -250,88 +250,88 @@ async def search_memory(query: str, limit: int = 10, tag_filter: str = None) -> 
             return output
             
     except Exception as e:
-        logger.error(f"Error in search_memory: {e}")
-        return f"Error searching memories: {str(e)}"
+        logger.error(f"Error in recall: {e}")
+        return f"I couldn't recall that: {str(e)}"
 
 @mcp.tool()
-async def delete_memory(memory_id: str) -> str:
+async def forget(information_id: str) -> str:
     """
-    Delete a specific memory by ID
+    Remove specific information from memory
     
     Args:
-        memory_id: The ID of the memory to delete
+        information_id: The ID of the information to forget
     """
     try:
         # Get user context
         if "token" not in current_user_context:
-            return "Error: User not authenticated. Please reconnect with a valid token."
+            return "I need to authenticate first. Please reconnect with a valid token."
         
         token = current_user_context["token"]
         user_id = current_user_context["user_id"]
         
-        logger.info(f"Deleting memory {memory_id} for user {user_id}")
+        logger.info(f"Forgetting information {information_id} for user {user_id}")
         
         # Create HTTP client with user's token
         async with create_user_http_client(token) as client:
-            response = await client.delete(f"/memories/{memory_id}")
+            response = await client.delete(f"/memories/{information_id}")
             
             if response.status_code == 200:
-                return f"Memory {memory_id} deleted successfully"
+                return f"I've forgotten that information"
             elif response.status_code == 404:
-                return f"Memory {memory_id} not found or you don't have permission to delete it"
+                return f"I don't have that information or you don't have permission to remove it"
             else:
                 logger.error(f"Memory server error: {response.status_code} - {response.text}")
-                return f"Failed to delete memory {memory_id}: {response.text}"
+                return f"I couldn't forget that: {response.text}"
                 
     except Exception as e:
-        logger.error(f"Error in delete_memory: {e}")
-        return f"Error deleting memory: {str(e)}"
+        logger.error(f"Error in forget: {e}")
+        return f"I couldn't forget that: {str(e)}"
 
 @mcp.tool()
-async def list_memories(tag: str = None, limit: int = 10) -> str:
+async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
     """
-    List all memories, optionally filtered by tag
+    Show what information you have stored
     
     Args:
-        tag: Optional tag filter (goal, routine, preference, constraint, habit, project, tool, identity, value)
-        limit: Maximum number of memories to return (default: 10)
+        category: Optional category filter (goal, routine, preference, constraint, habit, project, tool, identity, value)
+        limit: Maximum number of items to return (default: 1000)
     """
     try:
         # Get user context
         if "token" not in current_user_context:
-            return "Error: User not authenticated. Please reconnect with a valid token."
+            return "I need to authenticate first. Please reconnect with a valid token."
         
         token = current_user_context["token"]
         user_id = current_user_context["user_id"]
         
-        logger.info(f"Listing memories for user {user_id}: tag={tag}, limit={limit}")
+        logger.info(f"Listing memories for user {user_id}: category={category}, limit={limit}")
         
-        # Validate tag if provided
-        if tag and tag not in VALID_TAGS:
-            return f"Error: Invalid tag '{tag}'. Must be one of: {', '.join(VALID_TAGS)}"
+        # Validate category if provided
+        if category and category not in VALID_TAGS:
+            return f"I don't recognize the category '{category}'. Please use one of: {', '.join(VALID_TAGS)}"
         
         # Create HTTP client with user's token
         async with create_user_http_client(token) as client:
             params = {"limit": limit}
-            if tag:
-                params["tag"] = tag
+            if category:
+                params["tag"] = category
             
             response = await client.get("/memories", params=params)
             
             if response.status_code != 200:
                 logger.error(f"Memory server error: {response.status_code} - {response.text}")
-                return f"Failed to list memories: Memory server returned {response.status_code} error"
+                return f"I couldn't access what I know: {response.text}"
             
             result = response.json()
             memories = result.get("memories", [])
             
             if not memories:
-                filter_text = f" with tag '{tag}'" if tag else ""
-                return f"No memories found{filter_text}"
+                filter_text = f" in category '{category}'" if category else ""
+                return f"I don't know anything{filter_text}"
             
             # Format results
-            filter_text = f" (filtered by tag: {tag})" if tag else ""
-            output = f"Your Memories{filter_text} ({len(memories)} total):\n\n"
+            filter_text = f" (category: {category})" if category else ""
+            output = f"Here's what I know{filter_text} ({len(memories)} total):\n\n"
             
             for i, memory in enumerate(memories, 1):
                 timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
@@ -340,8 +340,8 @@ async def list_memories(tag: str = None, limit: int = 10) -> str:
             return output
             
     except Exception as e:
-        logger.error(f"Error in list_memories: {e}")
-        return f"Error listing memories: {str(e)}"
+        logger.error(f"Error in what_do_you_know: {e}")
+        return f"I couldn't access what I know: {str(e)}"
 
 async def handle_sse(request: Request):
     """Handle SSE connection with token authentication"""
