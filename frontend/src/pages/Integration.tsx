@@ -156,13 +156,13 @@ const Integration = () => {
                       <div className="mb-2">🤖 Interactive Chat with MindMirror Memory</div>
                       <div className="mb-2">Type your messages below. Type "exit" to quit.</div>
                       <div className="mb-1"></div>
-                      <div className="mb-1"><span className="text-blue-400">You:</span> list memories</div>
-                      <div className="mb-1"><span className="text-gray-400">🛠️  AI is calling: list_memories</span></div>
-                      <div className="mb-1"><span className="text-yellow-400">AI:</span> You have 5 memories stored...</div>
+                      <div className="mb-1"><span className="text-blue-400">You:</span> what do you know about me?</div>
+                      <div className="mb-1"><span className="text-gray-400">🛠️  AI is calling: what_do_you_know</span></div>
+                      <div className="mb-1"><span className="text-yellow-400">AI:</span> Here's what I know (5 total): ...</div>
                       <div className="mb-1"></div>
-                      <div className="mb-1"><span className="text-blue-400">You:</span> store i like vim</div>
-                      <div className="mb-1"><span className="text-gray-400">🛠️  AI is calling: store_memory</span></div>
-                      <div className="mb-1"><span className="text-yellow-400">AI:</span> I've stored that you like Vim!</div>
+                      <div className="mb-1"><span className="text-blue-400">You:</span> remember i like vim</div>
+                      <div className="mb-1"><span className="text-gray-400">🛠️  AI is calling: remember</span></div>
+                      <div className="mb-1"><span className="text-yellow-400">AI:</span> I'll remember that!</div>
                     </div>
 
                     <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm">

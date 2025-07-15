@@ -80,23 +80,23 @@ async function connectToMindMirror() {
       {
         type: "function",
         function: {
-          name: "store_memory",
-          description: "Store a new memory",
+          name: "remember",
+          description: "Store information for future reference",
           parameters: {
             type: "object",
             properties: {
-              text: { type: "string", description: "The memory text to store" },
-              tag: { type: "string", description: "The memory tag (preference, habit, etc.)" }
+              text: { type: "string", description: "The information to remember" },
+              category: { type: "string", description: "Information type (preference, habit, etc.)" }
             },
-            required: ["text", "tag"]
+            required: ["text", "category"]
           }
         }
       },
       {
         type: "function",
         function: {
-          name: "search_memory",
-          description: "Search for memories",
+          name: "recall",
+          description: "Find previously stored information",
           parameters: {
             type: "object",
             properties: {
@@ -109,8 +109,8 @@ async function connectToMindMirror() {
       {
         type: "function",
         function: {
-          name: "list_memories",
-          description: "List all stored memories",
+          name: "what_do_you_know",
+          description: "Show what information you have stored",
           parameters: {
             type: "object",
             properties: {},
@@ -121,14 +121,14 @@ async function connectToMindMirror() {
       {
         type: "function",
         function: {
-          name: "delete_memory",
-          description: "Delete a specific memory",
+          name: "forget",
+          description: "Remove specific information from memory",
           parameters: {
             type: "object",
             properties: {
-              memory_id: { type: "string", description: "The ID of the memory to delete" }
+              information_id: { type: "string", description: "The ID of the information to forget" }
             },
-            required: ["memory_id"]
+            required: ["information_id"]
           }
         }
       }
@@ -162,7 +162,7 @@ async function chatWithAI(userMessage) {
   const messages = [
     {
       role: "system",
-      content: "You are an AI assistant with persistent memory capabilities. You have access to memory tools: store_memory, search_memory, list_memories, delete_memory. Use these tools autonomously when appropriate. When users ask about their stored information, use list_memories to show them what you know."
+      content: "You are an AI assistant with persistent memory capabilities. You have access to memory tools: remember, recall, what_do_you_know, forget. Use these tools autonomously when appropriate. When users ask about their stored information, use what_do_you_know to show them what you know."
     },
     ...conversationHistory,
     { role: "user", content: userMessage }
