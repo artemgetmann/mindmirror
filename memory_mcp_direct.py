@@ -18,6 +18,7 @@ import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import Response
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
 
@@ -369,6 +370,24 @@ async def handle_sse(request: Request):
 
 # Create main FastAPI app
 app = FastAPI(title="Memory MCP Server", version="1.0.0")
+
+# Configure CORS for frontend access
+origins = [
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:5174",  # Alternative dev port
+    "http://localhost:8081",  # Frontend dev server
+    "https://usemindmirror.com",  # Production domain
+    "https://www.usemindmirror.com",  # Production with www
+    "https://memory.usemindmirror.com",  # Memory subdomain
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 async def health():
