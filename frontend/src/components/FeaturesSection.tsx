@@ -1,10 +1,15 @@
-import { Brain, Lock, Zap, Code, Users, Download } from "lucide-react";
+import { Brain, Lock, Zap, Code, Users, Download, GitBranch } from "lucide-react";
 
 const features = [
   {
     icon: Brain,
     title: "Intelligent Memory",
     description: "Not chat logs. Just the stuff that drives better, more personal suggestions"
+  },
+  {
+    icon: GitBranch,
+    title: "Smart Conflict Resolution",
+    description: "Humans evolve. When preferences conflict, MindMirror helps you choose—never silently overwrites"
   },
   {
     icon: Zap,
@@ -31,7 +36,7 @@ export const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
             <div 
               key={index} 

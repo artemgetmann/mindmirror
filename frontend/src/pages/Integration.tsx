@@ -214,7 +214,7 @@ await client.connect(transport);
 
 // Use memory tools directly
 const result = await client.callTool({
-  name: 'search_memory',
+  name: 'recall',
   arguments: { query: 'user preferences' }
 });`}
                     </pre>
