@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { TokenModal } from "@/components/TokenModal";
 import { ArrowRight, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
@@ -40,9 +41,12 @@ export const HeroSection = () => {
           <Button 
             variant="outline" 
             size="lg" 
+            asChild
             className="text-lg px-8 py-6 h-auto hover:border-accent-neon hover:text-accent-neon transition-colors"
           >
-            View Integration Guide
+            <Link to="/integration">
+              View Integration Guide
+            </Link>
           </Button>
         </div>
 
