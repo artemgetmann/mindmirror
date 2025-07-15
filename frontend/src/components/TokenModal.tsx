@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from 'sonner';
 import { Copy, Check, Loader2, AlertCircle } from 'lucide-react';
 import { memoryApi, TokenGenerationResponse } from '@/api/memory';
+import { Link } from 'react-router-dom';
 
 interface TokenModalProps {
   trigger: React.ReactNode;
@@ -202,8 +203,10 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                 <ol className="text-sm text-blue-800 space-y-1">
                   <li>1. Copy the URL above</li>
                   <li>2. Open Claude settings</li>
-                  <li>3. Add the URL to your MCP servers</li>
-                  <li>4. Restart Claude</li>
+                  <li>3. Go to Connectors → Add Custom Connector</li>
+                  <li>4. Name it "MindMirror Memory Server"</li>
+                  <li>5. Paste the remote MCP server URL</li>
+                  <li>6. Restart Claude</li>
                 </ol>
               </div>
 
@@ -217,10 +220,12 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => window.open('https://docs.usemindmirror.com/setup', '_blank')}
+                  asChild
                   className="flex-1"
                 >
-                  Setup Guide
+                  <Link to="/integration" onClick={handleClose}>
+                    Setup Guide
+                  </Link>
                 </Button>
               </div>
             </div>
