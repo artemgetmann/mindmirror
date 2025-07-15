@@ -171,6 +171,7 @@ async def remember(text: str, category: str) -> str:
             output = f"I'll remember that!\n\n"
             output += f"Information: {text}\n"
             output += f"Category: {category}\n"
+            output += f"Memory ID: {result.get('id', 'unknown')}\n"
             
             if result.get('conflicts_detected'):
                 output += f"\n⚠️ I noticed this conflicts with something I already know:\n"
@@ -234,7 +235,7 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             
             for i, memory in enumerate(memories, 1):
                 timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                output += f"{i}. {memory.get('text', 'No text')} (Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
+                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
             
             # Add conflict information if present
             if conflict_groups:
@@ -243,7 +244,7 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
                     output += f"Conflict Group {i}:\n"
                     for memory in group:
                         timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                        output += f"  - {memory.get('text', 'No text')} ({timestamp})\n"
+                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, {timestamp})\n"
                     output += "\n"
             
             return output
@@ -334,7 +335,7 @@ async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
             
             for i, memory in enumerate(memories, 1):
                 timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                output += f"{i}. {memory.get('text', 'No text')} (Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
+                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
             
             return output
             
