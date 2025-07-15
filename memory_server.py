@@ -986,7 +986,7 @@ async def generate_token(request: TokenGenerationRequest):
         conn.close()
         
         # Determine the domain based on environment
-        domain = os.getenv('MEMORY_DOMAIN', 'mcp-memory-uw0w.onrender.com')
+        domain = os.getenv('MEMORY_DOMAIN', 'memory.usemindmirror.com')
         if domain == 'localhost':
             domain = f"localhost:{os.getenv('PORT', '8000')}"
         
