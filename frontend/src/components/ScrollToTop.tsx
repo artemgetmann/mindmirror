@@ -11,6 +11,9 @@ export function ScrollToTop() {
       const element = document.getElementById(id);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        // If no element found (like for tab navigation), still scroll to top
+        window.scrollTo(0, 0);
       }
     } else {
       // Otherwise, scroll to top
