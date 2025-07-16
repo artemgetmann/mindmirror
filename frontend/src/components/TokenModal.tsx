@@ -166,7 +166,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="url">Claude URL</Label>
+                    <Label htmlFor="url">MCP URL</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
                         id="url"
@@ -201,12 +201,10 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Copy the URL above</li>
-                  <li>2. Open Claude settings</li>
-                  <li>3. Go to Connectors → Add Custom Connector</li>
-                  <li>4. Name it "MindMirror Memory Server"</li>
-                  <li>5. Paste the remote MCP server URL</li>
-                  <li>6. Restart Claude</li>
+                  <li>1. Copy the MCP URL above</li>
+                  <li>2. Add it to your AI tool (Claude, Cursor, Windsurf, etc.)</li>
+                  <li>3. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Add system prompt to your AI settings</Link></li>
+                  <li>4. Start using persistent memory!</li>
                 </ol>
               </div>
 
