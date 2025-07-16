@@ -4,8 +4,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TokenModal } from "@/components/TokenModal";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const Integration = () => {
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("claude");
+
+  useEffect(() => {
+    // Get the hash from the URL and set the active tab
+    const hash = location.hash.replace("#", "");
+    if (hash && ["claude", "cursor", "windsurf", "custom"].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, [location]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -18,7 +31,7 @@ const Integration = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="claude" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="claude">Claude</TabsTrigger>
               <TabsTrigger value="cursor">Cursor</TabsTrigger>
