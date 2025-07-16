@@ -116,8 +116,8 @@ Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `t
 - `frontend/src/api/memory.ts` - Frontend API client
 - `frontend/src/components/TokenModal.tsx` - Token generation UI
 - `start_direct.sh` - Production deployment script
-- `PROJECT_DOCS.md` - Comprehensive documentation
+- `DOCS.md` - Comprehensive documentation
 
 ---
 
-*For detailed documentation, see [PROJECT_DOCS.md](PROJECT_DOCS.md)*
+*For detailed documentation, see [DOCS.md](DOCS.md)*

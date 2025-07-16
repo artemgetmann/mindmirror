@@ -1,4 +1,4 @@
-# PROJECT_DOCS.md
+# MCP Memory System Documentation
 
 Comprehensive documentation for the MCP Memory System - a multi-tenant persistent memory solution for AI assistants.
 
@@ -13,10 +13,33 @@ Frontend (Vercel) → Backend API (Render) → PostgreSQL (Supabase) → Claude 
 ```
 
 **Current Production Setup:**
-- **Frontend**: React/TypeScript SPA with token generation UI (deploying to Vercel)
-- **Backend**: FastAPI server with PostgreSQL + pgvector (deployed on Render)
+- **Frontend**: React/TypeScript SPA with token generation UI (usemindmirror.com)
+- **Backend**: FastAPI server with PostgreSQL + pgvector (memory.usemindmirror.com)
 - **MCP Server**: Direct SSE implementation for Claude Desktop integration
 - **Database**: PostgreSQL with pgvector for vector similarity search
+
+## Quick Start
+
+### Development
+
+```bash
+# Clone and setup
+git clone https://github.com/artemgetmann/mcp_memory.git
+cd mcp_memory
+pip install -r requirements.txt
+
+# Start backend services
+python memory_server.py      # Port 8001 (API backend)
+python memory_mcp_direct.py  # Port 8000 (MCP interface)
+
+# Start frontend (optional)
+cd frontend && npm install && npm run dev  # Port 8081
+```
+
+### Production URLs
+- **Backend API**: https://memory.usemindmirror.com
+- **Frontend**: https://usemindmirror.com
+- **MCP URL Format**: `https://memory.usemindmirror.com/sse?token=USER_TOKEN`
 
 ## Core Components
 
@@ -35,33 +58,12 @@ Frontend (Vercel) → Backend API (Render) → PostgreSQL (Supabase) → Claude 
 - **Tables**: memories, auth_tokens, waitlist_emails
 - **Vector Search**: 384-dimension embeddings using SentenceTransformers
 
-## Quick Start
-
-### Development
-```bash
-# Backend
-python memory_server.py      # Port 8001 (API backend)
-python memory_mcp_direct.py  # Port 8000 (MCP interface)
-
-# Frontend
-cd frontend
-npm run dev                  # Port 8081 (dev server)
-
-# Test
-python limit_test_unique.py  # Test memory limits
-```
-
-### Production URLs
-- **Backend API**: https://mcp-memory-uw0w.onrender.com
-- **Frontend**: (Deploying to Vercel)
-- **MCP URL Format**: `https://mcp-memory-uw0w.onrender.com/sse?token=USER_TOKEN`
-
 ## Key Features
 
 ### Memory Management
 - **Vector Search**: Semantic similarity using all-MiniLM-L6-v2 embeddings
 - **Conflict Detection**: Automatic detection of contradictory preferences (similarity > 0.65)
-- **Deduplication**: Prevents storing identical or very similar memories
+- **Deduplication**: Prevents storing identical or very similar memories (similarity > 0.95)
 - **Memory Limits**: 25 memories per free user, unlimited for admin users
 
 ### Multi-Tenant Architecture
@@ -77,41 +79,32 @@ python limit_test_unique.py  # Test memory limits
 ## API Endpoints
 
 ### Frontend APIs
-- `POST /api/generate-token` - Generate new user token
+- `POST /api/generate-token` - Generate new user token with MCP URL
 - `POST /api/join-waitlist` - Join premium waitlist
 
 ### Memory APIs (Token-authenticated)
-- `POST /memories` - Store new memory
-- `POST /memories/search` - Vector similarity search
-- `GET /memories` - List user memories
-- `DELETE /memories/{id}` - Delete specific memory
+- `POST /memories?token=TOKEN` - Store new memory
+- `POST /memories/search?token=TOKEN` - Vector similarity search
+- `GET /memories?token=TOKEN` - List user memories
+- `DELETE /memories/{id}?token=TOKEN` - Delete specific memory
 - `GET /health` - System health check
 
-## Development Patterns
+## Testing
 
-### Testing Strategy
 ```bash
-# Backend testing
-curl -X POST "http://localhost:8001/api/generate-token"
-curl -X POST "http://localhost:8001/memories?token=TOKEN"
-
-# MCP testing  
-npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
-
-# Memory limit testing
+# Test core functionality
 python limit_test_unique.py
-```
 
-### Database Operations
-```bash
-# Connect to production database
-psql "postgresql://postgres.kpwadlfqqjgnpuiynmbe:zekQob-byfgep-fyrqy3@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require"
+# Test MCP integration
+npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=YOUR_TOKEN"
 
-# Check active users
-SELECT COUNT(DISTINCT user_id) FROM auth_tokens WHERE is_active = true;
+# Test memory operations
+curl -X POST "http://localhost:8001/memories?token=TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I prefer working mornings", "tag": "preference"}'
 
-# View memory statistics
-SELECT tag, COUNT(*) FROM memories GROUP BY tag;
+# Health check
+curl http://localhost:8001/health
 ```
 
 ## Configuration
@@ -123,8 +116,8 @@ MEMORY_SERVER_PORT=8001
 PORT=8000  # For MCP server
 
 # Frontend
-VITE_API_URL=https://mcp-memory-uw0w.onrender.com  # Production
-VITE_API_URL=http://localhost:8001                # Development
+VITE_API_URL=https://memory.usemindmirror.com  # Production
+VITE_API_URL=http://localhost:8001              # Development
 ```
 
 ### Memory Tags
@@ -136,6 +129,23 @@ Fixed set of 9 tags: `goal`, `routine`, `preference`, `constraint`, `habit`, `pr
 - **Duplicate Threshold**: 0.95 similarity blocks storage
 - **Embedding Model**: all-MiniLM-L6-v2 (384 dimensions)
 
+## Database Operations
+
+```bash
+# Connect to production database
+psql "postgresql://postgres.kpwadlfqqjgnpuiynmbe:[REDACTED]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require"
+
+# Check active users
+SELECT COUNT(DISTINCT user_id) FROM auth_tokens WHERE is_active = true;
+
+# View memory usage
+SELECT tag, COUNT(*) FROM memories GROUP BY tag;
+
+# Create admin token
+INSERT INTO auth_tokens (token, user_id, user_name, is_admin) 
+VALUES ('your_admin_token', 'admin_user', 'Admin User', true);
+```
+
 ## Deployment
 
 ### Backend (Render)
@@ -144,11 +154,12 @@ Fixed set of 9 tags: `goal`, `routine`, `preference`, `constraint`, `habit`, `pr
 - **Start Command**: `./start_direct.sh`
 - **Environment**: Production PostgreSQL connection
 
-### Frontend (Vercel) 
+### Frontend (Vercel)
 - **Framework**: React/Vite
 - **Build Command**: `npm run build`
 - **Output Directory**: `dist`
 - **Environment**: `VITE_API_URL` pointing to backend
+- **vercel.json**: Required for SPA routing
 
 ### Database (Supabase)
 - **PostgreSQL** with pgvector extension enabled
@@ -173,6 +184,14 @@ Fixed set of 9 tags: `goal`, `routine`, `preference`, `constraint`, `habit`, `pr
 - **Memory Capacity**: 25 memories per user (configurable)
 - **Vector Search**: Sub-second similarity search across all memories
 
+## Development Patterns
+
+1. **Always test locally first**: Use curl for API, MCP Inspector for MCP
+2. **Database changes**: Test with psql before code changes
+3. **Frontend integration**: Use localhost:8001 for development API calls
+4. **Memory limits**: Test with limit_test_unique.py
+5. **MCP changes**: Restart Claude Desktop to pick up changes
+
 ## Troubleshooting
 
 ### Common Issues
@@ -180,6 +199,7 @@ Fixed set of 9 tags: `goal`, `routine`, `preference`, `constraint`, `habit`, `pr
 2. **Memory Limits**: Check if user has reached 25 memory limit
 3. **CORS Errors**: Verify frontend domain is in CORS origins list
 4. **Database Connection**: Check PostgreSQL connection string
+5. **SPA Routing**: Ensure vercel.json exists for proper routing
 
 ### Debug Commands
 ```bash
@@ -196,6 +216,15 @@ tail -f logs/memory_server.log
 npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
 ```
 
+## Key Files
+
+- `memory_server.py` - Main backend API server
+- `memory_mcp_direct.py` - MCP protocol implementation
+- `frontend/src/api/memory.ts` - Frontend API client
+- `frontend/src/components/TokenModal.tsx` - Token generation UI
+- `start_direct.sh` - Production deployment script
+- `CLAUDE.md` - Quick reference for AI assistants
+
 ## Future Roadmap
 
 ### Immediate (MK2)
@@ -209,6 +238,10 @@ npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
 - Advanced analytics
 - Team/organization features
 - Integration with other AI platforms
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
