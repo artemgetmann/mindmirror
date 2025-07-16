@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { TokenModal } from "@/components/TokenModal";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -53,13 +54,17 @@ export const Navigation = () => {
           </Link>
         </nav>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="hover:bg-accent-neon hover:text-accent-neon-foreground hover:border-accent-neon transition-all duration-200"
-        >
-          Inject Token
-        </Button>
+        <TokenModal
+          trigger={
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="hover:bg-accent-neon hover:text-accent-neon-foreground hover:border-accent-neon transition-all duration-200"
+            >
+              Inject Token
+            </Button>
+          }
+        />
       </div>
     </header>
   );
