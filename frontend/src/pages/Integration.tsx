@@ -36,7 +36,7 @@ const Integration = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -108,7 +108,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   <div>
                     <h4 className="font-semibold mb-2">2. Add MindMirror URL</h4>
                     <p className="text-sm text-muted-foreground mb-2">Paste your MindMirror URL:</p>
-                    <code className="block bg-muted p-3 rounded font-mono text-sm">
+                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto break-all">
                       https://memory.usemindmirror.com/sse?token=YOUR_TOKEN
                     </code>
                   </div>
@@ -137,7 +137,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-2">Single Command Setup</h4>
-                    <code className="block bg-muted p-3 rounded font-mono text-sm">
+                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto break-all">
                       claude mcp add --transport sse mindmirror https://memory.usemindmirror.com/sse\?token\=YOUR_TOKEN
                     </code>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -170,7 +170,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -240,7 +240,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   
                   <div>
                     <h4 className="font-semibold mb-2">2. Add MindMirror Config</h4>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
 {`{
   "mcpServers": {
     "mindmirror": {
@@ -268,7 +268,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -334,14 +334,14 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   <div>
                     <h4 className="font-semibold mb-2">1. Open Windsurf MCP Config</h4>
                     <p className="text-sm text-muted-foreground mb-2">Edit the configuration file:</p>
-                    <code className="block bg-muted p-2 rounded font-mono text-xs">
+                    <code className="block bg-muted p-2 rounded font-mono text-xs overflow-x-auto break-all">
                       ~/.codeium/windsurf/mcp_config.json
                     </code>
                   </div>
                   
                   <div>
                     <h4 className="font-semibold mb-2">2. Add MindMirror Config</h4>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
 {`{
   "mcpServers": {
     "mindmirror": {
@@ -396,7 +396,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                       <div className="mb-1"><span className="text-yellow-400">AI:</span> I'll remember that!</div>
                     </div>
 
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
 {`// npm i @modelcontextprotocol/sdk openai dotenv readline
 import OpenAI from 'openai';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -480,7 +480,7 @@ const completion = await openai.chat.completions.create({
                   <div>
                     <h4 className="font-semibold mb-2">━━━ Track B: Direct MCP Integration</h4>
                     <p className="text-sm text-muted-foreground mb-3">Build your own MCP client for full control</p>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
 {`import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 

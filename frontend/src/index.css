@@ -120,4 +120,32 @@ All colors MUST be HSL. Neon green accent used sparingly.
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Safari specific fixes */
+  @supports (-webkit-backdrop-filter: none) {
+    .backdrop-blur-sm {
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+  }
+  
+  /* Ensure sticky header works in Safari */
+  header {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Better mobile code block handling */
+  @media (max-width: 768px) {
+    pre, code {
+      word-break: break-all;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+    }
+    
+    pre {
+      font-size: 0.75rem;
+      line-height: 1.2;
+    }
+  }
 }

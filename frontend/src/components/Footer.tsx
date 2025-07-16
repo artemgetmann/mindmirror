@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export const Footer = () => {
   return (
     <footer className="border-t bg-background">
@@ -22,20 +24,20 @@ export const Footer = () => {
           <div>
             <h4 className="font-medium mb-3">Integration</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Claude</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Cursor</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Windsurf</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Custom AI</a></li>
+              <li><Link to="/integration" className="hover:text-foreground transition-colors">Claude</Link></li>
+              <li><Link to="/integration" className="hover:text-foreground transition-colors">Cursor</Link></li>
+              <li><Link to="/integration" className="hover:text-foreground transition-colors">Windsurf</Link></li>
+              <li><Link to="/integration" className="hover:text-foreground transition-colors">Custom AI</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-medium mb-3">Company</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#privacy" className="hover:text-foreground transition-colors">Privacy</a></li>
-              <li><a href="#about" className="hover:text-foreground transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Support</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Status</a></li>
+              <li><Link to="/about" className="hover:text-foreground transition-colors">Privacy</Link></li>
+              <li><Link to="/about" className="hover:text-foreground transition-colors">About</Link></li>
+              <li><a href="mailto:support@usemindmirror.com" className="hover:text-foreground transition-colors">Support</a></li>
+              <li><a href="https://status.usemindmirror.com" className="hover:text-foreground transition-colors" target="_blank" rel="noopener noreferrer">Status</a></li>
             </ul>
           </div>
         </div>
