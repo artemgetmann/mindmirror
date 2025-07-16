@@ -12,7 +12,7 @@ const About = () => {
           <div className="text-left mb-12">
             <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Persistent memory for AI</h1>
             <p className="text-sm text-muted-foreground font-mono">
-              The most advanced AI memory system in the world. Built because I was tired of reexplaining everything in every chat.
+              The most advanced AI memory system in the world. Built because I was tired of re-explaining everything in every chat.
             </p>
           </div>
 
