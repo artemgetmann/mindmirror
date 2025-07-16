@@ -10,7 +10,7 @@ export const HeroSection = () => {
         {/* CLI-style subtitle */}
         <div className="mb-6">
           <p className="text-sm font-mono text-muted-foreground">
-            mindmirror(1) — persistent AI memory for obsessive developers
+            mindmirror(1) — Give AI the ability to never forget anything about you
           </p>
         </div>
 
@@ -21,8 +21,12 @@ export const HeroSection = () => {
           or your own AI models
         </h1>
         
-        <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl">
-        Just paste one URL and your AI will remember everything across chats. No more repeating your preferences, goals, or project setup — your AI just remembers
+        <p className="text-xl md:text-2xl text-muted-foreground mb-6 max-w-3xl">
+          The most advanced AI memory system in the world!
+        </p>
+        
+        <p className="text-lg text-muted-foreground mb-12 max-w-3xl">
+          Just paste one URL and your AI will remember everything across chats. No more repeating your preferences, goals, or project setup — your AI just remembers
         </p>
 
         {/* CTA Buttons */}
