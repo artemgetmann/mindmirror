@@ -12,7 +12,7 @@ from typing import List, Optional
 import json
 import os
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from numpy.linalg import norm
 import psycopg2
@@ -308,7 +308,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     # Generate timestamp if not provided
     if not memory.timestamp:
-        memory.timestamp = datetime.utcnow().isoformat() + "Z"
+        memory.timestamp = datetime.now(timezone.utc).isoformat() + "Z"
     
     # Check for duplicates using hash of text+tag
     memory_text_normalized = memory.text.strip().lower()
@@ -383,7 +383,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
             return {"status": "duplicate", "message": f"Memory too similar to existing memory {mem_id}", "similarity": similarity}
     
     # Create unique ID
-    memory_id = f"mem_{int(datetime.utcnow().timestamp() * 1000)}"
+    memory_id = f"mem_{int(datetime.now(timezone.utc).timestamp() * 1000)}"
     
     # Check for conflicts with existing memories (same tag, high similarity)
     conflicts = []
@@ -407,7 +407,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
             conflicts.append(conflict_id)
     
     # Set last_accessed timestamp
-    current_time = datetime.utcnow().isoformat() + "Z"
+    current_time = datetime.now(timezone.utc).isoformat() + "Z"
     last_accessed = memory.last_accessed or current_time
     
     # Prepare metadata with conflict info if any
@@ -520,7 +520,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
             memory_id = row['id']
             
             # Update last_accessed timestamp
-            current_time = datetime.utcnow().isoformat() + "Z"
+            current_time = datetime.now(timezone.utc).isoformat() + "Z"
             metadata["last_accessed"] = current_time
             cursor.execute("UPDATE memories SET metadata = %s WHERE id = %s", (json.dumps(metadata), memory_id))
             
