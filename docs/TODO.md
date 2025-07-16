@@ -3,45 +3,6 @@
 > **Note**: Feature roadmap moved to `system_comparison_summary.md` for consolidated planning.
 
 
-## HIGH PRIORITY: Response Sanitization (PRE-LAUNCH SECURITY)
-
-**CRITICAL**: Hide technical implementation details from Claude Desktop before going live.
-
-### Security Risk - Currently Exposed
-```
-❌ "similarity: 0.631" - reveals vector search/RAG implementation
-❌ "mem_1751890084549" - exposes database ID patterns
-❌ "ChromaDB returned 10 memories" - reveals backend technology  
-❌ "similarity_score * 0.4 + recency_score * 0.3" - exposes algorithms
-❌ "Union-Find conflict grouping" - reveals conflict detection approach
-```
-
-### Required Changes (memory_mcp_server.py)
-```python
-# Instead of: "similarity: 0.631" 
-# Show: "relevance: high/medium/low"
-
-# Instead of: "mem_1751890084549"
-# Show: hidden or user-friendly reference
-
-# Instead of: technical conflict metadata
-# Show: "Some preferences conflict - which would you like to keep?"
-```
-
-### Implementation Strategy
-1. **Add sanitization toggle** - `technical_mode = False` for production
-2. **Replace similarity scores** - Map 0.8+ → "high", 0.5-0.8 → "medium", <0.5 → "low"  
-3. **Hide memory IDs** - Remove from user-facing responses
-4. **Simplify conflict language** - Remove technical jargon
-5. **Keep debug mode** - `technical_mode = True` for development
-
-### Business Impact
-- **Prevents reverse engineering** of ChromaDB + SentenceTransformers stack
-- **Hides competitive advantages** (conflict detection, similarity thresholds)
-- **Protects algorithms** and implementation details
-- **Professional user experience** - cleaner, less technical
-
-**PRIORITY**: Implement before any public launch or demo
 
 ## HIGH PRIORITY: Memory Pruning Functionality Testing (PRE-LAUNCH CRITICAL)
 

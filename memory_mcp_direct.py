@@ -65,6 +65,15 @@ transport = SseServerTransport("/messages/")
 # Global user context storage for current session
 current_user_context = {}
 
+def get_relevance_level(similarity: float) -> str:
+    """Convert similarity score to user-friendly relevance level"""
+    if similarity >= 0.8:
+        return "high"
+    elif similarity >= 0.5:
+        return "medium"
+    else:
+        return "low"
+
 async def validate_token(token: str) -> Optional[str]:
     """
     Validate token against PostgreSQL database and return user_id.
@@ -250,7 +259,9 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             
             for i, memory in enumerate(memories, 1):
                 timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
+                similarity = memory.get('similarity', 0.0)
+                relevance = get_relevance_level(similarity)
+                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, Relevance: {relevance}, {timestamp})\n"
             
             # Add conflict information if present
             if conflict_groups:
@@ -259,7 +270,9 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
                     output += f"Conflict Group {i}:\n"
                     for memory in group:
                         timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, {timestamp})\n"
+                        similarity = memory.get('similarity', 0.0)
+                        relevance = get_relevance_level(similarity)
+                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Relevance: {relevance}, {timestamp})\n"
                     output += "\n"
             
             return output
