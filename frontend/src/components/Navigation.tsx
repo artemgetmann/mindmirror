@@ -19,7 +19,7 @@ export const Navigation = () => {
   ];
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur-sm safari-header">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <img 
@@ -30,7 +30,7 @@ export const Navigation = () => {
           <span className="font-semibold text-lg">MindMirror</span>
         </Link>
         
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden lg:flex items-center space-x-6">
           {navigationItems.map((item) => (
             <Link 
               key={item.path}
@@ -63,7 +63,7 @@ export const Navigation = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="md:hidden p-2"
+                className="lg:hidden p-2"
                 aria-label="Open menu"
               >
                 <Menu className="h-4 w-4" />
