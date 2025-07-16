@@ -5,8 +5,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Zap } from "lucide-react";
+import { useState } from "react";
+import { memoryApi } from "@/api/memory";
+import { useToast } from "@/hooks/use-toast";
 
 const Premium = () => {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await memoryApi.joinWaitlist({ email });
+      toast({
+        title: "Success!",
+        description: "You've been added to the premium waitlist.",
+      });
+      setEmail("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to join waitlist",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -84,21 +122,30 @@ const Premium = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email" className="font-mono">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="your@email.com"
-                  className="font-mono"
-                />
-              </div>
-              <Button className="bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90 font-mono">
-                Join Waitlist →
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                Early access + 50% discount for first 100 developers
-              </p>
+              <form onSubmit={handleWaitlistSubmit} className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email" className="font-mono">Email Address</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="your@email.com"
+                    className="font-mono"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit"
+                  className="bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90 font-mono"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Joining..." : "Join Waitlist →"}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Early access + 50% discount for first 100 developers
+                </p>
+              </form>
             </CardContent>
           </Card>
 
