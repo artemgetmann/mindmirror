@@ -122,11 +122,23 @@ All colors MUST be HSL. Neon green accent used sparingly.
   }
   
   /* Safari specific fixes */
+  .safari-header {
+    background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
   @supports (-webkit-backdrop-filter: none) {
-    .backdrop-blur-sm {
-      -webkit-backdrop-filter: blur(4px);
-      backdrop-filter: blur(4px);
+    .safari-header {
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
     }
+  }
+  
+  .dark .safari-header {
+    background: rgba(0, 0, 0, 0.95);
   }
   
   /* Ensure sticky header works in Safari */
