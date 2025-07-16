@@ -26,9 +26,49 @@ const Integration = () => {
             </TabsList>
 
             <TabsContent value="claude" className="space-y-6">
+              {/* Claude Code CLI Setup */}
               <Card className="border-2 border-dashed border-muted">
                 <CardHeader>
-                  <CardTitle className="font-mono">🔗 Claude Setup</CardTitle>
+                  <CardTitle className="font-mono">⚡ Claude Code - One Command Setup</CardTitle>
+                  <CardDescription>
+                    Instant MindMirror integration for Claude Code CLI
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Single Command Setup</h4>
+                    <code className="block bg-muted p-3 rounded font-mono text-sm">
+                      claude mcp add --transport sse mindmirror https://memory.usemindmirror.com/sse\?token\=YOUR_TOKEN
+                    </code>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      That's it. Claude Code now has persistent memory across all conversations.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Import from Claude Desktop</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Already have Claude Desktop configured?</p>
+                    <code className="block bg-muted p-2 rounded font-mono text-sm">
+                      claude mcp import
+                    </code>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Works on macOS and WSL
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Get Your Token</h4>
+                    <Button className="bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90">
+                      Generate Token →
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Claude Manual Setup */}
+              <Card className="border-2 border-dashed border-muted">
+                <CardHeader>
+                  <CardTitle className="font-mono">🔗 Claude - Manual Setup</CardTitle>
                   <CardDescription>
                     Add MindMirror to Claude via Settings → Connectors
                   </CardDescription>
@@ -43,15 +83,8 @@ const Integration = () => {
                     <h4 className="font-semibold mb-2">2. Add MindMirror URL</h4>
                     <p className="text-sm text-muted-foreground mb-2">Paste your MindMirror URL:</p>
                     <code className="block bg-muted p-3 rounded font-mono text-sm">
-                      https://memory.mindmirror.com/sse?token=YOUR_TOKEN_HERE
+                      https://memory.usemindmirror.com/sse?token=YOUR_TOKEN
                     </code>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Get Your Token</h4>
-                    <Button className="bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90">
-                      Generate Token →
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
