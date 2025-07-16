@@ -162,6 +162,14 @@ relevance_score = (
 - **Decay Algorithm**: `importance = base_importance * (1 - age_factor) * access_multiplier`
 - **Query Integration**: Use importance in relevance scoring algorithm
 
+**Core Memory Identification** (Obsidian-style second brain):
+- **Access count display**: Show AI how many times each memory has been accessed
+- **Core memory detection**: Memories with high access counts become "core memories"
+- **Reinforcement learning**: Frequently accessed memories get priority in search results
+- **Usage patterns**: AI can identify which memories are most important to the user
+- **Implementation**: Add `access_count` field, increment on each recall/search, display to AI
+- **Benefits**: Mimics human memory reinforcement where frequently accessed information is easier to recall
+
 ### Memory Type System ⭐⭐⭐
 **Move beyond fixed tags to flexible memory types**
 

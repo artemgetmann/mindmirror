@@ -258,10 +258,11 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             output = f"I remember {len(memories)} things about '{query}':\n\n"
             
             for i, memory in enumerate(memories, 1):
-                timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
+                created = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
+                last_accessed = memory.get('last_accessed', '')[:10] if memory.get('last_accessed') else 'unknown'
                 similarity = memory.get('similarity', 0.0)
                 relevance = get_relevance_level(similarity)
-                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, Relevance: {relevance}, {timestamp})\n"
+                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, Relevance: {relevance}, Created: {created}, Last accessed: {last_accessed})\n"
             
             # Add conflict information if present
             if conflict_groups:
@@ -269,10 +270,11 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
                 for i, group in enumerate(conflict_groups, 1):
                     output += f"Conflict Group {i}:\n"
                     for memory in group:
-                        timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
+                        created = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
+                        last_accessed = memory.get('last_accessed', '')[:10] if memory.get('last_accessed') else 'unknown'
                         similarity = memory.get('similarity', 0.0)
                         relevance = get_relevance_level(similarity)
-                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Relevance: {relevance}, {timestamp})\n"
+                        output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Relevance: {relevance}, Created: {created}, Last accessed: {last_accessed})\n"
                     output += "\n"
             
             return output
@@ -362,8 +364,9 @@ async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
             output = f"Here's what I know{filter_text} ({len(memories)} total):\n\n"
             
             for i, memory in enumerate(memories, 1):
-                timestamp = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
-                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, {timestamp})\n"
+                created = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
+                last_accessed = memory.get('last_accessed', '')[:10] if memory.get('last_accessed') else 'unknown'
+                output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, Created: {created}, Last accessed: {last_accessed})\n"
             
             return output
             
