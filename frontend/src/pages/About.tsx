@@ -12,7 +12,7 @@ const About = () => {
           <div className="text-left mb-12">
             <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Persistent memory for AI</h1>
             <p className="text-sm text-muted-foreground font-mono">
-              The most advanced AI memory system in the world!
+              The most advanced AI memory system in the world. Built because I was tired of reexplaining everything in every chat.
             </p>
           </div>
 
@@ -23,13 +23,16 @@ const About = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Every AI chat felt like Groundhog Day. Same tools. Same goals. Same repetition. I got tired of reminding my assistants who I was.
+                  Every AI chat felt like starting from scratch. Same tools. Same goals. Same repetition. Claude has no long-term memory across chats. Claude Code doesn't either. Cursor forgets. The ChatGPT and Anthropic APIs are stateless. Windsurf starts fresh.
                 </p>
                 <p className="text-muted-foreground">
-                  The memory fragmentation across different AI models made it even worse. ChatGPT has its own memory. Claude either doesn't have memory or forces you to manually inject it. Different tools remember different things. Switching between models felt like starting from scratch every time.
+                  None of these tools retain memory — and even when some do, it's very basic and nothing syncs across tools. You build up memory in one tool, then switch platforms and everything is gone. That's the real problem.
                 </p>
                 <p className="text-muted-foreground">
-                  I wanted one shared memory layer across all my AI systems—Claude, Cursor, Windsurf, or any custom-built model—without the constant overhead of rebuilding context.
+                  Here's the deeper issue: how do you even build custom tools with AI if there's no memory? I believe you can't build truly effective AI solutions without it. That's the exact wall I hit when I tried. I wanted to build smarter agents — but APIs were stateless.
+                </p>
+                <p className="text-muted-foreground">
+                  MindMirror fixes that. You can now build multiple AI applications — a robot with Claude, a drone with OpenAI — and they can all share the same memory backend. One universal memory layer. Plug and play.
                 </p>
               </CardContent>
             </Card>
