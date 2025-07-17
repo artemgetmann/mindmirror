@@ -22,7 +22,7 @@ export const HeroSection = () => {
         </h1>
         
         <p className="text-xl md:text-2xl text-muted-foreground mb-6 max-w-3xl">
-          The most advanced AI memory system in the world!
+          The World's Most Advanced AI Memory System!
         </p>
         
         <p className="text-lg text-muted-foreground mb-12 max-w-3xl">
