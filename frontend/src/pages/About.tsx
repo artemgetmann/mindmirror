@@ -16,6 +16,24 @@ const About = () => {
             </p>
           </div>
 
+          <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mb-8">
+            <CardHeader>
+              <CardTitle className="font-mono text-lg">━━━ Watch: MindMirror in Action ━━━</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full rounded-lg"
+                  src="https://www.youtube.com/embed/R36RkMoCoa8?rel=0"
+                  title="MindMirror Demo Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="space-y-8">
             <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
