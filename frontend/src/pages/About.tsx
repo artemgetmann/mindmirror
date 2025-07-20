@@ -18,7 +18,7 @@ const About = () => {
 
           <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mb-8">
             <CardHeader>
-              <CardTitle className="font-mono text-lg">━━━ Watch: MindMirror in Action ━━━</CardTitle>
+              <CardTitle className="font-mono text-lg">━━━ MindMirror Demo & Why I Built It ━━━</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
