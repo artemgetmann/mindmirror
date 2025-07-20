@@ -367,7 +367,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     # Check for similar memories with same tag
     cursor.execute("""
-        SELECT id, text, 1 - (embedding <=> %s::vector) as similarity
+        SELECT id, text, COALESCE(1 - (embedding <=> %s::vector), 0.0) as similarity
         FROM memories 
         WHERE user_id = %s AND tag = %s
         ORDER BY embedding <=> %s::vector
@@ -376,7 +376,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     similar_memories = cursor.fetchall()
     for mem_id, mem_text, similarity in similar_memories:
-        if similarity > DUPLICATE_THRESHOLD:
+        if similarity is not None and similarity > DUPLICATE_THRESHOLD:
             cursor.close()
             conn.close()
             logger.info(f"Semantic duplicate detected for user {user_id}: '{memory.text}' too similar to '{mem_text}' (similarity: {similarity:.4f})")
@@ -392,7 +392,7 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     # Search for memories with same tag for conflict detection
     cursor.execute("""
-        SELECT id, text, 1 - (embedding <=> %s::vector) as similarity
+        SELECT id, text, COALESCE(1 - (embedding <=> %s::vector), 0.0) as similarity
         FROM memories 
         WHERE user_id = %s AND tag = %s
         ORDER BY embedding <=> %s::vector
@@ -401,8 +401,9 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
     
     conflict_candidates = cursor.fetchall()
     for conflict_id, conflict_text, similarity in conflict_candidates:
-        logger.info(f"Similarity check for user {user_id} with '{conflict_text}': {similarity:.4f}")
-        if similarity >= SIMILARITY_THRESHOLD:
+        similarity_str = f"{similarity:.4f}" if similarity is not None else "None"
+        logger.info(f"Similarity check for user {user_id} with '{conflict_text}': {similarity_str}")
+        if similarity is not None and similarity >= SIMILARITY_THRESHOLD:
             logger.info(f"Conflict detected for user {user_id}: {conflict_id} (similarity: {similarity:.4f})")
             conflicts.append(conflict_id)
     
@@ -493,7 +494,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
     
     cursor.execute(f"""
         SELECT id, text, tag, metadata, created_at,
-               1 - (embedding <=> %s::vector) as similarity
+               COALESCE(1 - (embedding <=> %s::vector), 0.0) as similarity
         FROM memories 
         WHERE user_id = %s {tag_filter_sql}
         ORDER BY embedding <=> %s::vector
@@ -583,10 +584,13 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
                     emb2 = unique_embedding[0]
                     
                     # Calculate cosine similarity
-                    similarity = np.dot(emb1, emb2) / (norm(emb1) * norm(emb2))
+                    try:
+                        similarity = np.dot(emb1, emb2) / (norm(emb1) * norm(emb2))
+                    except (ZeroDivisionError, ValueError):
+                        similarity = 0.0
                     
                     # If similarity > 0.95, it's a duplicate
-                    if similarity > 0.95:
+                    if similarity is not None and similarity > 0.95:
                         is_duplicate = True
                         # Keep the more recent one
                         if conflict['timestamp'] > unique_conflict['timestamp']:
