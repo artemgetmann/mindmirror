@@ -50,6 +50,30 @@ export const FeaturesSection = () => {
             </div>
           ))}
         </div>
+
+        {/* YouTube Shorts Demo Video */}
+        <div className="mt-24">
+          <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 font-mono">
+            ━━━ Watch: MindMirror in Action ━━━
+          </h3>
+          <div className="max-w-md mx-auto">
+            <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-6">
+              <div 
+                className="relative overflow-hidden rounded-lg"
+                style={{ paddingBottom: '177.78%' }}
+              >
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube.com/embed/83PucS986fE?rel=0"
+                  title="MindMirror Demo"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
