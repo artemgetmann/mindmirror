@@ -67,6 +67,8 @@ current_user_context = {}
 
 def get_relevance_level(similarity: float) -> str:
     """Convert similarity score to user-friendly relevance level"""
+    if similarity is None:
+        return "unknown"
     if similarity >= 0.8:
         return "high"
     elif similarity >= 0.5:
@@ -260,7 +262,7 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             for i, memory in enumerate(memories, 1):
                 created = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
                 last_accessed = memory.get('last_accessed', '')[:10] if memory.get('last_accessed') else 'unknown'
-                similarity = memory.get('similarity', 0.0)
+                similarity = memory.get('similarity', 0.0) or 0.0
                 relevance = get_relevance_level(similarity)
                 output += f"{i}. {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Tag: {memory.get('tag', 'unknown')}, Relevance: {relevance}, Created: {created}, Last accessed: {last_accessed})\n"
             
@@ -272,7 +274,7 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
                     for memory in group:
                         created = memory.get('timestamp', '')[:10] if memory.get('timestamp') else 'unknown'
                         last_accessed = memory.get('last_accessed', '')[:10] if memory.get('last_accessed') else 'unknown'
-                        similarity = memory.get('similarity', 0.0)
+                        similarity = memory.get('similarity', 0.0) or 0.0
                         relevance = get_relevance_level(similarity)
                         output += f"  - {memory.get('text', 'No text')} (ID: {memory.get('id', 'unknown')}, Relevance: {relevance}, Created: {created}, Last accessed: {last_accessed})\n"
                     output += "\n"
