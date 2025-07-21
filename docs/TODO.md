@@ -1,5 +1,38 @@
 # TODO - Memory System Development
 
+## URGENT FIXES
+
+### 1. Forget Function Missing Memory Content (HIGH PRIORITY)
+**Problem**: When users delete memories via MCP, the response only shows the memory ID (e.g., "I've forgotten that information") without displaying what was actually deleted. This makes it impossible for users to verify they deleted the correct memory.
+
+**Solution**: Update the `forget` function in `memory_mcp_direct.py` to:
+- Fetch the memory content before deletion
+- Return both the ID and the text of the deleted memory
+- Format: "I've forgotten: '[memory text]' (ID: mem_123...)"
+
+**Impact**: User confidence and safety - prevents accidental deletion of important memories
+
+### 2. Scalability Considerations (MEDIUM PRIORITY)
+**Brainstorm**: As users accumulate hundreds/thousands of memories, consider:
+- **Search performance**: Current vector search may slow down with large datasets
+  - Consider indexing strategies for pgvector
+  - Implement pagination for search results
+  - Add query caching for frequent searches
+- **Memory management**: 
+  - Implement memory categories/folders for organization
+  - Add bulk operations (delete multiple, export, etc.)
+  - Consider memory archiving vs deletion
+- **Storage optimization**:
+  - Monitor embedding storage size (384 dimensions per memory)
+  - Consider compression strategies
+  - Plan for database sharding if needed
+- **UI/UX for large memory sets**:
+  - Better filtering and sorting options
+  - Memory visualization/timeline views
+  - Search within results
+
+**Note**: Not critical until we have active users, but important to plan architecture for scale
+
 
 
 
