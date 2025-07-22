@@ -285,7 +285,7 @@ class MemoryResponse(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-    limit: int = 5
+    limit: int = 10
     tag_filter: Optional[str] = None
 
 def get_db_connection():
@@ -488,6 +488,10 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
         tag_filter_sql = "AND tag = %s"
         params.insert(2, request.tag_filter)
     
+    # Log search parameters
+    logger.info(f"Search SQL params - user_id: {user_id}, limit: {request.limit}, tag_filter: {request.tag_filter}")
+    logger.info(f"SQL will use LIMIT: {params[-1]}")
+    
     # Search in PostgreSQL
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -505,10 +509,13 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
     
     # Log raw search results  
     total_results = len(results)
-    logger.info(f"Search results for user {user_id}: found {total_results} memories")
+    logger.info(f"Search results for user {user_id}: found {total_results} memories from database")
+    logger.info(f"Query was: '{request.query}' with limit {request.limit}")
     if total_results > 0:
         similarities = [row['similarity'] for row in results[:3]]
         logger.info(f"Top 3 similarities: {similarities}")
+        # Log first result for debugging
+        logger.info(f"First result: {results[0]['text'][:50]}... (similarity: {results[0]['similarity']})")
     
     # Format response
     memories = []
