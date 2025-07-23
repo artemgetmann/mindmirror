@@ -47,7 +47,11 @@ curl -X POST "http://localhost:8001/memories?token=TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"text": "I prefer working mornings", "tag": "preference"}'
 
-# Test MCP integration (Preferred Method)
+# Test MCP integration
+# Method 1: MCP Inspector (Quick testing)
+npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
+
+# Method 2: Claude Desktop (Production testing)
 # Add to Claude Desktop config: ~/Library/Application Support/Claude/claude_desktop_config.json
 {
   "mcpServers": {
@@ -57,9 +61,6 @@ curl -X POST "http://localhost:8001/memories?token=TOKEN" \
     }
   }
 }
-
-# Alternative: MCP Inspector (⚠️ WARNING: Unreliable due to routing issues)
-# npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
 
 # Test memory limits
 python limit_test_unique.py
@@ -114,7 +115,7 @@ Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `t
 
 ## Development Patterns
 
-1. **Always test locally first**: Use curl for API, Claude Desktop + mcp-remote for MCP (avoid MCP Inspector - routing issues)
+1. **Always test locally first**: Use curl for API, test MCP with both Inspector (quick) and Claude Desktop (production-like)
 2. **Database changes**: Test with psql before code changes
 3. **Frontend integration**: Use localhost:8001 for development API calls
 4. **Memory limits**: Test with limit_test_unique.py
