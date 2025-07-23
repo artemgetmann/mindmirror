@@ -467,9 +467,80 @@ async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_us
         "status": "stored"
     }
 
+def keyword_search(query: str, user_id: str, limit: int, tag_filter: str = None, exclude_ids: set = None):
+    """
+    Fallback keyword search using PostgreSQL ILIKE for text matching
+    Returns list of MemoryResponse objects with artificial similarity scores
+    """
+    # Extract keywords from query (split on spaces, remove common words)
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+    keywords = [word.strip().lower() for word in query.split() if word.strip().lower() not in stop_words and len(word.strip()) > 2]
+    
+    if not keywords:
+        return []
+    
+    # Build ILIKE conditions for each keyword
+    like_conditions = []
+    params = [user_id]
+    
+    for keyword in keywords:
+        like_conditions.append("text ILIKE %s")
+        params.append(f"%{keyword}%")
+    
+    # Build tag filter
+    tag_filter_sql = ""
+    if tag_filter:
+        tag_filter_sql = "AND tag = %s"
+        params.append(tag_filter)
+    
+    # Build exclude IDs filter
+    exclude_filter_sql = ""
+    if exclude_ids:
+        exclude_placeholders = ','.join(['%s'] * len(exclude_ids))
+        exclude_filter_sql = f"AND id NOT IN ({exclude_placeholders})"
+        params.extend(exclude_ids)
+    
+    params.append(limit)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    
+    # Execute keyword search
+    where_clause = f"WHERE user_id = %s AND ({' OR '.join(like_conditions)}) {tag_filter_sql} {exclude_filter_sql}"
+    cursor.execute(f"""
+        SELECT id, text, tag, metadata, created_at
+        FROM memories 
+        {where_clause}
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, params)
+    
+    results = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    # Convert to MemoryResponse objects with artificial similarity scores
+    memories = []
+    for i, row in enumerate(results):
+        metadata = row['metadata']
+        # Assign decreasing similarity scores (0.7 to 0.6) to compete with weaker semantic matches
+        artificial_similarity = 0.7 - (i * 0.03)  # 0.7, 0.67, 0.64, 0.61, etc.
+        
+        memory = MemoryResponse(
+            id=row['id'],
+            text=row['text'],
+            tag=row['tag'],
+            timestamp=metadata['timestamp'],
+            last_accessed=metadata.get('last_accessed', metadata['timestamp']),
+            similarity=artificial_similarity
+        )
+        memories.append(memory)
+    
+    return memories
+
 @app.post("/memories/search")
 async def search_memories(request: SearchRequest, user_id: str = Depends(get_current_user)):
-    """Search memories by query text"""
+    """Hybrid search: semantic search with keyword fallback"""
     
     logger.info(f"Search request from user {user_id}: query='{request.query}', limit={request.limit}, tag_filter={request.tag_filter}")
     
@@ -509,13 +580,65 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
     
     # Log raw search results  
     total_results = len(results)
-    logger.info(f"Search results for user {user_id}: found {total_results} memories from database")
+    logger.info(f"Semantic search results for user {user_id}: found {total_results} memories from database")
     logger.info(f"Query was: '{request.query}' with limit {request.limit}")
     if total_results > 0:
         similarities = [row['similarity'] for row in results[:3]]
         logger.info(f"Top 3 similarities: {similarities}")
         # Log first result for debugging
         logger.info(f"First result: {results[0]['text'][:50]}... (similarity: {results[0]['similarity']})")
+    
+    # Hybrid search: add keyword fallback if semantic search returned fewer than requested results
+    if total_results < request.limit:
+        remaining_slots = request.limit - total_results
+        semantic_ids = {row['id'] for row in results}
+        
+        logger.info(f"Semantic search returned {total_results} < {request.limit} requested. Running keyword fallback for {remaining_slots} more results.")
+        
+        # Run keyword search for remaining slots, excluding already found IDs
+        keyword_results = keyword_search(
+            query=request.query,
+            user_id=user_id,
+            limit=remaining_slots,
+            tag_filter=request.tag_filter,
+            exclude_ids=semantic_ids
+        )
+        
+        if keyword_results:
+            logger.info(f"Keyword fallback found {len(keyword_results)} additional memories")
+            # Convert MemoryResponse objects back to dict format to match semantic results
+            for memory in keyword_results:
+                result_dict = {
+                    'id': memory.id,
+                    'text': memory.text,
+                    'tag': memory.tag,
+                    'similarity': memory.similarity,
+                    'metadata': {
+                        'timestamp': memory.timestamp,
+                        'last_accessed': memory.last_accessed,
+                        'tag': memory.tag
+                    },
+                    'created_at': memory.timestamp  # Use timestamp as created_at
+                }
+                results.append(result_dict)
+        else:
+            logger.info("Keyword fallback found no additional memories")
+    
+    # Update total count after hybrid search
+    total_hybrid_results = len(results)
+    logger.info(f"Total hybrid search results: {total_hybrid_results} memories (semantic: {total_results}, keyword: {total_hybrid_results - total_results})")
+    
+    # Sort all results by similarity and timestamp (composite sort for recency tiebreaking)
+    if results:
+        results.sort(key=lambda x: (x.get('similarity', 0.0), x.get('created_at', '')), reverse=True)
+        top_created = results[0].get('created_at', 'unknown')
+        if hasattr(top_created, 'strftime'):
+            top_created_str = top_created.strftime('%Y-%m-%d')
+        elif isinstance(top_created, str):
+            top_created_str = top_created[:10]
+        else:
+            top_created_str = str(top_created)[:10]
+        logger.info(f"Sorted hybrid results by similarity+timestamp - top result: similarity={results[0].get('similarity', 0.0):.3f}, created={top_created_str}")
     
     # Format response
     memories = []

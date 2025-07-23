@@ -123,7 +123,7 @@ async def validate_token(token: str) -> Optional[str]:
 def create_user_http_client(token: str) -> httpx.AsyncClient:
     """Create HTTP client with user's token for memory_server API calls"""
     headers = {"Authorization": f"Bearer {token}"}
-    return httpx.AsyncClient(base_url=MEMORY_API_BASE, headers=headers)
+    return httpx.AsyncClient(base_url=MEMORY_API_BASE, headers=headers, timeout=30.0)
 
 async def check_token(request: Request) -> dict:
     """
@@ -228,6 +228,10 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
         token = current_user_context["token"]
         user_id = current_user_context["user_id"]
         
+        # Convert empty string to None for optional parameters
+        if category_filter == "":
+            category_filter = None
+            
         logger.info(f"Search request from user {user_id}: query='{query}', limit={limit}, category_filter={category_filter}")
         
         # Validate category_filter if provided
@@ -243,7 +247,9 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             if category_filter:
                 search_data["tag_filter"] = category_filter
             
+            logger.info(f"Making request to {MEMORY_API_BASE}/memories/search with data: {search_data}")
             response = await client.post("/memories/search", json=search_data)
+            logger.info(f"Response status: {response.status_code}")
             
             if response.status_code != 200:
                 logger.error(f"Memory server error: {response.status_code} - {response.text}")
@@ -282,7 +288,9 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
             return output
             
     except Exception as e:
-        logger.error(f"Error in recall: {e}")
+        logger.error(f"Error in recall: {type(e).__name__}: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return f"I couldn't recall that: {str(e)}"
 
 @mcp.tool()
