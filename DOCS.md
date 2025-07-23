@@ -95,7 +95,11 @@ cd frontend && npm install && npm run dev  # Port 8081
 # Test core functionality
 python limit_test_unique.py
 
-# Test MCP integration (Preferred Method)
+# Test MCP integration
+# Method 1: MCP Inspector (Quick testing)
+npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=YOUR_TOKEN"
+
+# Method 2: Claude Desktop (Production testing)
 # Add to Claude Desktop config: ~/Library/Application Support/Claude/claude_desktop_config.json
 {
   "mcpServers": {
@@ -105,9 +109,6 @@ python limit_test_unique.py
     }
   }
 }
-
-# Alternative: MCP Inspector (⚠️ WARNING: Unreliable due to routing issues)
-# npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=YOUR_TOKEN"
 
 # Test memory operations
 curl -X POST "http://localhost:8001/memories?token=TOKEN" \
@@ -197,7 +198,7 @@ VALUES ('your_admin_token', 'admin_user', 'Admin User', true);
 
 ## Development Patterns
 
-1. **Always test locally first**: Use curl for API, Claude Desktop + mcp-remote for MCP (avoid MCP Inspector - routing issues)
+1. **Always test locally first**: Use curl for API, test MCP with both Inspector (quick) and Claude Desktop (production-like)
 2. **Database changes**: Test with psql before code changes
 3. **Frontend integration**: Use localhost:8001 for development API calls
 4. **Memory limits**: Test with limit_test_unique.py
@@ -212,8 +213,8 @@ VALUES ('your_admin_token', 'admin_user', 'Admin User', true);
 4. **Database Connection**: Check PostgreSQL connection string
 5. **SPA Routing**: Ensure vercel.json exists for proper routing
 
-### MCP Testing Issues
-1. **MCP Inspector Failures**: Inspector has routing conflicts with our SSE setup - use Claude Desktop instead
+### MCP Testing Tips
+1. **Test Both Methods**: Use MCP Inspector for quick iteration, Claude Desktop for final validation
 2. **Claude Desktop Setup**: Add mcp-remote config, restart Claude Desktop after changes
 3. **Token Validation**: Use admin_test_token_artem_2025 for unlimited testing
 4. **Connection Verification**: Test with curl to /health endpoint first before MCP testing
