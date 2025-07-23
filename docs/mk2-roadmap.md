@@ -121,6 +121,13 @@ Add `conflict_resolution_mode` setting to give users control over their preferre
 3. **Semantic keyword mapping**: Map concepts to related terms
 4. **Tag-aware search**: Weight memories by relevance to query domain
 
+**Research First**: Check GitHub open source memory systems to see how they solved similar issues
+- WhenMoon memory system approach to query expansion and semantic mapping
+- Obsidian/Logseq search precision techniques
+- ChromaDB/Pinecone query enhancement strategies  
+- RAG systems with multi-query approaches
+- Learn existing patterns before implementing custom solution
+
 **Implementation Effort**: ⭐⭐⭐ (4-6 hours) - Query expansion + multi-search strategy
 **Impact**: Makes product feel significantly smarter and more comprehensive
 **Priority**: Post-MVP polish - good for v1.1 after user feedback
