@@ -107,6 +107,24 @@ Add `conflict_resolution_mode` setting to give users control over their preferre
 
 **✅ IMPLEMENTED**: System now uses semantic similarity check (>0.95 threshold) BEFORE storage to prevent duplicates. Test 6 validated this prevents duplicate proliferation ("I like working in the mornings" blocked at 0.9556 similarity). Real-time prevention working at storage time with graceful user feedback.
 
+### Search Precision Improvements ⭐⭐⭐
+**Improve recall of semantically related but keyword-distant memories**
+
+**Problem**: Important memories don't surface in relevant searches due to keyword/semantic gaps
+- Example: Query "writing style preferences communication" doesn't return memory about "signature phrases and patterns: 'Look...', 'What about...'"
+- Core writing style memories surface correctly, but specific phrase patterns get missed
+- Search works for 90%+ of cases but misses nuanced relationships
+
+**Solution Options**:
+1. **Query expansion**: Auto-expand "writing style" → ["phrases", "patterns", "signature", "voice", "tone"]
+2. **Multi-query strategy**: Run multiple targeted searches and merge results
+3. **Semantic keyword mapping**: Map concepts to related terms
+4. **Tag-aware search**: Weight memories by relevance to query domain
+
+**Implementation Effort**: ⭐⭐⭐ (4-6 hours) - Query expansion + multi-search strategy
+**Impact**: Makes product feel significantly smarter and more comprehensive
+**Priority**: Post-MVP polish - good for v1.1 after user feedback
+
 ### Advanced Relevance Scoring
 **Improve search results with multi-factor scoring**
 
