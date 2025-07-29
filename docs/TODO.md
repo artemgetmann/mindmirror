@@ -80,6 +80,37 @@
 
 **PRIORITY**: CRITICAL - Test before any public launch or demo
 
+## MEDIUM PRIORITY: UX Improvements
+
+### Remove System Prompt Requirement
+**Goal**: Eliminate the need for users to add system prompts to Claude Desktop settings
+
+**Current Problem**: 
+- Users need to setup MCP URL + add system prompt to Claude Desktop
+- Creates friction for non-technical users  
+- Two-step setup instead of "paste one URL and done"
+
+**Solution**: Move all system prompt guidance into MCP function docstrings
+- Enhance each function description with proactive usage guidelines
+- Make functions self-explanatory so AI knows when/how to use them
+- Test behavior consistency with/without system prompt
+
+**Benefits**:
+- ✅ True "one URL setup" experience
+- ✅ Reduces onboarding friction significantly
+- ✅ Better UX for non-technical users
+- ✅ System already works without system prompt
+
+**Implementation Status**:
+- ✅ Current MCP functions work without system prompt
+- ❌ Function descriptions need enhancement with proactive guidance
+- ❌ Need to test AI behavior consistency
+- ❌ Remove system prompt from DOCS.md once verified
+
+**Priority**: Medium-High (good UX improvement, easy win with current small user base)
+
+**Timing**: Should do now while user base is small (~10 users) for easy communication
+
 
 
 
