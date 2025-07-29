@@ -82,34 +82,49 @@
 
 ## MEDIUM PRIORITY: UX Improvements
 
-### Remove System Prompt Requirement
-**Goal**: Eliminate the need for users to add system prompts to Claude Desktop settings
+### Improve Conflict Detection for Conceptual Opposites
+**Problem**: Current conflict detection uses 0.65 similarity threshold, which misses conceptual opposites with lower semantic similarity scores.
 
-**Current Problem**: 
-- Users need to setup MCP URL + add system prompt to Claude Desktop
-- Creates friction for non-technical users  
-- Two-step setup instead of "paste one URL and done"
+**Example**: "User prefers collaborative team environments" vs "User prefers working alone without interruptions" has similarity 0.609 (below 0.65 threshold), so they're not detected as conflicts despite being semantically opposite.
 
-**Solution**: Move all system prompt guidance into MCP function docstrings
-- Enhance each function description with proactive usage guidelines
-- Make functions self-explanatory so AI knows when/how to use them
-- Test behavior consistency with/without system prompt
+**Solution Options**:
+1. **Lower similarity threshold** from 0.65 to 0.55-0.60 to catch more conceptual conflicts
+2. **Add semantic contradiction detection** using NLP to identify opposing concepts (team/alone, morning/evening, etc.)
+3. **Manual conflict keywords** - flag specific opposing term pairs automatically
 
-**Benefits**:
-- ✅ True "one URL setup" experience
-- ✅ Reduces onboarding friction significantly
-- ✅ Better UX for non-technical users
-- ✅ System already works without system prompt
+**Current Status**: Works well for time preferences (morning/afternoon/evening) but misses conceptual opposites with lower similarity scores.
 
-**Implementation Status**:
-- ✅ Current MCP functions work without system prompt
-- ❌ Function descriptions need enhancement with proactive guidance
-- ❌ Need to test AI behavior consistency
-- ❌ Remove system prompt from DOCS.md once verified
+**Priority**: Medium - improves conflict detection accuracy for better user experience
 
-**Priority**: Medium-High (good UX improvement, easy win with current small user base)
+### Improve Conflict Presentation and User Action Clarity
+**Problem**: When conflicts are detected, Claude shows the conflicting memories but doesn't clearly instruct the user on what to do next or present conflicts with enough detail.
 
-**Timing**: Should do now while user base is small (~10 users) for easy communication
+**Current Behavior**: 
+- Shows: "⚠️ I remember some conflicting information (1 groups):" 
+- Lists conflicts with IDs and dates
+- But doesn't explicitly tell user what action to take
+
+**Desired Behavior**:
+```
+⚠️ I remember some conflicting information (1 groups): 
+IMPORTANT: Tell the user the exact conflicts with created date, relevance, and ask which they would like to keep. Present user with the exact word-for-word conflicts - don't assume user saw them in the response.
+
+Conflict Group 1:
+- "User prefers working alone only" (ID: mem_123, Created: July 29, 2025, Relevance: low)
+- "User prefers working alone without interruptions" (ID: mem_456, Created: July 29, 2025, Relevance: low)
+
+Which of these conflicting memories would you like to keep? I can delete the others for you.
+```
+
+**Solution**: Update MCP server conflict presentation to:
+1. Always present exact conflict text word-for-word 
+2. Include human-readable dates (July 29, 2025 instead of 2025-07-29)
+3. Explicitly ask user which memory to keep
+4. Offer to delete the unwanted conflicts
+5. Don't assume user can see the conflicts in the technical response
+
+**Priority**: Medium-High - improves user experience and conflict resolution workflow
+
 
 
 
