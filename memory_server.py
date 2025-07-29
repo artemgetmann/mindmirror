@@ -767,6 +767,8 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
         "count": len(memories)
     }
     
+    # Server-side conflict message formatting will be added after conflict groups are built
+    
     # Group overlapping conflict sets using Union-Find for transitive merging
     class UnionFind:
         def __init__(self):
@@ -967,6 +969,7 @@ async def search_memories(request: SearchRequest, user_id: str = Depends(get_cur
             logger.info(f"Debug for user {user_id}: Adding manually detected conflict sets: {list(manual_conflict_sets.keys())}")
             response["conflict_sets"] = manual_conflict_sets
     
+
     # Log final response summary
     if "conflict_groups" in response:
         conflict_count = len(response["conflict_groups"])

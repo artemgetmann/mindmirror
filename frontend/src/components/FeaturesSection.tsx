@@ -1,15 +1,25 @@
-import { Brain, Lock, Zap, Code, Users, Download, GitBranch } from "lucide-react";
+import { Brain, Lock, Zap, Code, Users, Download, GitBranch, RefreshCw, Search, Database } from "lucide-react";
 
 const features = [
   {
-    icon: Brain,
-    title: "Intelligent Memory",
-    description: "Not chat logs. Just the stuff that drives better, more personal suggestions"
+    icon: Search,
+    title: "Proactive Recall",
+    description: "AI automatically searches memory before giving advice—no manual prompting needed"
+  },
+  {
+    icon: Database,
+    title: "Smart Storage",
+    description: "Explicit preferences (\"I prefer X\") stored immediately. AI asks permission for other info"
   },
   {
     icon: GitBranch,
     title: "Smart Conflict Resolution",
     description: "Humans evolve. When preferences conflict, MindMirror helps you choose—never silently overwrites"
+  },
+  {
+    icon: RefreshCw,
+    title: "Context Continuity",
+    description: "Save conversation checkpoints to start new chats with full context or hand off to another AI model"
   },
   {
     icon: Zap,
@@ -36,7 +46,7 @@ export const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div 
               key={index} 

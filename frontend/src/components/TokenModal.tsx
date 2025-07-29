@@ -203,7 +203,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                 <ol className="text-sm text-blue-800 space-y-1">
                   <li>1. Copy the MCP URL above</li>
                   <li>2. Add it to your AI tool (Claude, Cursor, Windsurf, etc.)</li>
-                  <li>3. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Add system prompt to your AI settings</Link></li>
+                  <li>3. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Check setup guide for your specific tool</Link></li>
                   <li>4. Start using persistent memory!</li>
                 </ol>
               </div>

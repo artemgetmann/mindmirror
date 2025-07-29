@@ -58,8 +58,25 @@ DB_CONFIG = {
 # Valid memory tags (must match memory_server.py)
 VALID_TAGS = ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"]
 
-# Initialize MCP server
-mcp = FastMCP("memory-system")
+# Initialize MCP server with minimal global policy
+mcp = FastMCP(
+    name="mindmirror",
+    instructions="""
+GLOBAL POLICY (embedded, minimal)
+
+Identity:
+You are an AI assistant with persistent memory. Tools available: recall, remember, what_do_you_know, forget, checkpoint, resume. Do not invent or call undefined tools.
+
+Guardrails:
+• Before any personal advice or recommendations: call recall().
+• If recall() returns conflicts: present the conflict information to user and ask which preference to follow. Only call forget() if user explicitly requests deletion.
+• Storing:
+  - If user explicitly states a preference ("I prefer X"), store it immediately.
+  - For non‑explicit info, ask permission before remember(). Never store AI‑suggested ideas as user preferences.
+• Transparency: when giving advice, state which stored preference you used; when asked about stored information, call what_do_you_know() and present the response.
+• Context handoff: use checkpoint() when user wants to continue conversation elsewhere ("save this for later", switching to another AI); use resume() when user references previous work without context ("continue our discussion", "where did we leave off").
+"""
+)
 transport = SseServerTransport("/messages/")
 
 # Global user context storage for current session
@@ -146,7 +163,29 @@ async def check_token(request: Request) -> dict:
 @mcp.tool()
 async def remember(text: str, category: str) -> str:
     """
-    Store information for future reference
+    Store user preferences, facts, and context.
+    
+    CRITICAL CAPTURE RULES:
+    • When user says "I prefer X" → remember("User prefers X", category="preference")
+    • When user says "Actually, I prefer Y" → remember("User prefers Y", category="preference")  
+    • If user contradicts previous preference → store the new preference
+
+    MEMORY CATEGORIES: goal, routine, preference, constraint, habit, project, tool, identity, value
+
+    PROACTIVE MEMORY SUGGESTIONS (ask permission first):
+    • Unique workflow/process → "Would you like me to remember this workflow for future reference?"
+    • Repeated behaviors → "I notice you mention this approach often - should I store this for you?"
+    • Problem-solving methods → "This seems like a useful technique - want me to remember it?"
+    • Domain knowledge → "Should I remember this approach for next time?"
+
+    PROACTIVE STORAGE MAPPING (with user permission):
+    • Unique workflows/processes → 'routine' or 'tool'
+    • Repeated behaviors → 'habit'  
+    • Problem-solving methods → 'tool'
+    • Personal approaches → 'routine'
+    • Domain knowledge → 'tool' or 'project'
+
+    IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-generated suggestions as user preferences.
     
     Args:
         text: The information to remember
@@ -213,7 +252,18 @@ async def remember(text: str, category: str) -> str:
 @mcp.tool()
 async def recall(query: str, limit: int = 10, category_filter: str = None) -> str:
     """
-    Find previously stored information
+    Search stored information. ALWAYS call this BEFORE giving personal advice or recommendations.
+    
+    WHEN TO USE PROACTIVELY (without user asking):
+    • Questions starting with "How should I..." or "What's the best way to..."
+    • Questions about "my preferences", "my habits", "my routines", "my goals"  
+    • Questions that assume previous knowledge or context
+    • Questions using "I" or "my" that might reference stored information
+    • Before giving advice or recommendations about personal topics
+    • When user asks about something they might have mentioned before
+
+    CRITICAL: Use the most recent preference if no conflicts. If conflicts exist, present them 
+    to user and ask which preference to follow.
     
     Args:
         query: What you're looking for
@@ -296,7 +346,16 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
 @mcp.tool()
 async def forget(information_id: str) -> str:
     """
-    Remove specific information from memory
+    Remove specific memories by ID.
+    
+    CONFLICT RESOLUTION:
+    Use this after identifying conflicts via recall() and after user explicitly asks to delete 
+    specific memories. Always show what you're forgetting before deletion.
+    
+    USAGE:
+    • Only call when user explicitly requests deletion
+    • Never auto-delete conflicting memories without user consent
+    • Always confirm what will be deleted before proceeding
     
     Args:
         information_id: The ID of the information to forget
@@ -330,7 +389,13 @@ async def forget(information_id: str) -> str:
 @mcp.tool()
 async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
     """
-    Show what information you have stored
+    Browse all stored memories to understand the full scope of stored information.
+    
+    USAGE:
+    • Use when user asks what you know about them
+    • Use before making comprehensive recommendations to understand context
+    • Helps provide personalized advice based on complete memory picture
+    • Present the formatted response from server (includes timestamps/relevance)
     
     Args:
         category: Optional category filter (goal, routine, preference, constraint, habit, project, tool, identity, value)
