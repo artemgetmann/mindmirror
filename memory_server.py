@@ -288,6 +288,23 @@ class SearchRequest(BaseModel):
     limit: int = 10
     tag_filter: Optional[str] = None
 
+class CheckpointRequest(BaseModel):
+    content: str
+    title: Optional[str] = None
+
+class CheckpointResponse(BaseModel):
+    status: str
+    overwrote: bool
+    previous_checkpoint_time: Optional[str] = None
+    id: int
+
+class ResumeResponse(BaseModel):
+    exists: bool
+    content: Optional[str] = None
+    title: Optional[str] = None
+    created_at: Optional[str] = None
+    id: Optional[int] = None
+
 def get_db_connection():
     """Get database connection"""
     return psycopg2.connect(**DB_CONFIG)
@@ -1199,6 +1216,94 @@ async def join_waitlist(request: WaitlistRequest):
     except Exception as e:
         logger.error(f"Error joining waitlist: {e}")
         raise HTTPException(status_code=500, detail="Failed to join waitlist")
+
+@app.post("/checkpoint", response_model=CheckpointResponse)
+async def store_checkpoint(request: CheckpointRequest, user_id: str = Depends(get_current_user)):
+    """Store current conversation context for later continuation"""
+    
+    logger.info(f"Storing checkpoint for user {user_id}: '{request.content[:50]}...'")
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        
+        # Check if user already has a checkpoint
+        cursor.execute("""
+            SELECT id, created_at FROM short_term_memories WHERE user_id = %s
+        """, (user_id,))
+        
+        existing = cursor.fetchone()
+        overwrote = existing is not None
+        previous_time = existing['created_at'].isoformat() if existing else None
+        
+        # Insert or update checkpoint (UPSERT)
+        cursor.execute("""
+            INSERT INTO short_term_memories (user_id, title, content, created_at)
+            VALUES (%s, %s, %s, NOW())
+            ON CONFLICT (user_id) 
+            DO UPDATE SET 
+                title = EXCLUDED.title,
+                content = EXCLUDED.content,
+                created_at = EXCLUDED.created_at
+            RETURNING id
+        """, (user_id, request.title, request.content))
+        
+        result = cursor.fetchone()
+        checkpoint_id = result['id']
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        logger.info(f"Checkpoint stored successfully for user {user_id}: ID {checkpoint_id}, overwrote: {overwrote}")
+        
+        return CheckpointResponse(
+            status="ok",
+            overwrote=overwrote,
+            previous_checkpoint_time=previous_time,
+            id=checkpoint_id
+        )
+        
+    except Exception as e:
+        logger.error(f"Error storing checkpoint for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to store checkpoint: {str(e)}")
+
+@app.post("/resume", response_model=ResumeResponse)
+async def resume_checkpoint(user_id: str = Depends(get_current_user)):
+    """Retrieve the most recent conversation checkpoint"""
+    
+    logger.info(f"Retrieving checkpoint for user {user_id}")
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        
+        cursor.execute("""
+            SELECT id, title, content, created_at 
+            FROM short_term_memories 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if result:
+            logger.info(f"Checkpoint found for user {user_id}: ID {result['id']}")
+            return ResumeResponse(
+                exists=True,
+                content=result['content'],
+                title=result['title'],
+                created_at=result['created_at'].isoformat(),
+                id=result['id']
+            )
+        else:
+            logger.info(f"No checkpoint found for user {user_id}")
+            return ResumeResponse(exists=False)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving checkpoint for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve checkpoint: {str(e)}")
 
 @app.delete("/memories/{memory_id}")
 async def delete_memory(memory_id: str, user_id: str = Depends(get_current_user)):

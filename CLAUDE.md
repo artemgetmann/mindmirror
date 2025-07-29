@@ -35,6 +35,8 @@ cd frontend && npm run dev    # Port 8081
 - `POST /memories/search?token=TOKEN` - Vector similarity search  
 - `GET /memories?token=TOKEN` - List user memories
 - `DELETE /memories/{id}?token=TOKEN` - Delete specific memory
+- `POST /checkpoint?token=TOKEN` - Save conversation checkpoint (overwrites existing)
+- `POST /resume?token=TOKEN` - Retrieve saved checkpoint
 
 ## Development Testing
 
@@ -96,11 +98,13 @@ Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `t
 
 ## MCP Integration
 
-### Four Core Functions (Claude Desktop)
+### Six Core Functions (Claude Desktop)
 - `remember(text, category)` - Store new memory
 - `recall(query, limit, category_filter)` - Search memories
 - `forget(information_id)` - Delete specific memory  
 - `what_do_you_know(category, limit)` - List all memories
+- `checkpoint(text, title)` - Save conversation context for later continuation
+- `resume()` - Retrieve saved conversation checkpoint
 
 ### Token Authentication
 - Each user gets unique token via frontend
@@ -120,6 +124,46 @@ Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `t
 3. **Frontend integration**: Use localhost:8001 for development API calls
 4. **Memory limits**: Test with limit_test_unique.py
 5. **MCP changes**: Restart Claude Desktop to pick up changes
+
+## Testing MCP Changes with Claude Desktop
+
+When modifying MCP function docstrings or server logic:
+
+1. **Kill existing MCP server**: `pkill -f memory_mcp_direct.py`
+2. **Restart MCP server**: `source venv/bin/activate && python memory_mcp_direct.py > logs/memory_mcp_direct.log 2>&1 &`
+3. **Restart Claude Desktop**: Quit and reopen Claude Desktop application
+4. **Test functions**: Use updated functions (checkpoint, resume, etc.) to verify changes
+5. **Check logs**: Monitor both MCP server logs and Claude Desktop behavior
+
+**Note**: Both server restart AND Claude Desktop restart are required for MCP function changes to take effect.
+
+## Local Claude Desktop Setup
+
+### Adding MCP Server to Claude Desktop
+
+1. **Generate token**: `curl -X POST http://localhost:8001/api/generate-token -H "Content-Type: application/json" -d '{}'`
+
+2. **Edit Claude Desktop config**: `/Users/user/Library/Application Support/Claude/claude_desktop_config.json`
+
+3. **Add mindmirror_local entry**:
+```json
+{
+  "mcpServers": {
+    "mindmirror_local": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/sse?token=YOUR_TOKEN_HERE"]
+    }
+  }
+}
+```
+
+4. **Restart Claude Desktop** to pick up config changes
+
+### Port Notes
+- **Port 8001**: Backend API server (`memory_server.py`)
+- **Port 8000**: MCP server (`memory_mcp_direct.py`) - default port
+- **Port conflicts**: If 8000 is occupied (e.g., by Docker), use `PORT=8002 python memory_mcp_direct.py` and update config accordingly
+- **Checkpoint functions**: `checkpoint(text, title)` and `resume()` available after setup
 
 ## Key Files
 

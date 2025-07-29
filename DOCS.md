@@ -73,8 +73,9 @@ cd frontend && npm install && npm run dev  # Port 8081
 
 ### MCP Integration
 - **Direct SSE Protocol**: Real-time communication with Claude Desktop
-- **Four Core Functions**: remember(), recall(), forget(), what_do_you_know()
+- **Six Core Functions**: remember(), recall(), forget(), what_do_you_know(), checkpoint(), resume()
 - **Conflict Resolution**: AI can view and resolve conflicting memories
+- **Short-term Memory**: Checkpoint/resume for conversation continuity across AI sessions
 
 ## API Endpoints
 
@@ -87,6 +88,8 @@ cd frontend && npm install && npm run dev  # Port 8081
 - `POST /memories/search?token=TOKEN` - Vector similarity search
 - `GET /memories?token=TOKEN` - List user memories
 - `DELETE /memories/{id}?token=TOKEN` - Delete specific memory
+- `POST /checkpoint?token=TOKEN` - Save conversation checkpoint (overwrites existing)
+- `POST /resume?token=TOKEN` - Retrieve saved checkpoint
 - `GET /health` - System health check
 
 ## Testing

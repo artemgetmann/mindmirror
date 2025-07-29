@@ -384,6 +384,149 @@ async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
         logger.error(f"Error in what_do_you_know: {e}")
         return f"I couldn't access what I know: {str(e)}"
 
+@mcp.tool()
+async def checkpoint(text: str, title: str = None) -> str:
+    """
+    Save current conversation context for later continuation.
+    
+    SUMMARY INSTRUCTIONS: Create a detailed summary that allows another AI 
+    (or a new chat) with ZERO prior context to understand exactly what was 
+    discussed, what was accomplished, and what remains to be done.
+    
+    USE THIS WHEN THE USER:
+    - Wants to continue this conversation in a new chat
+    - Is switching to another AI model/platform  
+    - Asks to "save where we left off" or similar
+    - Needs to pause and resume this discussion later
+    
+    CRITICAL: This overwrites existing checkpoints. When you see "⚠️" and overwrite 
+    warning in the response, you MUST immediately tell the user: "I overwrote your 
+    previous checkpoint from [DATE]. Let me know if this wasn't what you intended." 
+    DO NOT proceed without informing the user about the overwrite.
+    
+    Args:
+        text: The conversation summary/context to save
+        title: Optional title for the checkpoint
+    """
+    try:
+        # Get user context
+        if "token" not in current_user_context:
+            return "I need to authenticate first. Please reconnect with a valid token."
+        
+        token = current_user_context["token"]
+        user_id = current_user_context["user_id"]
+        
+        logger.info(f"Storing checkpoint for user {user_id}: '{text[:50]}...'")
+        
+        # Create HTTP client with user's token
+        async with create_user_http_client(token) as client:
+            response = await client.post("/checkpoint", json={
+                "content": text,
+                "title": title
+            })
+            
+            if response.status_code != 200:
+                logger.error(f"Memory server error: {response.status_code} - {response.text}")
+                return f"I couldn't save the checkpoint: {response.text}"
+            
+            result = response.json()
+            
+            # Handle overwrite warning FIRST - make it the primary message
+            if result.get('overwrote', False):
+                prev_time = result.get('previous_checkpoint_time', '')
+                if prev_time:
+                    # Format datetime for user display
+                    try:
+                        from datetime import datetime
+                        prev_date = datetime.fromisoformat(prev_time.replace('Z', '+00:00'))
+                        formatted_date = prev_date.strftime('%B %d, %Y at %I:%M %p')
+                        output = f"⚠️ IMPORTANT: I overwrote your previous checkpoint from {formatted_date}. Was this what you intended?\n\n"
+                    except:
+                        output = f"⚠️ IMPORTANT: I overwrote your previous checkpoint. Let me know if this wasn't what you intended.\n\n"
+                else:
+                    output = f"⚠️ IMPORTANT: I overwrote your previous checkpoint. Let me know if this wasn't what you intended.\n\n"
+            else:
+                output = ""
+            
+            # Then add success details
+            output += f"✅ Checkpoint saved successfully!\n\n"
+            output += f"Content: {text[:100]}{'...' if len(text) > 100 else ''}\n"
+            if title:
+                output += f"Title: {title}\n"
+            output += f"Checkpoint ID: {result.get('id', 'unknown')}"
+            
+            return output
+            
+    except Exception as e:
+        logger.error(f"Error in checkpoint: {e}")
+        return f"I couldn't save the checkpoint: {str(e)}"
+
+@mcp.tool()
+async def resume() -> str:
+    """
+    Retrieve the most recent conversation checkpoint to continue where you left off.
+    
+    USE THIS WHEN:
+    - User explicitly asks to "continue from before" or "resume our discussion"
+    - User references previous work WITHOUT context ("how's that feature coming along?")
+    - User seems confused about lost context ("wait, what were we working on?")
+    - User mentions "last time" or "earlier" without providing details
+    
+    DO NOT use automatically at conversation start. Only check for checkpoints
+    when there's a clear signal the user wants to continue something.
+    
+    Returns the saved context with metadata, or indicates no checkpoint exists.
+    """
+    try:
+        # Get user context
+        if "token" not in current_user_context:
+            return "I need to authenticate first. Please reconnect with a valid token."
+        
+        token = current_user_context["token"]
+        user_id = current_user_context["user_id"]
+        
+        logger.info(f"Retrieving checkpoint for user {user_id}")
+        
+        # Create HTTP client with user's token
+        async with create_user_http_client(token) as client:
+            response = await client.post("/resume")
+            
+            if response.status_code != 200:
+                logger.error(f"Memory server error: {response.status_code} - {response.text}")
+                return f"I couldn't retrieve the checkpoint: {response.text}"
+            
+            result = response.json()
+            
+            if not result.get('exists', False):
+                return "I don't have any saved checkpoint to resume from."
+            
+            # Format response with checkpoint content
+            output = f"📋 Found your saved checkpoint:\n\n"
+            
+            if result.get('title'):
+                output += f"**{result['title']}**\n\n"
+            
+            output += f"{result.get('content', 'No content available')}\n\n"
+            
+            # Add metadata
+            created_at = result.get('created_at', '')
+            if created_at:
+                try:
+                    from datetime import datetime
+                    created_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                    formatted_date = created_date.strftime('%B %d, %Y at %I:%M %p')
+                    output += f"*Saved on {formatted_date}*\n"
+                except:
+                    output += f"*Saved: {created_at[:16]}*\n"
+            
+            output += f"*Checkpoint ID: {result.get('id', 'unknown')}*"
+            
+            return output
+            
+    except Exception as e:
+        logger.error(f"Error in resume: {e}")
+        return f"I couldn't retrieve the checkpoint: {str(e)}"
+
 async def handle_sse(request: Request):
     """Handle SSE connection with token authentication"""
     # Validate token and get user context
