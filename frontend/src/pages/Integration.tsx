@@ -748,6 +748,22 @@ const result = await client.callTool({
                     </pre>
                   </div>
                   
+                  <div className="bg-amber-50 p-4 rounded border-l-4 border-amber-500">
+                    <h5 className="font-semibold mb-2">🏢 Building for Multiple Users?</h5>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Need to offer MindMirror memory to your own clients or users? Current tokens are single-user only.
+                    </p>
+                    <p className="text-sm">
+                      <strong>Contact us for enterprise solutions:</strong>{" "}
+                      <a href="https://x.com/artemgetman_" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        @artemgetman_
+                      </a>{" "}
+                      or{" "}
+                      <a href="https://github.com/artemgetmann" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        GitHub
+                      </a>
+                    </p>
+                  </div>
                   
                   <div className="bg-gray-50 p-4 rounded border-l-4 border-accent-neon">
                     <h5 className="font-semibold mb-2">Why MCP Instead of REST?</h5>
