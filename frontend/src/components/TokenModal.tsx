@@ -201,11 +201,15 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Copy the MCP URL above</li>
-                  <li>2. Add it to your AI tool (Claude, Cursor, Windsurf, etc.)</li>
-                  <li>3. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Check setup guide for your specific tool</Link></li>
-                  <li>4. Start using persistent memory!</li>
+                  <li>1. <strong>Add system prompt</strong> - Required for proactive memory usage</li>
+                  <li>2. Copy the MCP URL above</li>
+                  <li>3. Add URL to your AI tool (Claude, Cursor, Windsurf, etc.)</li>
+                  <li>4. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Follow complete setup guide with system prompt</Link></li>
+                  <li>5. Start using proactive persistent memory!</li>
                 </ol>
+                <div className="mt-3 p-2 bg-amber-100 border border-amber-300 rounded text-xs text-amber-800">
+                  <strong>⚠️ Important:</strong> System prompts are essential for proactive behavior. Without them, your AI won't automatically use memory functions.
+                </div>
               </div>
 
               <div className="flex gap-2">
