@@ -10,6 +10,9 @@
 - Return both the ID and the text of the deleted memory
 - Format: "I've forgotten: '[memory text]' (ID: mem_123...)"
 
+make When the AI forgets memories using the MCP server, there is no indication of what memory it's forgetting. There's just the information ID and the memory ID, but there's no information about what memory is actually being deleted. And that's not user-friendly. We want users to see what actual memory is being deleted, so that when they click Accept, they know that they're deleting the right thing and not the wrong thing. I think that should be done in this way.
+
+
 **Impact**: User confidence and safety - prevents accidental deletion of important memories
 
 ### 2. Scalability Considerations (MEDIUM PRIORITY)
