@@ -144,13 +144,25 @@ def create_user_http_client(token: str) -> httpx.AsyncClient:
 
 async def check_token(request: Request) -> dict:
     """
-    Extract and validate token from URL parameters.
+    Extract and validate token from Authorization header or URL parameters.
     Returns dict with user_id and token, raises HTTPException if invalid.
     """
-    token = request.query_params.get("token")
+    token = None
+    
+    # Check Authorization header first (new MCP spec requirement)
+    auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        logger.info(f"Token provided via Authorization header: {token[:10]}...")
+    
+    # Fallback to URL parameter for backward compatibility
+    elif "token" in request.query_params:
+        token = request.query_params.get("token")
+        logger.info(f"Token provided via URL parameter: {token[:10]}...")
+    
     if not token:
-        logger.error("No token provided in URL parameters")
-        raise HTTPException(status_code=401, detail="Token required in URL parameters")
+        logger.error("No token provided in Authorization header or URL parameters")
+        raise HTTPException(status_code=401, detail="Token required in Authorization header or URL parameters")
     
     user_id = await validate_token(token)
     if not user_id:
@@ -592,8 +604,41 @@ async def resume() -> str:
         logger.error(f"Error in resume: {e}")
         return f"I couldn't retrieve the checkpoint: {str(e)}"
 
+async def handle_sse_options(request: Request):
+    """Handle OPTIONS preflight for SSE endpoint"""
+    origin = request.headers.get("origin", "")
+    
+    # Define allowed origins for MCP clients
+    allowed_origins = [
+        "https://claude.ai",
+        "http://localhost:5173",
+        "http://localhost:8081",
+        "https://usemindmirror.com",
+        "https://www.usemindmirror.com",
+        "https://memory.usemindmirror.com"
+    ]
+    
+    headers = {
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, MCP-Protocol-Version",
+        "Access-Control-Expose-Headers": "MCP-Protocol-Version",
+        "MCP-Protocol-Version": "2025-06-18"
+    }
+    
+    if origin in allowed_origins:
+        headers["Access-Control-Allow-Origin"] = origin
+    
+    return Response(
+        status_code=204,
+        headers=headers
+    )
+
 async def handle_sse(request: Request):
     """Handle SSE connection with token authentication"""
+    # Handle OPTIONS preflight
+    if request.method == "OPTIONS":
+        return await handle_sse_options(request)
+    
     # Validate token and get user context
     user_context = await check_token(request)
     user_id = user_context["user_id"]
@@ -604,6 +649,30 @@ async def handle_sse(request: Request):
     # Store user context for this session
     current_user_context["user_id"] = user_id
     current_user_context["token"] = token
+    
+    # Set response headers with MCP protocol version
+    response_headers = {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+        "MCP-Protocol-Version": "2025-06-18"
+    }
+    
+    # Set CORS headers
+    origin = request.headers.get("origin", "")
+    allowed_origins = [
+        "https://claude.ai",
+        "http://localhost:5173",
+        "http://localhost:8081",
+        "https://usemindmirror.com",
+        "https://www.usemindmirror.com",
+        "https://memory.usemindmirror.com"
+    ]
+    
+    if origin in allowed_origins:
+        response_headers["Access-Control-Allow-Origin"] = origin
+        response_headers["Access-Control-Allow-Credentials"] = "true"
     
     async with transport.connect_sse(
         request.scope, request.receive, request._send
@@ -621,6 +690,7 @@ app = FastAPI(title="Memory MCP Server", version="1.0.0")
 
 # Configure CORS for frontend access
 origins = [
+    "https://claude.ai",  # Claude web app - NEW MCP CLIENT
     "http://localhost:5173",  # Vite dev server
     "http://localhost:5174",  # Alternative dev port
     "http://localhost:8081",  # Frontend dev server
@@ -633,8 +703,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "MCP-Protocol-Version"],
+    expose_headers=["MCP-Protocol-Version"]
 )
 
 @app.get("/health")
@@ -679,11 +750,86 @@ async def proxy_join_waitlist(request: Request):
             headers=dict(response.headers)
         )
 
+class MCPProtocolMiddleware:
+    """Middleware to add MCP protocol headers to responses"""
+    def __init__(self, app):
+        self.app = app
+        
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            # Handle OPTIONS preflight for any endpoint
+            if scope["method"] == "OPTIONS":
+                origin = ""
+                for header_name, header_value in scope.get("headers", []):
+                    if header_name == b"origin":
+                        origin = header_value.decode()
+                        break
+                
+                allowed_origins = [
+                    "https://claude.ai",
+                    "http://localhost:5173",
+                    "http://localhost:8081", 
+                    "https://usemindmirror.com",
+                    "https://www.usemindmirror.com",
+                    "https://memory.usemindmirror.com"
+                ]
+                
+                headers = [
+                    (b"access-control-allow-methods", b"GET, POST, OPTIONS"),
+                    (b"access-control-allow-headers", b"Content-Type, Authorization, MCP-Protocol-Version"),
+                    (b"access-control-expose-headers", b"MCP-Protocol-Version"),
+                    (b"mcp-protocol-version", b"2025-06-18")
+                ]
+                
+                if origin in allowed_origins:
+                    headers.append((b"access-control-allow-origin", origin.encode()))
+                
+                await send({
+                    "type": "http.response.start",
+                    "status": 204,
+                    "headers": headers
+                })
+                await send({"type": "http.response.body", "body": b""})
+                return
+        
+        # Wrap the send function to add headers to responses
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                # Add MCP protocol version header
+                headers = list(message.get("headers", []))
+                headers.append((b"mcp-protocol-version", b"2025-06-18"))
+                
+                # Add CORS headers
+                origin = ""
+                for header_name, header_value in scope.get("headers", []):
+                    if header_name == b"origin":
+                        origin = header_value.decode()
+                        break
+                
+                allowed_origins = [
+                    "https://claude.ai",
+                    "http://localhost:5173",
+                    "http://localhost:8081",
+                    "https://usemindmirror.com", 
+                    "https://www.usemindmirror.com",
+                    "https://memory.usemindmirror.com"
+                ]
+                
+                if origin in allowed_origins:
+                    headers.append((b"access-control-allow-origin", origin.encode()))
+                    headers.append((b"access-control-allow-credentials", b"true"))
+                
+                message["headers"] = headers
+            
+            await send(message)
+        
+        await self.app(scope, receive, send_with_headers)
+
 # Create Starlette app with SSE and message handling
 sse_app = Starlette(
     routes=[
-        Route("/sse", handle_sse, methods=["GET"]),
-        Mount("/messages/", app=transport.handle_post_message)
+        Route("/sse", handle_sse, methods=["GET", "OPTIONS"]),
+        Mount("/messages/", app=MCPProtocolMiddleware(transport.handle_post_message))
     ]
 )
 
