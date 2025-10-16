@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMirror OG Image</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1200px;
+            height: 630px;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 12px;
+        }
+
+        h1 {
+            font-size: 96px;
+            font-weight: 700;
+            color: #000000;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        p {
+            font-size: 32px;
+            font-weight: 400;
+            color: rgba(0, 0, 0, 0.6);
+            letter-spacing: -0.01em;
+            line-height: 1.4;
+        }
+
+        /* Subtle gradient overlay */
+        .gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.02) 0%, transparent 70%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient"></div>
+    <div class="container">
+        <div class="logo-title">
+            <img src="frontend/public/lovable-uploads/df98b257-f966-4a4c-95ec-38a40d83c40a.png" alt="MindMirror Logo" class="logo">
+            <h1>MindMirror</h1>
+        </div>
+        <p>Persistent memory for AI models</p>
+    </div>
+</body>
+</html>
