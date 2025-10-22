@@ -15,6 +15,7 @@ export const Navigation = () => {
     { path: "/#how-it-works", label: "How it works" },
     { path: "/integration", label: "Integration" },
     { path: "/premium", label: "Premium" },
+    { path: "/privacy", label: "Privacy" },
     { path: "/about", label: "About" }
   ];
   
