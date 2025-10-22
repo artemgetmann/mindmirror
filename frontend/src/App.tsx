@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Integration from "./pages/Integration";
 import Premium from "./pages/Premium";
+import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/integration" element={<Integration />} />
           <Route path="/premium" element={<Premium />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/about" element={<About />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

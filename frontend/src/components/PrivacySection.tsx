@@ -1,4 +1,5 @@
 import { Shield, Eye, Download, Server } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const privacyFeatures = [
   {
@@ -32,8 +33,15 @@ export const PrivacySection = () => {
             Privacy-First by Design
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Your memories are yours. We built MindMirror with the same privacy standards 
+            Your memories are yours. We built MindMirror with the same privacy standards
             we'd demand for our own AI workflows.
+          </p>
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto mt-4">
+            For details on how we store, encrypt, and protect your data, read our{" "}
+            <Link to="/privacy" className="text-accent-neon hover:underline">
+              Privacy Overview
+            </Link>
+            .
           </p>
         </div>
 
