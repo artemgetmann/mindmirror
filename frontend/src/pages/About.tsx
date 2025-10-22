@@ -74,7 +74,7 @@ const About = () => {
 
             <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
               <CardHeader>
-                <CardTitle className="font-mono text-lg">━━━ Built by Artem ━━━</CardTitle>
+                <CardTitle className="font-mono text-lg">━━━ Built by Artem Getman ━━━</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
