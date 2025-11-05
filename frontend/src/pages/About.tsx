@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, Twitter, Globe } from "lucide-react";
+import { Github, Twitter, Globe, Youtube } from "lucide-react";
 
 const About = () => {
   return (
@@ -15,24 +15,6 @@ const About = () => {
               The most advanced AI memory system in the world. Built because I was tired of re-explaining everything in every chat.
             </p>
           </div>
-
-          <Card className="border-2 border-dashed border-gray-300 bg-gray-50 mb-8">
-            <CardHeader>
-              <CardTitle className="font-mono text-lg">━━━ MindMirror Demo & Why I Built It ━━━</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full rounded-lg"
-                  src="https://www.youtube.com/embed/R36RkMoCoa8?rel=0"
-                  title="MindMirror Demo Video"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </CardContent>
-          </Card>
 
           <div className="space-y-8">
             <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
@@ -95,6 +77,10 @@ const About = () => {
                   <a href="https://x.com/artemgetman_" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
                     <Twitter className="h-4 w-4" />
                     <span className="font-mono text-sm">Twitter</span>
+                  </a>
+                  <a href="https://www.youtube.com/@ArtemGetmann" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
+                    <Youtube className="h-4 w-4" />
+                    <span className="font-mono text-sm">YouTube</span>
                   </a>
                   <a href="https://www.reddit.com/user/artemgetman/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-accent-neon transition-colors">
                     <Globe className="h-4 w-4" />
