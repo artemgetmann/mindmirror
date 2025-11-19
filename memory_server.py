@@ -256,6 +256,7 @@ class MemoryItem(BaseModel):
 
 class TokenGenerationRequest(BaseModel):
     """Request model for generating a new auth token"""
+    email: str
     user_name: Optional[str] = None
 
 class TokenGenerationResponse(BaseModel):
@@ -1129,22 +1130,26 @@ async def health():
 async def generate_token(request: TokenGenerationRequest):
     """Generate a new authentication token for a user"""
     try:
+        # Validate email
+        if "@" not in request.email:
+            raise HTTPException(status_code=400, detail="Invalid email")
+
         # Generate secure token
         new_token = secrets.token_urlsafe(32)
-        
+
         # Generate unique user ID
         user_id = f"user_{secrets.token_hex(8)}"
         user_name = request.user_name or f"User {user_id[-8:]}"
-        
+
         # Store token in database
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        
+
         cursor.execute("""
-            INSERT INTO auth_tokens (token, user_id, user_name) 
-            VALUES (%s, %s, %s)
+            INSERT INTO auth_tokens (token, user_id, user_name, email)
+            VALUES (%s, %s, %s, %s)
             RETURNING id
-        """, (new_token, user_id, user_name))
+        """, (new_token, user_id, user_name, request.email))
         
         # Get memory count for this user (should be 0 for new users)
         cursor.execute("""
