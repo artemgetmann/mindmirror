@@ -10,7 +10,7 @@ export const HeroSection = () => {
         {/* CLI-style subtitle */}
         <div className="mb-6">
           <p className="text-sm font-mono text-muted-foreground">
-            mindmirror(1) — works with Claude, Cursor, Windsurf, OpenAI, and your own models
+            mindmirror(1) — works with Claude, Cursor, Windsurf, OpenAI, and your own AI models
           </p>
         </div>
 
