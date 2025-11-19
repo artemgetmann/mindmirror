@@ -10,9 +10,9 @@ const About = () => {
       <main className="container py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Persistent memory for AI</h1>
+            <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Long-term memory for AI agents</h1>
             <p className="text-sm text-muted-foreground font-mono">
-              The most advanced AI memory system in the world. Built because I was tired of re-explaining everything in every chat.
+              Built because I was tired of re-explaining everything in every chat.
             </p>
           </div>
 

@@ -15,7 +15,7 @@ export const Footer = () => {
               <span className="font-semibold">MindMirror</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Persistent memory for AI models.
+              Long term memory for AI agents.
               <br />
               Built by developers, for developers.
             </p>
