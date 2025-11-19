@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TokenModal } from "@/components/TokenModal";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
@@ -16,25 +16,24 @@ export const HeroSection = () => {
 
         {/* Main Headlines */}
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-          Persistent memory for{" "}
-          <span className="text-primary">Claude, Windsurf, Cursor</span>{" "}
-          or your own AI models
+          Long-term memory for your{" "}
+          <span className="text-primary">AI agents</span>
         </h1>
-        
+
         <p className="text-xl md:text-2xl text-muted-foreground mb-6 max-w-3xl">
-          The World's Most Advanced AI Memory System!
+          LLM APIs are stateless. MindMirror is a drop-in memory layer — think Postgres for AI memory.
         </p>
-        
+
         <p className="text-lg text-muted-foreground mb-12 max-w-3xl">
-          Just paste one URL and your AI will remember everything across chats. No more repeating your preferences, goals, or project setup — your AI just remembers
+          Just paste one URL and your AI will remember everything. Works with Claude, Cursor, Windsurf, OpenAI, and your own models.
         </p>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-16">
           <TokenModal
             trigger={
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="text-lg px-8 py-6 h-auto bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90 transition-all duration-200 hover:shadow-lg hover:shadow-accent-neon/25"
               >
                 Inject Token
@@ -42,9 +41,9 @@ export const HeroSection = () => {
               </Button>
             }
           />
-          <Button 
-            variant="outline" 
-            size="lg" 
+          <Button
+            variant="outline"
+            size="lg"
             asChild
             className="text-lg px-8 py-6 h-auto hover:border-accent-neon hover:text-accent-neon transition-colors"
           >
