@@ -51,11 +51,10 @@ const Premium = () => {
       <main className="container py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold mb-4">
-              <Zap className="inline-block mr-2 h-8 w-8 text-accent-neon" />
-              MindMirror Premium
+            <h1 className="text-4xl font-bold mb-2 font-mono">
+              mindmirror(1) — Premium
             </h1>
-            <p className="text-xl text-muted-foreground font-mono">
+            <p className="text-sm text-muted-foreground font-mono mb-4">
               Unlimited memory. Advanced features. Full export control.
             </p>
           </div>

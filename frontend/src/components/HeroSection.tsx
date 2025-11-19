@@ -10,7 +10,7 @@ export const HeroSection = () => {
         {/* CLI-style subtitle */}
         <div className="mb-6">
           <p className="text-sm font-mono text-muted-foreground">
-            mindmirror(1) — Give AI the ability to never forget anything about you
+            mindmirror(1) — works with Claude, Cursor, Windsurf, OpenAI, and your own models
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export const HeroSection = () => {
         </p>
 
         <p className="text-lg text-muted-foreground mb-12 max-w-3xl">
-          Just paste one URL and your AI will remember everything. Works with Claude, Cursor, Windsurf, OpenAI, and your own models.
+          Just paste one URL and your AI will remember everything across chats. No more repeating your preferences, goals, or project setup — your AI just remembers.
         </p>
 
         {/* CTA Buttons */}
