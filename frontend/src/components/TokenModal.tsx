@@ -194,6 +194,9 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                     <p className="text-sm text-muted-foreground">
                       {tokenData.memories_used} of {tokenData.memory_limit} memories used
                     </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      25 memories free forever. Full trial coming soon.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
