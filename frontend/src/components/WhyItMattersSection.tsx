@@ -24,7 +24,7 @@ export const WhyItMattersSection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why Persistent Memory Matters
+            Why Long-term Memory Matters
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             AI memory isn't just a feature — it's the foundation for truly intelligent, AGI-like systems

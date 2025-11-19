@@ -137,7 +137,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                 <CardHeader>
                   <CardTitle className="text-lg">Your Memory Token</CardTitle>
                   <CardDescription>
-                    Use this token to connect your AI to persistent memory
+                    Use this token to connect your AI to long-term memory
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -208,7 +208,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                   <li>2. Copy the MCP URL above</li>
                   <li>3. Add URL to your AI tool (Claude, Cursor, Windsurf, etc.)</li>
                   <li>4. <Link to="/integration" className="text-blue-600 hover:underline font-medium" onClick={handleClose}>Follow complete setup guide with system prompt</Link></li>
-                  <li>5. Start using proactive persistent memory!</li>
+                  <li>5. Start using proactive long-term memory!</li>
                 </ol>
                 <div className="mt-3 p-2 bg-amber-100 border border-amber-300 rounded text-xs text-amber-800">
                   <strong>⚠️ Important:</strong> System prompts are essential for proactive behavior. Without them, your AI won't automatically use memory functions.

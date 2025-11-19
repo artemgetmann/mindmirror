@@ -43,10 +43,10 @@ const About = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  MindMirror is a persistent memory server for AI models. It integrates seamlessly with Claude, Cursor, Windsurf, and your custom AI tools.
+                  MindMirror is a long-term memory server for AI models. It integrates seamlessly with Claude, Cursor, Windsurf, and your custom AI tools.
                 </p>
                 <p className="text-muted-foreground">
-                  MindMirror stores structured, searchable memories—not raw chat logs. It's plug-and-play: inject one token, and your AI assistant instantly gains persistent recall, across any conversation and any compatible model.
+                  MindMirror stores structured, searchable memories—not raw chat logs. It's plug-and-play: inject one token, and your AI assistant instantly gains long-term recall, across any conversation and any compatible model.
                 </p>
                 <p className="text-muted-foreground">
                   No more manual setup, no more repetitive context injections. Just one URL, one memory, everywhere.
@@ -63,7 +63,7 @@ const About = () => {
                   MindMirror wasn't built by a startup team or a corporate initiative. It started out of pure frustration.
                 </p>
                 <p className="text-muted-foreground">
-                  I didn't want to rebuild memory every time I switched AI tools. So I built one persistent memory system that works seamlessly across them all.
+                  I didn't want to rebuild memory every time I switched AI tools. So I built one long-term memory system that works seamlessly across them all.
                 </p>
                 <p className="text-muted-foreground">
                   MindMirror is designed specifically for developers and power users who need sharper, memory-driven AI workflows—not fancy marketing demos.
@@ -142,7 +142,7 @@ const About = () => {
                   MindMirror uses a token-based memory namespace, isolated by user, usable with Claude, Cursor, Windsurf, or any AI tool that supports MCP protocol or external context injection.
                 </p>
                 <p className="text-muted-foreground">
-                  No login, no accounts — just persistent memory through a single URL.
+                  No login, no accounts — just long-term memory through a single URL.
                 </p>
                 <p className="text-muted-foreground">
                   Want integration help? <a href="/integration" className="text-accent-neon hover:underline font-mono">See integration guide</a>.
