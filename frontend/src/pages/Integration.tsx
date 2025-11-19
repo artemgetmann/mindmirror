@@ -228,7 +228,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                       claude mcp add --transport sse mindmirror -s user https://memory.usemindmirror.com/sse\?token\=YOUR_TOKEN
                     </code>
                     <p className="text-sm text-muted-foreground mt-2">
-                      That's it. Claude Code now has persistent memory across all conversations.
+                      That's it. Claude Code now has long-term memory across all conversations.
                     </p>
                   </div>
                   
