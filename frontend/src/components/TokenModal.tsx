@@ -16,6 +16,7 @@ interface TokenModalProps {
 export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [email, setEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [tokenData, setTokenData] = useState<TokenGenerationResponse | null>(null);
   const [copiedToken, setCopiedToken] = useState(false);
@@ -24,12 +25,13 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
 
   const handleGenerateToken = async () => {
     if (isGenerating) return;
-    
+
     setIsGenerating(true);
     setError(null);
 
     try {
       const response = await memoryApi.generateToken({
+        email: email.trim(),
         user_name: userName.trim() || undefined
       });
 
@@ -71,6 +73,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
     setIsOpen(false);
     // Reset form after a brief delay to avoid flashing
     setTimeout(() => {
+      setEmail('');
       setUserName('');
       setTokenData(null);
       setCopiedToken(false);
@@ -93,6 +96,22 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
           {!tokenData ? (
             // Token generation form
             <div className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isGenerating}
+                  required
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Required to generate your token
+                </p>
+              </div>
+
               <div>
                 <Label htmlFor="userName">Your Name (Optional)</Label>
                 <Input
