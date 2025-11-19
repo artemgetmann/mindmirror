@@ -1129,11 +1129,11 @@ async def health():
 @app.post("/api/generate-token", response_model=TokenGenerationResponse)
 async def generate_token(request: TokenGenerationRequest):
     """Generate a new authentication token for a user"""
-    try:
-        # Validate email
-        if "@" not in request.email:
-            raise HTTPException(status_code=400, detail="Invalid email")
+    # Validate email
+    if "@" not in request.email:
+        raise HTTPException(status_code=400, detail="Invalid email")
 
+    try:
         # Generate secure token
         new_token = secrets.token_urlsafe(32)
 

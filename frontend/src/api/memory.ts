@@ -5,6 +5,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://memory.usemindmirror.com';
 
 export interface TokenGenerationRequest {
+  email: string;
   user_name?: string;
 }
 
@@ -36,7 +37,7 @@ class MemoryApiService {
     this.baseUrl = baseUrl;
   }
 
-  async generateToken(request: TokenGenerationRequest = {}): Promise<TokenGenerationResponse> {
+  async generateToken(request: TokenGenerationRequest): Promise<TokenGenerationResponse> {
     const response = await fetch(`${this.baseUrl}/api/generate-token`, {
       method: 'POST',
       headers: {
