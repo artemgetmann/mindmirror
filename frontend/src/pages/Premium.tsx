@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { memoryApi } from "@/api/memory";
 import { useToast } from "@/hooks/use-toast";

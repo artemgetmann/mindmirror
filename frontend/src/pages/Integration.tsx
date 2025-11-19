@@ -25,9 +25,9 @@ const Integration = () => {
       <main className="container py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold mb-4">Integration Guide</h1>
-            <p className="text-xl text-muted-foreground font-mono">
-              mindmirror(1) — setup instructions for your AI tools
+            <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Integration</h1>
+            <p className="text-sm text-muted-foreground font-mono">
+              Setup instructions for your AI agents 
             </p>
           </div>
 

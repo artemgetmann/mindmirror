@@ -10,10 +10,9 @@ const Privacy = () => {
       <main className="container py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold mb-4 font-mono">Privacy Overview</h1>
-            <p className="text-lg text-muted-foreground">
-              At MindMirror, your data isn't a product — it's your memory.
-              We treat it with the same level of care we demand for our own AI workflows.
+            <h1 className="text-4xl font-bold mb-2 font-mono">mindmirror(1) — Privacy</h1>
+            <p className="text-sm text-muted-foreground font-mono">
+              Your data isn't a product — it's your memory. We treat it with the same level of care we demand for our own AI workflows.
             </p>
           </div>
 
