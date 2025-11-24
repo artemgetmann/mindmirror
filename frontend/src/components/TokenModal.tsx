@@ -168,7 +168,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                         type="text"
                         value={tokenData.token}
                         readOnly
-                        className="font-mono text-sm"
+                        className="font-mono text-sm overflow-x-auto"
                       />
                       <Button
                         variant="outline"
@@ -192,7 +192,7 @@ export const TokenModal: React.FC<TokenModalProps> = ({ trigger }) => {
                         type="text"
                         value={tokenData.url}
                         readOnly
-                        className="font-mono text-sm"
+                        className="font-mono text-sm overflow-x-auto"
                       />
                       <Button
                         variant="outline"

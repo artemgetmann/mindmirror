@@ -110,10 +110,10 @@ Your AI App → MCP Client → mcp-remote → MindMirror Server
 # Required
 OPENAI_API_KEY=your_openai_api_key_here
 MINDMIRROR_TOKEN=your_mindmirror_token_here
-MINDMIRROR_URL=https://memory.mindmirror.com/sse
+MINDMIRROR_URL=https://memory.usemindmirror.com/sse
 
 # Optional
-MINDMIRROR_URL=https://memory.mindmirror.com/sse  # Default production URL
+MINDMIRROR_URL=https://memory.usemindmirror.com/sse  # Default production URL
 ```
 
 ## Integration with Your AI

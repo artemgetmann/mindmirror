@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { TokenModal } from "@/components/TokenModal";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -49,7 +50,7 @@ const Integration = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -195,7 +196,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   <div>
                     <h4 className="font-semibold mb-2">2. Add MindMirror URL</h4>
                     <p className="text-sm text-muted-foreground mb-2">Paste your MindMirror URL:</p>
-                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto break-all">
+                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto whitespace-nowrap">
                       https://memory.usemindmirror.com/sse?token=YOUR_TOKEN
                     </code>
                   </div>
@@ -224,7 +225,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-2">Single Command Setup</h4>
-                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto break-all">
+                    <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto whitespace-nowrap">
                       claude mcp add --transport sse mindmirror -s user https://memory.usemindmirror.com/sse\?token\=YOUR_TOKEN
                     </code>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -257,7 +258,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -397,21 +398,21 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   <div>
                     <h4 className="font-semibold mb-2">1. Open Cursor MCP Config</h4>
                     <p className="text-sm text-muted-foreground mb-2">Edit your MCP configuration file:</p>
-                    <code className="block bg-muted p-2 rounded font-mono text-xs overflow-x-auto break-all">
+                    <code className="block bg-muted p-2 rounded font-mono text-xs overflow-x-auto whitespace-nowrap">
                       ~/.cursor/mcp.json
                     </code>
                   </div>
                   
                   <div>
                     <h4 className="font-semibold mb-2">2. Add MindMirror Config</h4>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`{
   "mcpServers": {
     "mindmirror": {
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://memory.mindmirror.com/sse?token=YOUR_TOKEN_HERE"
+        "https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE"
       ]
     }
   }
@@ -432,7 +433,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre-wrap break-words max-w-full">
+                  <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`IMPORTANT: You are an assistant with access to memory management tools:
 1. remember - Use this to store user preferences, facts, and context
 2. recall - Use this to search for previously stored information
@@ -568,30 +569,103 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                     Connect MindMirror to Windsurf
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div>
-                    <h4 className="font-semibold mb-2">1. Open Windsurf MCP Config</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Edit the configuration file:</p>
-                    <code className="block bg-muted p-2 rounded font-mono text-xs overflow-x-auto break-all">
+                    <h4 className="font-semibold mb-3">1. Open Windsurf MCP Config</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Windsurf creates the MCP config file only after you add your first MCP server.
+                    </p>
+                    <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-500 mb-3">
+                      <p className="text-sm font-semibold mb-2">To open the MCP panel:</p>
+                      <ol className="text-sm space-y-1 list-decimal list-inside">
+                        <li>Click the Windsurf logo in the top-right corner of the editor</li>
+                        <li>This opens the AI chat panel / Cascade</li>
+                        <li>In that panel, click the MCP plug icon (top-right)</li>
+                        <li>Open MCP Marketplace</li>
+                        <li>Click the gear icon in the top-right of the Marketplace to create or open the config file</li>
+                      </ol>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">Config file path:</p>
+                    <code className="block bg-muted p-2 rounded font-mono text-xs overflow-x-auto whitespace-nowrap">
                       ~/.codeium/windsurf/mcp_config.json
                     </code>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-semibold mb-2">2. Add MindMirror Config</h4>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
+                    <h4 className="font-semibold mb-3">2. Add MindMirror Config</h4>
+                    <p className="text-sm text-muted-foreground mb-2">Paste this into your mcp_config.json:</p>
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`{
   "mcpServers": {
     "mindmirror": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
-        "https://memory.mindmirror.com/sse?token=YOUR_TOKEN_HERE"
+        "https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE"
       ]
     }
   }
 }`}
                     </pre>
+                  </div>
+
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="troubleshooting" className="border rounded-lg px-4">
+                      <AccordionTrigger className="hover:no-underline">
+                        <h4 className="font-semibold">3. Troubleshooting (optional)</h4>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4">
+                        <div className="space-y-3">
+                          <div className="bg-amber-50 p-3 rounded">
+                            <p className="text-sm font-semibold mb-1">"npx not found in $PATH"</p>
+                            <p className="text-sm text-muted-foreground mb-2">Find your npx path:</p>
+                            <code className="block bg-muted p-2 rounded font-mono text-xs mb-2">which npx</code>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Usually <code className="bg-muted px-1 rounded text-xs">/usr/local/bin/npx</code> or{" "}
+                              <code className="bg-muted px-1 rounded text-xs">/opt/homebrew/bin/npx</code>
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Either add that directory to your PATH or hard-code the full path in the mcp config:
+                            </p>
+                            <code className="block bg-muted p-2 rounded font-mono text-xs mt-2">
+                              "command": "/usr/local/bin/npx"
+                            </code>
+                          </div>
+
+                          <div className="bg-amber-50 p-3 rounded">
+                            <p className="text-sm font-semibold mb-1">Server hangs or never connects</p>
+                            <p className="text-sm text-muted-foreground">
+                              Add "-y" before "mcp-remote" to skip npx install prompts.
+                              (This is required on fresh setups.)
+                            </p>
+                          </div>
+
+                          <div className="bg-red-50 p-3 rounded">
+                            <p className="text-sm font-semibold mb-1">Still stuck?</p>
+                            <p className="text-sm text-muted-foreground mb-2">Run this in your terminal:</p>
+                            <code className="block bg-muted p-2 rounded font-mono text-xs mb-2">
+                              npx -y mcp-remote https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE
+                            </code>
+                            <p className="text-sm text-muted-foreground">
+                              If you see "Connected to remote server using SSEClientTransport", your backend is good.
+                              Any remaining issue is just your Windsurf config.
+                            </p>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Get Your Token</h4>
+                    <TokenModal
+                      trigger={
+                        <Button className="bg-accent-neon text-accent-neon-foreground hover:bg-accent-neon/90">
+                          Generate Token →
+                        </Button>
+                      }
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -634,7 +708,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                       <div className="mb-1"><span className="text-yellow-400">AI:</span> I'll remember that!</div>
                     </div>
 
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`// npm i @modelcontextprotocol/sdk openai dotenv readline
 import OpenAI from 'openai';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -644,7 +718,7 @@ import readline from 'readline';
 const mcpClient = new Client({ name: "my-chat", version: "1.0.0" });
 const transport = new StdioClientTransport({
   command: 'npx',
-  args: ['mcp-remote', 'https://memory.mindmirror.com/sse?token=TOKEN']
+  args: ['mcp-remote', 'https://memory.usemindmirror.com/sse?token=TOKEN']
 });
 
 await mcpClient.connect(transport);
@@ -727,7 +801,7 @@ const completion = await openai.chat.completions.create({
                   <div>
                     <h4 className="font-semibold mb-2">━━━ Track B: Direct MCP Integration</h4>
                     <p className="text-sm text-muted-foreground mb-3">Build your own MCP client for full control</p>
-                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm break-words max-w-full">
+                    <pre className="bg-muted p-4 rounded overflow-x-auto font-mono text-sm whitespace-pre max-w-full">
 {`import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
@@ -735,7 +809,7 @@ const client = new Client({ name: 'my-ai', version: '1.0.0' });
 
 const transport = new StdioClientTransport({
   command: 'npx',
-  args: ['mcp-remote', 'https://memory.mindmirror.com/sse?token=TOKEN']
+  args: ['mcp-remote', 'https://memory.usemindmirror.com/sse?token=TOKEN']
 });
 
 await client.connect(transport);
