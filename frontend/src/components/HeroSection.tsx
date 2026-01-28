@@ -57,7 +57,7 @@ export const HeroSection = () => {
         <div className="bg-card border-2 border-dashed border-muted rounded-lg p-6 max-w-3xl">
           <div className="text-sm text-muted-foreground mb-3 font-mono">🔗 Add to Claude:</div>
           <code className="block bg-muted p-4 rounded text-sm font-mono text-left overflow-x-auto whitespace-nowrap">
-            https://memory.usemindmirror.com/sse?token=••••••••••••••••••••••••••••••••••••••••••••••••
+            https://memory.usemindmirror.com/mcp?token=••••••••••••••••••••••••••••••••••••••••••••••••
           </code>
           <div className="text-xs text-muted-foreground mt-2 font-mono">
             Get your personal token above ↑

@@ -197,7 +197,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                     <h4 className="font-semibold mb-2">2. Add MindMirror URL</h4>
                     <p className="text-sm text-muted-foreground mb-2">Paste your MindMirror URL:</p>
                     <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto whitespace-nowrap">
-                      https://memory.usemindmirror.com/sse?token=YOUR_TOKEN
+                      https://memory.usemindmirror.com/mcp?token=YOUR_TOKEN
                     </code>
                   </div>
                   
@@ -226,7 +226,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                   <div>
                     <h4 className="font-semibold mb-2">Single Command Setup</h4>
                     <code className="block bg-muted p-3 rounded font-mono text-sm overflow-x-auto whitespace-nowrap">
-                      claude mcp add --transport sse mindmirror -s user https://memory.usemindmirror.com/sse\?token\=YOUR_TOKEN
+                      claude mcp add --transport http mindmirror https://memory.usemindmirror.com/mcp?token=YOUR_TOKEN
                     </code>
                     <p className="text-sm text-muted-foreground mt-2">
                       That's it. Claude Code now has long-term memory across all conversations.
@@ -412,7 +412,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE"
+        "https://memory.usemindmirror.com/mcp?token=YOUR_TOKEN_HERE"
       ]
     }
   }
@@ -602,7 +602,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
       "args": [
         "-y",
         "mcp-remote",
-        "https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE"
+        "https://memory.usemindmirror.com/mcp?token=YOUR_TOKEN_HERE"
       ]
     }
   }
@@ -645,7 +645,7 @@ IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-ge
                             <p className="text-sm font-semibold mb-1">Still stuck?</p>
                             <p className="text-sm text-muted-foreground mb-2">Run this in your terminal:</p>
                             <code className="block bg-muted p-2 rounded font-mono text-xs mb-2">
-                              npx -y mcp-remote https://memory.usemindmirror.com/sse?token=YOUR_TOKEN_HERE
+                              npx -y mcp-remote https://memory.usemindmirror.com/mcp?token=YOUR_TOKEN_HERE
                             </code>
                             <p className="text-sm text-muted-foreground">
                               If you see "Connected to remote server using SSEClientTransport", your backend is good.
@@ -718,7 +718,7 @@ import readline from 'readline';
 const mcpClient = new Client({ name: "my-chat", version: "1.0.0" });
 const transport = new StdioClientTransport({
   command: 'npx',
-  args: ['mcp-remote', 'https://memory.usemindmirror.com/sse?token=TOKEN']
+  args: ['mcp-remote', 'https://memory.usemindmirror.com/mcp?token=TOKEN']
 });
 
 await mcpClient.connect(transport);
@@ -809,7 +809,7 @@ const client = new Client({ name: 'my-ai', version: '1.0.0' });
 
 const transport = new StdioClientTransport({
   command: 'npx',
-  args: ['mcp-remote', 'https://memory.usemindmirror.com/sse?token=TOKEN']
+  args: ['mcp-remote', 'https://memory.usemindmirror.com/mcp?token=TOKEN']
 });
 
 await client.connect(transport);
