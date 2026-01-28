@@ -1166,8 +1166,8 @@ async def generate_token(request: TokenGenerationRequest):
         if domain == 'localhost':
             domain = f"localhost:{os.getenv('PORT', '8000')}"
         
-        # Create the MCP URL
-        mcp_url = f"https://{domain}/sse?token={new_token}"
+        # Create the MCP URL (using Streamable HTTP transport)
+        mcp_url = f"https://{domain}/mcp?token={new_token}"
         
         logger.info(f"Generated new token for user {user_id}")
         

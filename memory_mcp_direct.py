@@ -7,6 +7,7 @@ and multi-tenant memory management capabilities.
 """
 
 import asyncio
+import contextvars
 import json
 import logging
 import os
@@ -61,6 +62,8 @@ VALID_TAGS = ["goal", "routine", "preference", "constraint", "habit", "project",
 # Initialize MCP server with minimal global policy
 mcp = FastMCP(
     name="mindmirror",
+    stateless_http=True,  # Enable stateless mode for serverless/Streamable HTTP
+    streamable_http_path="/",  # Mount at root so we control the path when mounting
     instructions="""
 GLOBAL POLICY (embedded, minimal)
 
@@ -79,8 +82,9 @@ Guardrails:
 )
 transport = SseServerTransport("/messages/")
 
-# Global user context storage for current session
-current_user_context = {}
+# Thread-safe per-request context (replaces global dict for concurrent user safety)
+user_id_var: contextvars.ContextVar[str] = contextvars.ContextVar('user_id', default='')
+user_token_var: contextvars.ContextVar[str] = contextvars.ContextVar('token', default='')
 
 def get_relevance_level(similarity: float) -> str:
     """Convert similarity score to user-friendly relevance level"""
@@ -168,7 +172,11 @@ async def check_token(request: Request) -> dict:
     if not user_id:
         logger.error(f"Invalid token: {token[:10]}...")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
+
+    # Set thread-safe context vars for this request
+    user_id_var.set(user_id)
+    user_token_var.set(token)
+
     return {"user_id": user_id, "token": token}
 
 # MCP Tool Definitions
@@ -204,13 +212,12 @@ async def remember(text: str, category: str) -> str:
         category: Information type (goal, routine, preference, constraint, habit, project, tool, identity, value)
     """
     try:
-        # Get user context (token is automatically available from session)
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         logger.info(f"Storing memory for user {user_id}: '{text[:50]}...' (tag: {category})")
         
         # Validate category
@@ -283,13 +290,12 @@ async def recall(query: str, limit: int = 10, category_filter: str = None) -> st
         category_filter: Optional category to filter results
     """
     try:
-        # Get user context
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         # Convert empty string to None for optional parameters
         if category_filter == "":
             category_filter = None
@@ -373,13 +379,12 @@ async def forget(information_id: str) -> str:
         information_id: The ID of the information to forget
     """
     try:
-        # Get user context
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         logger.info(f"Forgetting information {information_id} for user {user_id}")
         
         # Create HTTP client with user's token
@@ -414,13 +419,12 @@ async def what_do_you_know(category: str = None, limit: int = 1000) -> str:
         limit: Maximum number of items to return (default: 1000)
     """
     try:
-        # Get user context
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         logger.info(f"Listing memories for user {user_id}: category={category}, limit={limit}")
         
         # Validate category if provided
@@ -486,13 +490,12 @@ async def checkpoint(text: str, title: str = None) -> str:
         title: Optional title for the checkpoint
     """
     try:
-        # Get user context
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         logger.info(f"Storing checkpoint for user {user_id}: '{text[:50]}...'")
         
         # Create HTTP client with user's token
@@ -555,13 +558,12 @@ async def resume() -> str:
     Returns the saved context with metadata, or indicates no checkpoint exists.
     """
     try:
-        # Get user context
-        if "token" not in current_user_context:
-            return "I need to authenticate first. Please reconnect with a valid token."
-        
-        token = current_user_context["token"]
-        user_id = current_user_context["user_id"]
-        
+        # Get user context from thread-safe context vars
+        token = user_token_var.get()
+        user_id = user_id_var.get()
+        if not token:
+            return "Authentication required. Please reconnect with a valid token."
+
         logger.info(f"Retrieving checkpoint for user {user_id}")
         
         # Create HTTP client with user's token
@@ -619,9 +621,9 @@ async def handle_sse_options(request: Request):
     ]
     
     headers = {
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, MCP-Protocol-Version",
-        "Access-Control-Expose-Headers": "MCP-Protocol-Version",
+        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, MCP-Protocol-Version, mcp-session-id",
+        "Access-Control-Expose-Headers": "MCP-Protocol-Version, mcp-session-id",
         "MCP-Protocol-Version": "2025-06-18"
     }
     
@@ -645,10 +647,8 @@ async def handle_sse(request: Request):
     token = user_context["token"]
     
     logger.info(f"SSE connection established for user: {user_id}")
-    
-    # Store user context for this session
-    current_user_context["user_id"] = user_id
-    current_user_context["token"] = token
+
+    # Context vars already set by check_token(), no additional action needed
     
     # Set response headers with MCP protocol version
     response_headers = {
@@ -685,8 +685,19 @@ async def handle_sse(request: Request):
             mcp._mcp_server.create_initialization_options()
         )
 
-# Create main FastAPI app
-app = FastAPI(title="Memory MCP Server", version="1.0.0")
+# Lifespan handler for MCP session manager (required for Streamable HTTP)
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize MCP session manager on startup"""
+    async with mcp.session_manager.run():
+        logger.info("MCP session manager started")
+        yield
+    logger.info("MCP session manager stopped")
+
+# Create main FastAPI app with lifespan
+app = FastAPI(title="Memory MCP Server", version="2.0.0", lifespan=lifespan)
 
 # Configure CORS for frontend access
 origins = [
@@ -703,9 +714,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "MCP-Protocol-Version"],
-    expose_headers=["MCP-Protocol-Version"]
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "MCP-Protocol-Version", "mcp-session-id"],
+    expose_headers=["MCP-Protocol-Version", "mcp-session-id"]
 )
 
 @app.get("/health")
@@ -775,9 +786,9 @@ class MCPProtocolMiddleware:
                 ]
                 
                 headers = [
-                    (b"access-control-allow-methods", b"GET, POST, OPTIONS"),
-                    (b"access-control-allow-headers", b"Content-Type, Authorization, MCP-Protocol-Version"),
-                    (b"access-control-expose-headers", b"MCP-Protocol-Version"),
+                    (b"access-control-allow-methods", b"GET, POST, DELETE, OPTIONS"),
+                    (b"access-control-allow-headers", b"Content-Type, Authorization, MCP-Protocol-Version, mcp-session-id"),
+                    (b"access-control-expose-headers", b"MCP-Protocol-Version, mcp-session-id"),
                     (b"mcp-protocol-version", b"2025-06-18")
                 ]
                 
@@ -825,16 +836,53 @@ class MCPProtocolMiddleware:
         
         await self.app(scope, receive, send_with_headers)
 
-# Create Starlette app with SSE and message handling
+
+class TokenAuthMiddleware:
+    """Extract token from query param or header and set context vars for Streamable HTTP"""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            # Extract token from query string
+            query_string = scope.get("query_string", b"").decode()
+            params = dict(p.split("=", 1) for p in query_string.split("&") if "=" in p)
+            token = params.get("token")
+
+            # Or from Authorization header
+            if not token:
+                for name, value in scope.get("headers", []):
+                    if name == b"authorization":
+                        auth = value.decode()
+                        if auth.startswith("Bearer "):
+                            token = auth[7:]
+                        break
+
+            if token:
+                user_id = await validate_token(token)
+                if user_id:
+                    user_id_var.set(user_id)
+                    user_token_var.set(token)
+                    logger.info(f"TokenAuthMiddleware: authenticated user {user_id}")
+
+        await self.app(scope, receive, send)
+
+
+# Create Streamable HTTP app (path configured via streamable_http_path in constructor)
+streamable_app = mcp.streamable_http_app()
+streamable_with_auth = TokenAuthMiddleware(streamable_app)
+
+# Create SSE app (legacy, backward compatible) - custom routes for our auth
 sse_app = Starlette(
     routes=[
-        Route("/sse", handle_sse, methods=["GET", "OPTIONS"]),
+        Route("/", handle_sse, methods=["GET", "OPTIONS"]),  # Will be at /sse
         Mount("/messages/", app=MCPProtocolMiddleware(transport.handle_post_message))
     ]
 )
 
-# Mount the SSE app at root but after health endpoint
-app.mount("/", sse_app)
+# Mount both transports at their respective paths
+app.mount("/mcp", streamable_with_auth)  # Streamable HTTP at /mcp
+app.mount("/sse", sse_app)  # SSE at /sse and /sse/messages
 
 if __name__ == "__main__":
     import uvicorn
