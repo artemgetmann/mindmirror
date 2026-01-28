@@ -707,7 +707,8 @@ async def lifespan(app: FastAPI):
     logger.info("MCP session manager stopped")
 
 # Create main FastAPI app with lifespan
-app = FastAPI(title="Memory MCP Server", version="2.0.0", lifespan=lifespan)
+# redirect_slashes=False prevents 307 redirect from /mcp to /mcp/ which breaks MCP clients
+app = FastAPI(title="Memory MCP Server", version="2.0.0", lifespan=lifespan, redirect_slashes=False)
 
 # Configure CORS for frontend access
 origins = [
