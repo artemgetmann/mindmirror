@@ -69,7 +69,13 @@ mcp = FastMCP(
         enable_dns_rebinding_protection=True,
         allowed_hosts=[
             "localhost",
+            "localhost:8000",
+            "localhost:8001",
+            "localhost:8002",
             "127.0.0.1",
+            "127.0.0.1:8000",
+            "127.0.0.1:8001",
+            "127.0.0.1:8002",
             "mcp-memory-uw0w.onrender.com",
             "memory.usemindmirror.com",
         ],
@@ -891,8 +897,18 @@ sse_app = Starlette(
     ]
 )
 
+# Handle /mcp without trailing slash - redirect to /mcp/ preserving query params
+from starlette.responses import RedirectResponse
+
+@app.api_route("/mcp", methods=["GET", "POST", "DELETE", "OPTIONS"])
+async def mcp_redirect(request: Request):
+    """Redirect /mcp to /mcp/ preserving query params"""
+    query_string = request.url.query
+    redirect_url = "/mcp/" + ("?" + query_string if query_string else "")
+    return RedirectResponse(url=redirect_url, status_code=307)
+
 # Mount both transports at their respective paths
-app.mount("/mcp", streamable_with_auth)  # Streamable HTTP at /mcp
+app.mount("/mcp", streamable_with_auth)  # Streamable HTTP at /mcp/
 app.mount("/sse", sse_app)  # SSE at /sse and /sse/messages
 
 if __name__ == "__main__":
