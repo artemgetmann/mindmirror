@@ -897,7 +897,7 @@ sse_app = Starlette(
     ]
 )
 
-# Handle /mcp without trailing slash - redirect to /mcp/ preserving query params
+# Handle /mcp and /sse without trailing slash - redirect preserving query params
 from starlette.responses import RedirectResponse
 
 @app.api_route("/mcp", methods=["GET", "POST", "DELETE", "OPTIONS"])
@@ -905,6 +905,13 @@ async def mcp_redirect(request: Request):
     """Redirect /mcp to /mcp/ preserving query params"""
     query_string = request.url.query
     redirect_url = "/mcp/" + ("?" + query_string if query_string else "")
+    return RedirectResponse(url=redirect_url, status_code=307)
+
+@app.api_route("/sse", methods=["GET", "POST", "DELETE", "OPTIONS"])
+async def sse_redirect(request: Request):
+    """Redirect /sse to /sse/ preserving query params"""
+    query_string = request.url.query
+    redirect_url = "/sse/" + ("?" + query_string if query_string else "")
     return RedirectResponse(url=redirect_url, status_code=307)
 
 # Mount both transports at their respective paths
