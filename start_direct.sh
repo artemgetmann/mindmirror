@@ -20,9 +20,9 @@ echo "🚀 Starting Memory Server on port $MEMORY_PORT..."
 python memory_server.py > /app/logs/memory_server.log 2>&1 &
 MEMORY_PID=$!
 
-# Wait for memory server to initialize
+# Wait for memory server to initialize (ML model loading takes time)
 echo "⏳ Waiting for memory server to initialize..."
-sleep 8
+sleep 15
 
 # Check if memory server is still running
 if ! kill -0 $MEMORY_PID 2>/dev/null; then
@@ -32,20 +32,20 @@ if ! kill -0 $MEMORY_PID 2>/dev/null; then
     exit 1
 fi
 
-# Quick health check for memory server
+# Health check for memory server (more attempts for ML model loading)
 echo "🔍 Testing memory server health..."
-for i in {1..5}; do
+for i in {1..15}; do
     if curl -s "http://localhost:$MEMORY_PORT/health" >/dev/null 2>&1; then
         echo "✅ Memory server health check passed"
         break
     fi
-    if [ $i -eq 5 ]; then
-        echo "❌ Memory server health check failed after 5 attempts"
+    if [ $i -eq 15 ]; then
+        echo "❌ Memory server health check failed after 15 attempts"
         echo "📋 Memory server logs:"
-        tail -20 /app/logs/memory_server.log
+        tail -30 /app/logs/memory_server.log
         exit 1
     fi
-    sleep 2
+    sleep 3
 done
 
 echo "✅ Memory server running successfully"
