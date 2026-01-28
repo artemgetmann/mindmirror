@@ -28,6 +28,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.sse import SseServerTransport
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import Tool, TextContent
 import mcp.types as types
 
@@ -64,6 +65,15 @@ mcp = FastMCP(
     name="mindmirror",
     stateless_http=True,  # Enable stateless mode for serverless/Streamable HTTP
     streamable_http_path="/",  # Mount at root so we control the path when mounting
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "localhost",
+            "127.0.0.1",
+            "mcp-memory-uw0w.onrender.com",
+            "memory.usemindmirror.com",
+        ],
+    ),
     instructions="""
 GLOBAL POLICY (embedded, minimal)
 
