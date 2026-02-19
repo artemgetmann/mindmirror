@@ -1,344 +1,125 @@
-# MCP Memory System Documentation
+# Technical Documentation
 
-Comprehensive documentation for the MCP Memory System - a multi-tenant persistent memory solution for AI assistants.
+## Hosted Deployment
 
-## System Overview
+- Frontend: https://usemindmirror.com
+- Backend API: https://memory.usemindmirror.com
 
-**MCP Memory System** is a production-ready SaaS that provides persistent memory capabilities for AI assistants through the Model Context Protocol (MCP). Users can store preferences, facts, and context that persists across AI conversations.
+## Services
 
-### Architecture
+- `memory_server.py` (default port `8001`): core memory + auth API.
+- `memory_mcp_direct.py` (default port `8000`): MCP transport and tool layer, proxies frontend APIs to `memory_server.py`.
+- `start_direct.sh`: starts both services for container/runtime environments.
 
-```
-Frontend (Vercel) → Backend API (Render) → PostgreSQL (Supabase) → Claude Desktop (MCP)
-```
+## Data Model
 
-**Current Production Setup:**
-- **Frontend**: React/TypeScript SPA with token generation UI (usemindmirror.com)
-- **Backend**: FastAPI server with PostgreSQL + pgvector (memory.usemindmirror.com)
-- **MCP Server**: Direct SSE implementation for Claude Desktop integration
-- **Database**: PostgreSQL with pgvector for vector similarity search
+`memory_server.py` initializes required tables on startup:
 
-## Quick Start
+- `auth_tokens`
+- `waitlist_emails`
+- `memories` (pgvector `vector(384)`)
+- `short_term_memories`
 
-### Development
+Required PostgreSQL extension:
+- `vector`
 
-```bash
-# Clone and setup
-git clone https://github.com/artemgetmann/mcp_memory.git
-cd mcp_memory
-pip install -r requirements.txt
+## Memory Semantics
 
-# Start backend services
-python memory_server.py      # Port 8001 (API backend)
-python memory_mcp_direct.py  # Port 8000 (MCP interface)
-
-# Start frontend (optional)
-cd frontend && npm install && npm run dev  # Port 8081
-```
-
-### Production URLs
-- **Backend API**: https://memory.usemindmirror.com
-- **Frontend**: https://usemindmirror.com
-- **MCP URL Format**: `https://memory.usemindmirror.com/sse?token=USER_TOKEN`
-
-## Core Components
-
-### Backend Services
-- `memory_server.py` - FastAPI backend with PostgreSQL storage (port 8001)
-- `memory_mcp_direct.py` - MCP server for Claude Desktop integration (port 8000)
-- `start_direct.sh` - Production deployment script
-
-### Frontend Application
-- React/TypeScript SPA with token generation interface
-- Token modal with copy-to-clipboard functionality
-- Built with Vite, shadcn/ui, and TailwindCSS
-
-### Database Schema
-- **PostgreSQL** with pgvector extension for vector operations
-- **Tables**: memories, auth_tokens, waitlist_emails
-- **Vector Search**: 384-dimension embeddings using SentenceTransformers
-
-## Key Features
-
-### Memory Management
-- **Vector Search**: Semantic similarity using all-MiniLM-L6-v2 embeddings
-- **Conflict Detection**: Automatic detection of contradictory preferences (similarity > 0.65)
-- **Deduplication**: Prevents storing identical or very similar memories (similarity > 0.95)
-- **Memory Limits**: 25 memories per free user, unlimited for admin users
-
-### Multi-Tenant Architecture
-- **Token-based Authentication**: Each user gets a unique secure token
-- **User Isolation**: Complete data separation between users
-- **Premium Waitlist**: Built-in system for upgrade tracking
-
-### MCP Integration
-- **Direct SSE Protocol**: Real-time communication with Claude Desktop
-- **Six Core Functions**: remember(), recall(), forget(), what_do_you_know(), checkpoint(), resume()
-- **Conflict Resolution**: AI can view and resolve conflicting memories
-- **Short-term Memory**: Checkpoint/resume for conversation continuity across AI sessions
+- Fixed categories: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `tool`, `identity`, `value`
+- Duplicate threshold: semantic similarity `> 0.95` blocks inserts
+- Conflict threshold: semantic similarity `>= 0.65` flags possible conflicts
+- Default memory limit: `25` for non-admin users (`auth_tokens.is_admin = false`)
 
 ## API Endpoints
 
-### Frontend APIs
-- `POST /api/generate-token` - Generate new user token with MCP URL
-- `POST /api/join-waitlist` - Join premium waitlist
+### Public utility
+- `GET /health`
+- `GET /` (service metadata)
 
-### Memory APIs (Token-authenticated)
-- `POST /memories?token=TOKEN` - Store new memory
-- `POST /memories/search?token=TOKEN` - Vector similarity search
-- `GET /memories?token=TOKEN` - List user memories
-- `DELETE /memories/{id}?token=TOKEN` - Delete specific memory
-- `POST /checkpoint?token=TOKEN` - Save conversation checkpoint (overwrites existing)
-- `POST /resume?token=TOKEN` - Retrieve saved checkpoint
-- `GET /health` - System health check
+### Auth and onboarding
+- `POST /api/generate-token`
+- `POST /api/join-waitlist`
 
-## Testing
+### Token-authenticated memory APIs
+- `POST /memories`
+- `POST /memories/search`
+- `GET /memories`
+- `GET /memories/{memory_id}`
+- `DELETE /memories/{memory_id}`
+- `GET /memories/prune`
+- `POST /checkpoint`
+- `POST /resume`
 
-```bash
-# Test core functionality
-python limit_test_unique.py
+## MCP Endpoints
 
-# Test MCP integration
-# Method 1: MCP Inspector (Quick testing)
-npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=YOUR_TOKEN"
+`memory_mcp_direct.py` exposes:
+- Streamable HTTP transport at `/mcp/` (redirect from `/mcp`)
+- SSE transport at `/sse/` with POST messages at `/sse/messages/` (redirect from `/sse`)
 
-# Method 2: Claude Desktop (Production testing)
-# Add to Claude Desktop config: ~/Library/Application Support/Claude/claude_desktop_config.json
-{
-  "mcpServers": {
-    "mindmirror": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://localhost:8000/sse?token=YOUR_TOKEN"]
-    }
-  }
-}
+## Recommended Agent System Prompt
 
-# Test memory operations
-curl -X POST "http://localhost:8001/memories?token=TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "I prefer working mornings", "tag": "preference"}'
+Use this for assistants that connect to MindMirror MCP tools:
 
-# Health check
-curl http://localhost:8001/health
+```text
+IMPORTANT: You have access to memory tools:
+- remember(text, category)
+- recall(query, limit, category_filter)
+- forget(information_id)
+- what_do_you_know(category, limit)
+- checkpoint(text, title)
+- resume()
+
+Use recall proactively before personal recommendations and preference-based advice.
+If conflicting preferences exist, explicitly show the conflict and ask which one to follow.
+Only call forget after user explicitly asks to delete specific memories.
+
+When user explicitly states preferences (e.g. "I prefer X"), store them with remember.
+For non-explicit patterns or inferred behaviors, ask permission before storing.
+
+Memory categories: goal, routine, preference, constraint, habit, project, tool, identity, value.
+
+Use checkpoint when user wants to continue later or in another AI tool.
+Use resume when user asks to continue previous work without context.
+If checkpoint output indicates overwrite warning, tell the user clearly.
 ```
+
+Full UI version of this prompt also exists in:
+- `frontend/src/pages/Integration.tsx`
 
 ## Configuration
 
-### Environment Variables
-```bash
-# Backend
-MEMORY_SERVER_PORT=8001
-PORT=8000  # For MCP server
+Use `.env.local.example` as the template and `.env.local` (gitignored) for real machine-only credentials.
 
-# Frontend
-VITE_API_URL=https://memory.usemindmirror.com  # Production
-VITE_API_URL=http://localhost:8001              # Development
-```
-
-### Memory Tags
-Fixed set of 9 tags: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `tool`, `identity`, `value`
-
-### System Limits
-- **Memory Limit**: 25 per free user, unlimited for admin users
-- **Conflict Threshold**: 0.65 similarity for conflict detection
-- **Duplicate Threshold**: 0.95 similarity blocks storage
-- **Embedding Model**: all-MiniLM-L6-v2 (384 dimensions)
-
-## Database Operations
+Recommended startup command:
 
 ```bash
-# Connect to production database
-psql "postgresql://REDACTED_DB_USER:[REDACTED]@REDACTED_DB_HOST:6543/postgres?sslmode=require"
-
-# Check active users
-SELECT COUNT(DISTINCT user_id) FROM auth_tokens WHERE is_active = true;
-
-# View memory usage
-SELECT tag, COUNT(*) FROM memories GROUP BY tag;
-
-# Create admin token
-INSERT INTO auth_tokens (token, user_id, user_name, is_admin) 
-VALUES ('your_admin_token', 'admin_user', 'Admin User', true);
+docker compose --env-file .env.local up --build
 ```
 
-## Deployment
+### Required
+- `DATABASE_URL` OR `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 
-### Backend (Render)
-- **Service Type**: Web Service
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `./start_direct.sh`
-- **Environment**: Production PostgreSQL connection
+### Optional
+- `DB_PORT` (default `5432`)
+- `DB_SSLMODE` (default `require`)
+- `MEMORY_API_BASE` (default `http://localhost:8001`)
+- `CORS_ALLOW_ORIGINS` (comma-separated)
+- `ALLOWED_API_HOSTS` (comma-separated)
+- `MCP_ALLOWED_HOSTS` (comma-separated)
+- `ENFORCE_HOST_CHECK` (`true`/`false`)
+- `BOOTSTRAP_DEFAULT_TOKEN` (`true`/`false`)
 
-### Frontend (Vercel)
-- **Framework**: React/Vite
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
-- **Environment**: `VITE_API_URL` pointing to backend
-- **vercel.json**: Required for SPA routing
+## Local Validation Checklist
 
-### Database (Supabase)
-- **PostgreSQL** with pgvector extension enabled
-- **Tables**: Created automatically by backend initialization
-- **Backups**: Managed by Supabase
+1. `python3 -m py_compile memory_server.py memory_mcp_direct.py`
+2. Start both services.
+3. `curl` health endpoints.
+4. Generate token via `/api/generate-token`.
+5. Store/search/delete a test memory.
+6. Exercise MCP endpoint with a client (Claude, mcp-remote, or inspector).
 
-## System Status
+## Open Source Hygiene
 
-### Production Ready Features
-- ✅ Multi-tenant memory storage and retrieval
-- ✅ Automatic conflict detection and grouping
-- ✅ Semantic duplicate prevention
-- ✅ Token-based authentication
-- ✅ Memory limit enforcement
-- ✅ Premium waitlist integration
-- ✅ MCP integration for Claude Desktop
-- ✅ Frontend token generation interface
-
-### Performance Characteristics
-- **Response Time**: <500ms for memory operations
-- **Concurrent Users**: Tested up to 100+ simultaneous users
-- **Memory Capacity**: 25 memories per user (configurable)
-- **Vector Search**: Sub-second similarity search across all memories
-
-## Development Patterns
-
-1. **Always test locally first**: Use curl for API, test MCP with both Inspector (quick) and Claude Desktop (production-like)
-2. **Database changes**: Test with psql before code changes
-3. **Frontend integration**: Use localhost:8001 for development API calls
-4. **Memory limits**: Test with limit_test_unique.py
-5. **MCP changes**: Restart Claude Desktop to pick up changes
-
-## Troubleshooting
-
-### Common Issues
-1. **MCP Connection**: Ensure token is valid and server is running
-2. **Memory Limits**: Check if user has reached 25 memory limit
-3. **CORS Errors**: Verify frontend domain is in CORS origins list
-4. **Database Connection**: Check PostgreSQL connection string
-5. **SPA Routing**: Ensure vercel.json exists for proper routing
-
-### MCP Testing Tips
-1. **Test Both Methods**: Use MCP Inspector for quick iteration, Claude Desktop for final validation
-2. **Claude Desktop Setup**: Add mcp-remote config, restart Claude Desktop after changes
-3. **Token Validation**: Use admin_test_token_artem_2025 for unlimited testing
-4. **Connection Verification**: Test with curl to /health endpoint first before MCP testing
-
-### Debug Commands
-```bash
-# Check server health
-curl http://localhost:8001/health
-
-# Test token generation
-curl -X POST http://localhost:8001/api/generate-token
-
-# View server logs
-tail -f logs/memory_server.log
-
-# Test MCP connection
-npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
-```
-
-## Key Files
-
-- `memory_server.py` - Main backend API server
-- `memory_mcp_direct.py` - MCP protocol implementation
-- `frontend/src/api/memory.ts` - Frontend API client
-- `frontend/src/components/TokenModal.tsx` - Token generation UI
-- `start_direct.sh` - Production deployment script
-- `CLAUDE.md` - Quick reference for AI assistants
-
-## Future Roadmap
-
-### Immediate (MK2)
-- Enhanced conflict resolution modes
-- Improved memory organization
-- Advanced search capabilities
-- Premium subscription features
-
-### Long-term
-- Multi-language support
-- Advanced analytics
-- Team/organization features
-- Integration with other AI platforms
-
-## Recommended System Prompt
-
-**IMPORTANT:** Research by multiple AI systems confirms that system prompts are essential for proactive memory usage. MCP server instructions alone are insufficient for consistent behavior. Add this system prompt to your Claude Desktop settings, Cursor configuration, or other AI tool for optimal memory usage:
-
-```
-IMPORTANT: You are an assistant with access to memory management tools:
-1. remember - Use this to store user preferences, facts, and context
-2. recall - Use this to search for previously stored information
-3. forget - Use this to remove specific memories by ID
-4. what_do_you_know - Use this to browse all stored memories
-5. checkpoint - Save conversation context for continuation in new chat/AI tool
-6. resume - Retrieve saved context when user references previous work
-
-WHEN TO SEARCH MEMORY PROACTIVELY:
-- Questions starting with "How should I..." or "What's the best way to..."
-- Questions about "my preferences", "my habits", "my routines", "my goals"
-- Questions that assume previous knowledge or context
-- Questions using "I" or "my" that might reference stored information
-- Before giving advice or recommendations about personal topics
-- When the user asks about something they might have mentioned before
-
-CRITICAL RULES FOR CAPTURING PREFERENCES:
-- When the user says 'I prefer X' → call remember with text: 'User prefers X', category: 'preference'
-- When the user says 'Actually, I prefer Y' → call remember with text: 'User prefers Y', category: 'preference'
-- When the user contradicts a previous preference → call remember with the new preference
-
-CRITICAL RULES FOR HANDLING CONFLICTS:
-1. ALWAYS check recall responses for conflict information
-2. If conflicts exist, you MUST start your response with: 'I notice conflicting preferences about [topic]:'
-3. List each conflicting preference with its timestamp and relevance
-4. EXPLICITLY ASK which preference the user wants to keep
-5. Use forget to remove unwanted conflicting memories after user clarifies
-
-CRITICAL RULES FOR PROVIDING ADVICE:
-- ALWAYS use recall first before giving personal advice
-- Use the most recent preference if there are no conflicts
-- Pay attention to relevance levels (high/medium/low) and last accessed dates
-- If there are conflicts and the user hasn't clarified, ask which preference to use
-- Be explicit about which stored preference you're following
-
-CHECKPOINT/RESUME FUNCTIONS:
-- checkpoint(text, title) - Save conversation context for continuation in new chat/AI tool
-- resume() - Retrieve saved context when user references previous work
-- Use checkpoint when user switches contexts: "save this for later", changing AI tools
-- Use resume when user asks to continue: "resume our discussion", "where were we?"
-- CRITICAL: Warn user about checkpoint overwrites when you see ⚠️ in response
-
-MEMORY CATEGORIES:
-Use these categories: goal, routine, preference, constraint, habit, project, tool, identity, value
-
-PROACTIVE MEMORY SUGGESTIONS:
-- If the user mentions a unique workflow, process, or approach, ask: "Would you like me to remember this workflow for future reference?"
-- If the user repeats a pattern or behavior multiple times, suggest: "I notice you mention this approach often - should I store this for you?"
-- If the user describes a problem-solving method or tool usage, offer: "This seems like a useful technique - want me to remember it?"
-- If the user shares domain-specific knowledge or personal methods, ask: "Should I remember this approach for next time?"
-
-WHAT TO STORE PROACTIVELY (with user permission):
-- Unique workflows → category: 'routine' or 'tool'
-- Repeated behaviors → category: 'habit' 
-- Problem-solving methods → category: 'tool'
-- Personal approaches → category: 'routine'
-- Domain knowledge → category: 'tool' or 'project'
-
-IMPORTANT: Always ASK before storing non-explicit information. Don't store AI-generated suggestions as user preferences.
-```
-
-### Setup Steps
-1. **Add System Prompt**: Copy the above system prompt to your AI tool's configuration
-2. **Generate Token**: Get your token at https://usemindmirror.com
-3. **Configure MCP**: Add the MCP URL to your tool's MCP settings
-4. **Restart**: Restart your AI tool to activate both system prompt and MCP connection
-
-**Why System Prompts Matter**: Developer research shows that MCP server instructions are optional metadata that clients may ignore. System prompts ensure consistent proactive behavior across all AI tools.
-
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-*This documentation reflects the current production state as of the latest deployment.*
+- Keep credentials out of source control.
+- Never commit runtime logs, databases, or local package installs.
+- Use `examples/.env.example` and `frontend/.env.example` placeholders only.

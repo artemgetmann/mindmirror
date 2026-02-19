@@ -11,4 +11,4 @@ fi
 
 # Start the MCP server with the token using virtual environment
 cd /Users/user/Programming_Projects/MCP_Memory
-/Users/user/Programming_Projects/MCP_Memory/venv/bin/python memory_mcp_server.py
+/Users/user/Programming_Projects/MCP_Memory/venv/bin/python memory_mcp_direct.py

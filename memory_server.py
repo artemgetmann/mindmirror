@@ -7,7 +7,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-from datetime import datetime
 from typing import List, Optional
 import json
 import os
@@ -35,20 +34,56 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Global variables
-DB_CONFIG = {
-    'host': 'REDACTED_DB_HOST',
-    'database': 'postgres',
-    'user': 'REDACTED_DB_USER',
-    'password': 'REDACTED_DB_PASSWORD',
-    'port': 6543,
-    'sslmode': 'require'
-}
 security = HTTPBearer(auto_error=False)
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    """Parse boolean env flags consistently."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _required_env(name: str) -> str:
+    """Fail fast for required DB settings when DATABASE_URL is not provided."""
+    value = os.getenv(name)
+    if value:
+        return value
+    raise RuntimeError(f"Missing required environment variable: {name}")
+
+
+def _csv_env(name: str, default_values: List[str]) -> List[str]:
+    raw = os.getenv(name)
+    if not raw:
+        return default_values
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+def get_db_connection():
+    """
+    Get a PostgreSQL connection from DATABASE_URL or explicit DB_* variables.
+    Keeping this in one place prevents accidental credential hardcoding.
+    """
+    if DATABASE_URL:
+        return psycopg2.connect(DATABASE_URL)
+
+    return psycopg2.connect(
+        host=_required_env("DB_HOST"),
+        database=_required_env("DB_NAME"),
+        user=_required_env("DB_USER"),
+        password=_required_env("DB_PASSWORD"),
+        port=int(os.getenv("DB_PORT", "5432")),
+        sslmode=os.getenv("DB_SSLMODE", "require"),
+    )
 
 # Database initialization
 def init_auth_db():
     """Initialize authentication database"""
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -74,6 +109,12 @@ def init_auth_db():
         ALTER TABLE auth_tokens 
         ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false
     """)
+
+    # Keep schema in sync for token generation endpoint.
+    cursor.execute("""
+        ALTER TABLE auth_tokens
+        ADD COLUMN IF NOT EXISTS email TEXT
+    """)
     
     # Create waitlist table
     cursor.execute("""
@@ -85,21 +126,50 @@ def init_auth_db():
             FOREIGN KEY (token_used) REFERENCES auth_tokens(token)
         )
     """)
+
+    # Core memory storage tables used by all API endpoints.
+    cursor.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS memories (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            text TEXT NOT NULL,
+            tag TEXT NOT NULL,
+            embedding vector(384) NOT NULL,
+            metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_memories_user_id ON memories(user_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_memories_tag ON memories(tag)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_memories_created_at ON memories(created_at)")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS short_term_memories (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT UNIQUE NOT NULL,
+            title TEXT,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     
     # Create default token if none exists
     cursor.execute("SELECT COUNT(*) FROM auth_tokens WHERE is_active = true")
-    if cursor.fetchone()[0] == 0:
+    active_token_count = cursor.fetchone()[0]
+    should_bootstrap_token = _env_bool("BOOTSTRAP_DEFAULT_TOKEN", False)
+    if active_token_count == 0 and should_bootstrap_token:
         default_token = secrets.token_urlsafe(32)
         cursor.execute("""
             INSERT INTO auth_tokens (token, user_id, user_name) 
             VALUES (%s, %s, %s)
         """, (default_token, "default_user", "Default User"))
-        
-        logger.info(f"🔑 DEFAULT TOKEN CREATED: {default_token}")
-        logger.info(f"🔗 Use this URL: http://localhost:{os.getenv('MEMORY_SERVER_PORT', '8001')}/memories?token={default_token}")
-        # Also write to file for local development
+
+        logger.info("Bootstrapped default token for local setup (written to /tmp/auth_token.txt)")
         with open("/tmp/auth_token.txt", "w") as f:
             f.write(default_token)
+    elif active_token_count == 0:
+        logger.info("No active tokens exist yet. Use /api/generate-token to create one.")
     
     conn.commit()
     cursor.close()
@@ -120,14 +190,14 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Memory System v0", lifespan=lifespan)
 
 # Configure CORS
-origins = [
+origins = _csv_env("CORS_ALLOW_ORIGINS", [
     "http://localhost:5173",  # Vite dev server
     "http://localhost:5174",  # Alternative dev port
     "http://localhost:8081",  # Frontend dev server
     "https://usemindmirror.com",  # Production domain
     "https://www.usemindmirror.com",  # Production with www
     "https://memory.usemindmirror.com",  # Memory subdomain
-]
+])
 
 app.add_middleware(
     CORSMiddleware,
@@ -146,7 +216,7 @@ memory_hashes = set()
 
 # Load existing memory hashes on startup
 try:
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT metadata->>'hash' as hash FROM memories WHERE metadata->>'hash' IS NOT NULL")
     hashes = cursor.fetchall()
@@ -173,10 +243,10 @@ SIMILARITY_THRESHOLD = 0.65  # Threshold for conflict detection
 # Authentication functions
 def get_user_from_token(token: str) -> Optional[str]:
     """Get user_id from token"""
-    logger.info(f"Validating token: {token[:10]}...")
+    logger.info("Validating token")
     
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -196,7 +266,7 @@ def get_user_from_token(token: str) -> Optional[str]:
             conn.commit()
             logger.info(f"Token validated successfully for user: {result[0]}")
         else:
-            logger.warning(f"Token validation failed for token: {token[:10]}...")
+            logger.warning("Token validation failed")
         
         cursor.close()
         conn.close()
@@ -209,15 +279,16 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
     """Get current user from token (URL param or Authorization header)"""
     # Validate host to ensure memory limits are enforced
     host = request.headers.get("host", "")
-    allowed_hosts = [
+    allowed_hosts = set(_csv_env("ALLOWED_API_HOSTS", [
         "memory.usemindmirror.com",
         "localhost:8001", 
         "localhost:8000",
         "127.0.0.1:8001",
         "127.0.0.1:8000"
-    ]
+    ]))
+    enforce_host_check = _env_bool("ENFORCE_HOST_CHECK", True)
     
-    if host not in allowed_hosts:
+    if enforce_host_check and host not in allowed_hosts:
         logger.warning(f"Memory access denied from unauthorized host: {host}")
         raise HTTPException(
             status_code=403, 
@@ -229,12 +300,12 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
     # Check URL parameter first (Zapier-style)
     if "token" in request.query_params:
         token = request.query_params["token"]
-        logger.info(f"Token provided via URL parameter: {token[:10]}...")
+        logger.info("Token provided via URL parameter")
     
     # Check Authorization header as fallback
     elif credentials:
         token = credentials.credentials
-        logger.info(f"Token provided via Authorization header: {token[:10]}...")
+        logger.info("Token provided via Authorization header")
     
     if not token:
         logger.warning("No authentication token provided")
@@ -242,7 +313,7 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
     
     user_id = get_user_from_token(token)
     if not user_id:
-        logger.warning(f"Authentication failed for token: {token[:10]}...")
+        logger.warning("Authentication failed for provided token")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     logger.info(f"Request authenticated for user: {user_id}")
@@ -305,10 +376,6 @@ class ResumeResponse(BaseModel):
     title: Optional[str] = None
     created_at: Optional[str] = None
     id: Optional[int] = None
-
-def get_db_connection():
-    """Get database connection"""
-    return psycopg2.connect(**DB_CONFIG)
 
 @app.post("/memories")
 async def store_memory(memory: MemoryItem, user_id: str = Depends(get_current_user)):
@@ -1142,7 +1209,7 @@ async def generate_token(request: TokenGenerationRequest):
         user_name = request.user_name or f"User {user_id[-8:]}"
 
         # Store token in database
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -1191,7 +1258,7 @@ async def join_waitlist(request: WaitlistRequest):
         if "@" not in request.email or "." not in request.email:
             raise HTTPException(status_code=400, detail="Invalid email format")
         
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Try to insert email (will fail if duplicate due to UNIQUE constraint)

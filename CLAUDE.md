@@ -1,179 +1,54 @@
 # CLAUDE.md
 
-Development guidance for the MCP Memory System - a production-ready persistent memory SaaS for AI assistants.
+Agent-facing reference for this repository.
 
-## Current Architecture (Production)
+## What This Repo Is
 
-```
-Frontend (Vercel) → Backend API (Render) → PostgreSQL (Supabase) → Claude Desktop (MCP)
-```
+MCP-backed persistent memory service:
+- `memory_server.py` for storage/search/auth APIs
+- `memory_mcp_direct.py` for MCP transport + tool exposure
+- `frontend/` for token generation and integration UX
 
-**Services:**
-- `memory_server.py` - FastAPI backend with PostgreSQL + pgvector (port 8001)
-- `memory_mcp_direct.py` - MCP server for Claude Desktop integration (port 8000)
-- Frontend React/TypeScript SPA with token generation UI
+## Local Run
 
-## Quick Development Setup
+Default workflow (preferred for agents and local development):
 
 ```bash
-# Start backend services
-python memory_server.py      # API backend (port 8001)
-python memory_mcp_direct.py  # MCP interface (port 8000)
-
-# Start frontend (optional)
-cd frontend && npm run dev    # Port 8081
+cp .env.local.example .env.local
+$EDITOR .env.local
+docker compose --env-file .env.local up --build
 ```
 
-## Key API Endpoints
-
-### Frontend APIs
-- `POST /api/generate-token` - Generate new user token with MCP URL
-- `POST /api/join-waitlist` - Premium waitlist signup
-
-### Memory APIs (Token-authenticated)
-- `POST /memories?token=TOKEN` - Store memory with conflict detection
-- `POST /memories/search?token=TOKEN` - Vector similarity search  
-- `GET /memories?token=TOKEN` - List user memories
-- `DELETE /memories/{id}?token=TOKEN` - Delete specific memory
-- `POST /checkpoint?token=TOKEN` - Save conversation checkpoint (overwrites existing)
-- `POST /resume?token=TOKEN` - Retrieve saved checkpoint
-
-## Development Testing
+Optional direct process workflow:
 
 ```bash
-# Test token generation
-curl -X POST http://localhost:8001/api/generate-token
-
-# Test memory storage
-curl -X POST "http://localhost:8001/memories?token=TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "I prefer working mornings", "tag": "preference"}'
-
-# Test MCP integration
-# Method 1: MCP Inspector (Quick testing)
-npx @modelcontextprotocol/inspector "http://localhost:8000/sse?token=TOKEN"
-
-# Method 2: Claude Desktop (Production testing)
-# Add to Claude Desktop config: ~/Library/Application Support/Claude/claude_desktop_config.json
-{
-  "mcpServers": {
-    "mindmirror": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://localhost:8000/sse?token=TOKEN"]
-    }
-  }
-}
-
-# Test memory limits
-python limit_test_unique.py
+cp .env.example .env
+pip install -r requirements.txt
+python memory_server.py
+python memory_mcp_direct.py
 ```
 
-## Database Operations
+## Required Environment
+
+Either:
+- `DATABASE_URL`
+
+Or:
+- `DB_HOST`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+
+## Important Safety Rules
+
+- Do not hardcode credentials or tokens in source code.
+- Do not commit logs, local databases, cache files, or `node_modules`.
+- Prefer `Authorization: Bearer` token auth; query token is legacy-compatible.
+
+## Quick Checks
 
 ```bash
-# Connect to production database
-psql "postgresql://REDACTED_DB_USER:REDACTED_DB_PASSWORD@REDACTED_DB_HOST:6543/postgres?sslmode=require"
-
-# Check active users
-SELECT COUNT(DISTINCT user_id) FROM auth_tokens WHERE is_active = true;
-
-# View memory usage
-SELECT tag, COUNT(*) FROM memories GROUP BY tag;
+python3 -m py_compile memory_server.py memory_mcp_direct.py
+curl http://localhost:8001/health
+curl http://localhost:8000/health
 ```
-
-## System Configuration
-
-### Memory Limits
-- **Free Users**: 25 memories maximum
-- **Admin Users**: Unlimited (is_admin = true in auth_tokens)
-- **Premium**: Unlimited (planned feature)
-
-### Similarity Thresholds
-- **Conflict Detection**: 0.65 similarity triggers conflict flagging
-- **Duplicate Prevention**: 0.95 similarity blocks storage
-- **Vector Model**: SentenceTransformers all-MiniLM-L6-v2 (384 dimensions)
-
-### Memory Tags
-Fixed set: `goal`, `routine`, `preference`, `constraint`, `habit`, `project`, `tool`, `identity`, `value`
-
-## MCP Integration
-
-### Six Core Functions (Claude Desktop)
-- `remember(text, category)` - Store new memory
-- `recall(query, limit, category_filter)` - Search memories
-- `forget(information_id)` - Delete specific memory  
-- `what_do_you_know(category, limit)` - List all memories
-- `checkpoint(text, title)` - Save conversation context for later continuation
-- `resume()` - Retrieve saved conversation checkpoint
-
-### Token Authentication
-- Each user gets unique token via frontend
-- MCP URL format: `https://mcp-memory-uw0w.onrender.com/sse?token=USER_TOKEN`
-- Token validates against PostgreSQL auth_tokens table
-
-## Production URLs
-
-- **Backend API**: https://mcp-memory-uw0w.onrender.com
-- **Frontend**: https://usemindmirror.com (deploying to Vercel)
-- **Health Check**: https://mcp-memory-uw0w.onrender.com/health
-
-## Development Patterns
-
-1. **Always test locally first**: Use curl for API, test MCP with both Inspector (quick) and Claude Desktop (production-like)
-2. **Database changes**: Test with psql before code changes
-3. **Frontend integration**: Use localhost:8001 for development API calls
-4. **Memory limits**: Test with limit_test_unique.py
-5. **MCP changes**: Restart Claude Desktop to pick up changes
-
-## Testing MCP Changes with Claude Desktop
-
-When modifying MCP function docstrings or server logic:
-
-1. **Kill existing MCP server**: `pkill -f memory_mcp_direct.py`
-2. **Restart MCP server**: `source venv/bin/activate && python memory_mcp_direct.py > logs/memory_mcp_direct.log 2>&1 &`
-3. **Restart Claude Desktop**: Quit and reopen Claude Desktop application
-4. **Test functions**: Use updated functions (checkpoint, resume, etc.) to verify changes
-5. **Check logs**: Monitor both MCP server logs and Claude Desktop behavior
-
-**Note**: Both server restart AND Claude Desktop restart are required for MCP function changes to take effect.
-
-## Local Claude Desktop Setup
-
-### Adding MCP Server to Claude Desktop
-
-1. **Generate token**: `curl -X POST http://localhost:8001/api/generate-token -H "Content-Type: application/json" -d '{}'`
-
-2. **Edit Claude Desktop config**: `/Users/user/Library/Application Support/Claude/claude_desktop_config.json`
-
-3. **Add mindmirror_local entry**:
-```json
-{
-  "mcpServers": {
-    "mindmirror_local": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://localhost:8000/sse?token=YOUR_TOKEN_HERE"]
-    }
-  }
-}
-```
-
-4. **Restart Claude Desktop** to pick up config changes
-
-### Port Notes
-- **Port 8001**: Backend API server (`memory_server.py`)
-- **Port 8000**: MCP server (`memory_mcp_direct.py`) - default port
-- **Port conflicts**: If 8000 is occupied (e.g., by Docker), use `PORT=8002 python memory_mcp_direct.py` and update config accordingly
-- **Checkpoint functions**: `checkpoint(text, title)` and `resume()` available after setup
-
-## Key Files
-
-- `memory_server.py` - Main backend API server
-- `memory_mcp_direct.py` - MCP protocol implementation
-- `frontend/src/api/memory.ts` - Frontend API client
-- `frontend/src/components/TokenModal.tsx` - Token generation UI
-- `start_direct.sh` - Production deployment script
-- `DOCS.md` - Comprehensive documentation
-
----
-
-*For detailed documentation, see [DOCS.md](DOCS.md)*

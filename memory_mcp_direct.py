@@ -46,16 +46,56 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configuration
-MEMORY_API_BASE = "http://localhost:8001"
-DB_CONFIG = {
-    'host': 'REDACTED_DB_HOST',
-    'database': 'postgres',
-    'user': 'REDACTED_DB_USER',
-    'password': 'REDACTED_DB_PASSWORD',
-    'port': 6543,
-    'sslmode': 'require'
-}
+def _required_env(name: str) -> str:
+    value = os.getenv(name)
+    if value:
+        return value
+    raise RuntimeError(f"Missing required environment variable: {name}")
+
+
+def _csv_env(name: str, default_values: List[str]) -> List[str]:
+    raw = os.getenv(name)
+    if not raw:
+        return default_values
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+MEMORY_API_BASE = os.getenv("MEMORY_API_BASE", "http://localhost:8001")
+ALLOWED_CORS_ORIGINS = _csv_env("CORS_ALLOW_ORIGINS", [
+    "https://claude.ai",
+    "http://localhost:5173",
+    "http://localhost:8081",
+    "https://usemindmirror.com",
+    "https://www.usemindmirror.com",
+    "https://memory.usemindmirror.com",
+])
+ALLOWED_TRANSPORT_HOSTS = _csv_env("MCP_ALLOWED_HOSTS", [
+    "localhost",
+    "localhost:8000",
+    "localhost:8001",
+    "localhost:8002",
+    "127.0.0.1",
+    "127.0.0.1:8000",
+    "127.0.0.1:8001",
+    "127.0.0.1:8002",
+    "memory.usemindmirror.com",
+])
+
+
+def get_db_connection():
+    """Centralized DB connector to avoid credential literals in source."""
+    if DATABASE_URL:
+        return psycopg2.connect(DATABASE_URL)
+
+    return psycopg2.connect(
+        host=_required_env("DB_HOST"),
+        database=_required_env("DB_NAME"),
+        user=_required_env("DB_USER"),
+        password=_required_env("DB_PASSWORD"),
+        port=int(os.getenv("DB_PORT", "5432")),
+        sslmode=os.getenv("DB_SSLMODE", "require"),
+    )
 
 # Valid memory tags (must match memory_server.py)
 VALID_TAGS = ["goal", "routine", "preference", "constraint", "habit", "project", "tool", "identity", "value"]
@@ -67,18 +107,7 @@ mcp = FastMCP(
     streamable_http_path="/",  # Mount at root so we control the path when mounting
     transport_security=TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
-        allowed_hosts=[
-            "localhost",
-            "localhost:8000",
-            "localhost:8001",
-            "localhost:8002",
-            "127.0.0.1",
-            "127.0.0.1:8000",
-            "127.0.0.1:8001",
-            "127.0.0.1:8002",
-            "mcp-memory-uw0w.onrender.com",
-            "memory.usemindmirror.com",
-        ],
+        allowed_hosts=ALLOWED_TRANSPORT_HOSTS,
     ),
     instructions="""
 GLOBAL POLICY (embedded, minimal)
@@ -122,7 +151,7 @@ async def validate_token(token: str) -> Optional[str]:
         return None
     
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Check if token exists and is active
@@ -148,7 +177,7 @@ async def validate_token(token: str) -> Optional[str]:
             conn.close()
             return user_id
         else:
-            logger.warning(f"Invalid token provided: {token[:10]}...")
+            logger.warning("Invalid token provided")
             cursor.close()
             conn.close()
             return None
@@ -173,12 +202,12 @@ async def check_token(request: Request) -> dict:
     auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header[7:]  # Remove "Bearer " prefix
-        logger.info(f"Token provided via Authorization header: {token[:10]}...")
+        logger.info("Token provided via Authorization header")
     
     # Fallback to URL parameter for backward compatibility
     elif "token" in request.query_params:
         token = request.query_params.get("token")
-        logger.info(f"Token provided via URL parameter: {token[:10]}...")
+        logger.info("Token provided via URL parameter")
     
     if not token:
         logger.error("No token provided in Authorization header or URL parameters")
@@ -186,7 +215,7 @@ async def check_token(request: Request) -> dict:
     
     user_id = await validate_token(token)
     if not user_id:
-        logger.error(f"Invalid token: {token[:10]}...")
+        logger.error("Invalid token")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     # Set thread-safe context vars for this request
@@ -626,16 +655,6 @@ async def handle_sse_options(request: Request):
     """Handle OPTIONS preflight for SSE endpoint"""
     origin = request.headers.get("origin", "")
     
-    # Define allowed origins for MCP clients
-    allowed_origins = [
-        "https://claude.ai",
-        "http://localhost:5173",
-        "http://localhost:8081",
-        "https://usemindmirror.com",
-        "https://www.usemindmirror.com",
-        "https://memory.usemindmirror.com"
-    ]
-    
     headers = {
         "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, MCP-Protocol-Version, mcp-session-id",
@@ -643,7 +662,7 @@ async def handle_sse_options(request: Request):
         "MCP-Protocol-Version": "2025-06-18"
     }
     
-    if origin in allowed_origins:
+    if origin in ALLOWED_CORS_ORIGINS:
         headers["Access-Control-Allow-Origin"] = origin
     
     return Response(
@@ -677,16 +696,7 @@ async def handle_sse(request: Request):
     
     # Set CORS headers
     origin = request.headers.get("origin", "")
-    allowed_origins = [
-        "https://claude.ai",
-        "http://localhost:5173",
-        "http://localhost:8081",
-        "https://usemindmirror.com",
-        "https://www.usemindmirror.com",
-        "https://memory.usemindmirror.com"
-    ]
-    
-    if origin in allowed_origins:
+    if origin in ALLOWED_CORS_ORIGINS:
         response_headers["Access-Control-Allow-Origin"] = origin
         response_headers["Access-Control-Allow-Credentials"] = "true"
     
@@ -717,15 +727,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Memory MCP Server", version="2.0.0", lifespan=lifespan, redirect_slashes=False)
 
 # Configure CORS for frontend access
-origins = [
-    "https://claude.ai",  # Claude web app - NEW MCP CLIENT
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:5174",  # Alternative dev port
-    "http://localhost:8081",  # Frontend dev server
-    "https://usemindmirror.com",  # Production domain
-    "https://www.usemindmirror.com",  # Production with www
-    "https://memory.usemindmirror.com",  # Memory subdomain
-]
+origins = ALLOWED_CORS_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,
@@ -793,15 +795,6 @@ class MCPProtocolMiddleware:
                         origin = header_value.decode()
                         break
                 
-                allowed_origins = [
-                    "https://claude.ai",
-                    "http://localhost:5173",
-                    "http://localhost:8081", 
-                    "https://usemindmirror.com",
-                    "https://www.usemindmirror.com",
-                    "https://memory.usemindmirror.com"
-                ]
-                
                 headers = [
                     (b"access-control-allow-methods", b"GET, POST, DELETE, OPTIONS"),
                     (b"access-control-allow-headers", b"Content-Type, Authorization, MCP-Protocol-Version, mcp-session-id"),
@@ -809,7 +802,7 @@ class MCPProtocolMiddleware:
                     (b"mcp-protocol-version", b"2025-06-18")
                 ]
                 
-                if origin in allowed_origins:
+                if origin in ALLOWED_CORS_ORIGINS:
                     headers.append((b"access-control-allow-origin", origin.encode()))
                 
                 await send({
@@ -834,16 +827,7 @@ class MCPProtocolMiddleware:
                         origin = header_value.decode()
                         break
                 
-                allowed_origins = [
-                    "https://claude.ai",
-                    "http://localhost:5173",
-                    "http://localhost:8081",
-                    "https://usemindmirror.com", 
-                    "https://www.usemindmirror.com",
-                    "https://memory.usemindmirror.com"
-                ]
-                
-                if origin in allowed_origins:
+                if origin in ALLOWED_CORS_ORIGINS:
                     headers.append((b"access-control-allow-origin", origin.encode()))
                     headers.append((b"access-control-allow-credentials", b"true"))
                 

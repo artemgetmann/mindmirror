@@ -19,7 +19,7 @@ This directory contains files specifically for local development and testing wit
 ## Local Development Architecture
 
 ```
-User Input → LM Studio (port 1234) → memory_controller.py → mcp_wrapper.py (port 8002) → memory_server.py (port 8003) → ChromaDB
+User Input → LM Studio (port 1234) → memory_controller.py → mcp_wrapper.py (port 8002) → memory_server.py (port 8001) → PostgreSQL + pgvector
 ```
 
 ## Usage
@@ -34,5 +34,5 @@ User Input → LM Studio (port 1234) → memory_controller.py → mcp_wrapper.py
 
 These files are for local development only. Production deployment uses:
 - `memory_server.py` (cloud deployment)
-- `memory_mcp_server.py` (direct MCP integration)
-- `proxy_sse.py` (SSE proxy for cloud)
+- `memory_mcp_direct.py` (direct MCP integration)
+- `start_direct.sh` (service orchestration)
