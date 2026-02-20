@@ -222,3 +222,6 @@ frontend/node_modules/
 # Historical/private artifacts
 archive/archive_old_files/*.db
 archive/archive_old_files/*_logs.txt
+
+# Local-only working docs
+/docs/MindMirror_Marketing.xlsx
